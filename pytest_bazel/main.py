@@ -15,7 +15,11 @@ def main():
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
     pytest_args = [
         # All of the external python packages will have `site-packages` in them.
+        "--ignore=external",
         "--ignore=site-packages",
+        # Avoid loading of the plugin "cacheprovider".
+        "-p",
+        "no:cacheprovider",
     ]
 
     args = sys.argv[1:]
@@ -89,4 +93,10 @@ def main():
     else:
         pytest_args.extend(args)
 
-    raise SystemExit(pytest.main(pytest_args))
+    exit_code = pytest.main(pytest_args)
+
+    if exit_code != 0:
+        print("Pytest exit code: " + str(exit_code), file=sys.stderr)
+        print("Ran pytest.main with " + str(args), file=sys.stderr)
+
+    sys.exit(exit_code)

@@ -6,10 +6,19 @@ used via PyPI and no bazel rules will be exported for the time being.
 ## Goals
 
 - [x] rules_python_pytest code is reused so that the effort by all of the authors there is not wasted.
-- [ ] code from aspect rules_py is checked and maybe used here.
+- [x] [code][rules_py] from aspect rules_py is checked and maybe used here.
+- [ ] Looking at the [test_encyclopedia], the following can be still added:
+    - [ ] `--capture=no` depending on whether `bazel run` or `bazel test` is used.
+    - [ ] `TEST_WARNINGS_OUTPUT_FILE` is used to output `warnings.warn` usage.
+    - [ ] `TEST_TMPDIR` is used
+    - [ ] `TEST_SRCDIR` is maybe used to pass in the root where to start discovery.
+    - [ ] `TEST_RANDOM_SEED` is used for predictive tests.
+    - [ ] `TEST_INFRASTRUCTURE_FAILURE_FILE` is used when `pytest` fails to discover any tests.
 - [ ] rules_python FR are submitted.
-- [ ] warnings file is created for better integration with bazel.
 - [ ] No passing of files as args is needed. Pytest discovery is working as expected
+
+[rules_py]: https://github.com/aspect-build/rules_py/blob/main/py/private/pytest.py.tmpl
+[test_encyclopedia]: https://bazel.build/reference/test-encyclopedia
 
 ## Usage
 
