@@ -5,8 +5,6 @@ used via PyPI and no bazel rules will be exported for the time being.
 
 ## Goals
 
-- [x] rules_python_pytest code is reused so that the effort by all of the authors there is not wasted.
-- [x] [code][rules_py] from aspect rules_py is checked and maybe used here.
 - [ ] Looking at the [test_encyclopedia], the following can be still added:
     - [ ] `--capture=no` depending on whether `bazel run` or `bazel test` is used.
     - [ ] `TEST_WARNINGS_OUTPUT_FILE` is used to output `warnings.warn` usage.
@@ -14,10 +12,11 @@ used via PyPI and no bazel rules will be exported for the time being.
     - [ ] `TEST_SRCDIR` is maybe used to pass in the root where to start discovery.
     - [ ] `TEST_RANDOM_SEED` is used for predictive tests.
     - [ ] `TEST_INFRASTRUCTURE_FAILURE_FILE` is used when `pytest` fails to discover any tests.
+- [ ] Consider recommendations on project structure (separate `tests` dir may
+  facilitate integration with `pytest`, but this needs further checking).
 - [ ] rules_python FR are submitted.
-- [ ] No passing of files as args is needed. Pytest discovery is working as expected
+- [ ] No passing of files as args is needed. Pytest discovery is working as expected.
 
-[rules_py]: https://github.com/aspect-build/rules_py/blob/main/py/private/pytest.py.tmpl
 [test_encyclopedia]: https://bazel.build/reference/test-encyclopedia
 
 ## Usage
@@ -109,7 +108,10 @@ describing what you would like to have in this project.
 
 ## Thanks
 
-Special thanks to @caseyduquetteesc for his
-https://github.com/caseyduquettesc/rules_python_pytest project, that inspired
-me to package it in a different to see what is possible today with
-`rules_python`.
+Special thanks to [rules_python_pytest] and [rules_py] projects that had some
+great ideas how to integrate with `pytest`. This attempts to [unify] all of the
+approaches.
+
+[rules_python_pytest]: https://github.com/caseyduquettesc/rules_python_pytest 
+[rules_py]: https://github.com/aspect-build/rules_py/blob/main/py/private/pytest.py.tmpl
+[unify]: https://xkcd.com/927/
