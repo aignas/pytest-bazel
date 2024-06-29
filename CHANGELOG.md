@@ -25,5 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/v0.0.0...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/aignas/pytest-bazel/releases/tag/v0.0.1
 [0.0.0]: https://github.com/aignas/pytest-bazel/releases/tag/v0.0.0
