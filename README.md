@@ -3,6 +3,90 @@
 A pytest wrapper for supporting bazel's rule_python. This is supposed to be
 used via PyPI and no bazel rules will be exported for the time being.
 
+## Goals
+
+- [x] rules_python_pytest code is reused so that the effort by all of the authors there is not wasted.
+- [ ] code from aspect rules_py is checked and maybe used here.
+- [ ] rules_python FR are submitted.
+- [ ] warnings file is created for better integration with bazel.
+- [ ] No passing of files as args is needed. Pytest discovery is working as expected
+
+## Usage
+
+**NOTE, this is not fully tested and is in a very early POC state!**
+
+### Pattern 1
+
+Using it as an alternative to `unittest.main()` in a `py_test` rule.
+
+```python
+import pytest_bazel
+
+...
+
+if __name__ == "__main__":
+    pytest_bazel.main()
+```
+
+```starlark
+# BUILD.bazel contents
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "my_test",
+    # ...
+    deps = ["@pypi//pytest_bazel"],
+)
+```
+
+### Pattern 2
+
+Using it to create a macro, this shows how to create a replacement for the
+`rules_python_pytest` `py_pytest_test` macro. The benefit is that this defines
+all of the necessary files in a single place.
+
+```starlark
+# pytest_test.bzl contents
+load("@rules_python//python:py_test.bzl", "py_test")
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python/entry_points:py_console_script_binary.bzl", "py_console_script_binary")
+
+def pytest_test(name, visibility = None, **kwargs):
+    # this is only needed for passing srcs
+    py_library(
+        name = name + ".lib",
+        #testonly = True,
+        **kwargs,
+    )
+
+    py_console_script_binary(
+        name = "test_simple",
+        pkg = "@pypi//pytest_bazel",  # assuming your hub repo name is `pypi`.
+        binary_rule = py_test,
+        deps = [
+            # The test sources are here
+            name + ".lib",
+            # Add extra test deps below, e.g. for sharding support, etc.
+        ],
+        # TODO @aignas 2024-06-29: support testonly here
+        #testonly = True,
+        # The following is reusing the ideas defined in
+        # https://github.com/caseyduquettesc/rules_python_pytest/blob/main/python_pytest/defs.bzl
+        args = kwargs.get("args", []) + [
+            "$(location :%s)" % x for x in srcs],
+        ],
+    )
+
+# BUILD.bazel contents
+load("//:pytest_test.bzl", "pytest_test")
+
+pytest_test(
+    name = "my_test",
+    # ...
+    deps = ["@pypi//pytest_bazel"],
+)
+```
+
 ## Changelog
 
 See [changelog].
@@ -13,3 +97,10 @@ See [changelog].
 
 This is right now too early to be contributed to code-wise, but issues welcome
 describing what you would like to have in this project.
+
+## Thanks
+
+Special thanks to @caseyduquetteesc for his
+https://github.com/caseyduquettesc/rules_python_pytest project, that inspired
+me to package it in a different to see what is possible today with
+`rules_python`.

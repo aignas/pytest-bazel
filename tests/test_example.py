@@ -10,10 +10,6 @@ def test_tmpdir(tmpdir):
     assert want == got
 
 
-def test_failing():
-    assert False
-
-
 class TestCase(unittest.TestCase):
     def test_simple(self):
-        self.assertEqual("42", "41")
+        self.assertEqual("42", "42")

@@ -13,7 +13,10 @@ import pytest
 
 def main():
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
-    pytest_args = ["--ignore=external"]
+    pytest_args = [
+        # All of the external python packages will have `site-packages` in them.
+        "--ignore=site-packages",
+    ]
 
     args = sys.argv[1:]
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.

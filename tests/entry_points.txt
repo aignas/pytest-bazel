@@ -1,2 +1,2 @@
 [console_scripts]
-pytest-bazel = pytest_bazel.main:main
+pytest_bazel = pytest_bazel:main

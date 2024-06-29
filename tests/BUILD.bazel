@@ -31,7 +31,7 @@ py_console_script_binary(
     name = "test_simple",
     pkg = ":pytest-bazel",
     entry_points_txt = ":entry_points",
-    script = "pytest-bazel",
+    script = "pytest_bazel",
     binary_rule = py_test,
     deps = [
         ":test_example",

@@ -21,7 +21,7 @@ py_wheel(
     description_file = "//:README.md",
     distribution = "pytest_bazel",
     entry_points = {
-        "console_scripts": ["pytest_bazel = pytest_bazel.main:main"],
+        "console_scripts": ["pytest_bazel = pytest_bazel:main"],
     },
     extra_distinfo_files = {
         "//:LICENSE": "LICENSE",
