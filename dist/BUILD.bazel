@@ -1,0 +1,46 @@
+# TODO @aignas 2024-06-29: autogenerate this file as all of the info is in pyproject.toml already
+load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
+
+licenses(["notice"])  # Apache 2.0
+
+py_package(
+    name = "srcs",
+    packages = ["pytest_bazel"],
+    deps = ["//pytest_bazel"],
+)
+
+# TODO @aignas 2024-06-29: Consider having `repairwheel` here so that it actually works
+py_wheel(
+    name = "whl",
+    author = "Ignas Anikevicius",
+    author_email = "pypi@anikevicius.lt",
+    classifiers = [
+        "Development Status :: 4 - Beta",
+        "Programming Language :: Python"
+    ],
+    description_file = "//:README.md",
+    distribution = "pytest_bazel",
+    entry_points = {
+        "console_scripts": ["pytest_bazel = pytest_bazel.main:main"],
+    },
+    extra_distinfo_files = {
+        "//:LICENSE": "LICENSE",
+        "//:README.md": "README",
+    },
+    homepage = "https://github.com/aignas/pytest-bazel",
+    license = "Apache 2.0",
+    project_urls = {
+        "Bug Tracker": "https://github.com/aignas/pytest-bazel/issues",
+        "Changelog": "https://github.com/aignas/pytest-bazel/blob/main/CHANGELOG.md",
+        "Documentation": "https://github.com/aignas/pytest-bazel",
+        "Homepage": "https://github.com/aignas/pytest-bazel",
+        "Repository": "https://github.com/aignas/pytest-bazel.git",
+    },
+    python_tag = "py3",
+    requires = ["pytest"],
+    summary = "A pytest runner with bazel support",
+    # this can be replaced by building with --stamp --embed_label=1.2.3
+    version = "{BUILD_EMBED_LABEL}",
+    deps = [":srcs"],
+    visibility = ["//tests:__subpackages__"],
+)

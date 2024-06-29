@@ -1,0 +1,22 @@
+---
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.5.0
+  hooks:
+    - id: ruff
+      args: [--fix]
+    - id: ruff-format
+- repo: local
+  hooks:
+    - name: bazel mod tidy
+      id: bazel-mod-tidy
+      entry: bazel mod tidy
+      files: ^MODULE.bazel$
+      language: system
+      pass_filenames: false
+    - name: bazel mod lock
+      id: bazel-mod-tidy
+      entry: bazel mod deps --lockfile_mode=refresh
+      files: ^(MODULE.bazel*|requirements.txt)$
+      language: system
+      pass_filenames: false

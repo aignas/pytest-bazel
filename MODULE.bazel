@@ -1,0 +1,24 @@
+module(
+    name = "pytest-bazel",
+    version = "0.0.0",
+    compatibility_level = 0,
+)
+
+bazel_dep(name = "rules_python", version = "0.33.2", dev_dependency = True)
+bazel_dep(name = "rules_uv", version = "0.16.0", dev_dependency = True)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    # TODO @aignas 2024-06-29: support setting up all versions
+    python_version = "3.8",
+)
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    experimental_index_url = "https://pypi.org/simple",
+    hub_name = "pypi",
+    # TODO @aignas 2024-06-29: support setting up all versions
+    python_version = "3.8",
+    requirements_lock = "//:requirements.txt",
+)
+use_repo(pip, "pypi")

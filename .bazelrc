@@ -1,0 +1,7 @@
+test --test_output=errors
+
+# TODO @aignas 2024-06-29: check if not having this will break anything
+build --incompatible_default_to_explicit_init_py
+
+common --lockfile_mode=update
+common:ci --lockfile_mode=error
