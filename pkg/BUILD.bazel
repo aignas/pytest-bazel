@@ -62,7 +62,9 @@ write_file(
     content = [
         "#!/bin/bash",
         "set -euxo pipefail",
-        "cp -v dist/*.whl \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
+        "rm -rf \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
+        "mkdir -p \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
+        "cp -v pkg/*.whl \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
     ],
 )
 

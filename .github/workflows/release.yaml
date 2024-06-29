@@ -21,7 +21,7 @@ jobs:
 
       - name: Prepare dist folder
         run: |
-          bazel run --stamp --embed_label=${{ github.ref_name }} //dist:prepare
+          bazel run --stamp --embed_label=${{ github.ref_name }} //pkg:prepare
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

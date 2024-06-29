@@ -1,6 +1,8 @@
 load("@rules_uv//uv:pip.bzl", "pip_compile")
 load("@rules_uv//uv:venv.bzl", "create_venv")
 
+licenses(["notice"])  # Apache 2.0
+
 pip_compile(
     name = "lock_update",
     requirements_in = "//:pyproject.toml",
