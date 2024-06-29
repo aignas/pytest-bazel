@@ -1,5 +1,6 @@
 # TODO @aignas 2024-06-29: autogenerate this file as all of the info is in pyproject.toml already
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 
 licenses(["notice"])  # Apache 2.0
 
@@ -45,4 +46,28 @@ py_wheel(
     version = "{BUILD_EMBED_LABEL}",
     visibility = ["//tests:__subpackages__"],
     deps = [":srcs"],
+)
+
+filegroup(
+    name = "dist",
+    srcs = [
+        "whl"
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
+write_file(
+    name = "prepare_sh",
+    out = "prepare.sh",
+    content = [
+        "#!/bin/bash",
+        "set -euxo pipefail",
+        "cp -v dist/*.whl \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
+    ],
+)
+
+sh_binary(
+    name = "prepare",
+    srcs = [":prepare_sh"],
+    data = ["dist"],
 )

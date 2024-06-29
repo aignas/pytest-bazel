@@ -19,12 +19,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Publish wheel dist
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ steps.mint-token.outputs.api-token }}
+      - name: Prepare dist folder
         run: |
-          bazel build --stamp --embed_label=${{ github.ref_name }} //dist:whl
+          bazel run --stamp --embed_label=${{ github.ref_name }} //dist:prepare
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
