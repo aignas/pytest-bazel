@@ -1,0 +1,23 @@
+load("@rules_uv//uv:pip.bzl", "pip_compile")
+load("@rules_uv//uv:venv.bzl", "create_venv")
+
+pip_compile(
+    name = "lock_update",
+    requirements_in = "//:pyproject.toml",
+    requirements_txt = "//:requirements.txt",
+)
+
+create_venv(
+    name = "create_venv",
+    destination_folder = ".venv",
+)
+
+# dist files
+
+exports_files(
+    [
+        "README.md",
+        "LICENSE",
+    ],
+    visibility = ["//:__subpackages__"],
+)

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytest-bazel"
+version = "0.0.1"
+dependencies = [
+  "pytest",
+]
+requires-python = ">=3.8"
+authors = [
+  {name = "Ignas Anikevicius", email = "pypi@anikevicius.lt"},
+]
+maintainers = [
+  {name = "Ignas Anikevicius", email = "pypi@anikevicius.lt"},
+]
+description = "A pytest wrapper for bazel"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["pytest", "bazel"]
+classifiers = [
+  "Development Status :: 4 - Alpha",
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Homepage = "https://github.com/aignas/pytest-bazel"
+# TODO @aignas 2024-06-29: add RTD
+Documentation = "https://github.com/aignas/pytest-bazel"
+Repository = "https://github.com/aignas/pytest-bazel.git"
+"Bug Tracker" = "https://github.com/aignas/pytest-bazel/issues"
+Changelog = "https://github.com/aignas/pytest-bazel/blob/main/CHANGELOG.md"
