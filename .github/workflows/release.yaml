@@ -1,0 +1,30 @@
+---
+name: Release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Publish wheel dist
+        env:
+          # This special value tells PyPI that the user identity is supplied
+          # within the token
+          TWINE_USERNAME: __token__
+          # Note, the PYPI_API_TOKEN is added via
+          # https://github.com/aignas/pytest-bazel/settings/secrets/actions
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          bazel run --stamp --embed_label=${{ github.ref_name }} //dist:whl.publish
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: bazel-bin/dist/*.whl

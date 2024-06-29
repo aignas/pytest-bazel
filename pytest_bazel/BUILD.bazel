@@ -1,0 +1,10 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+
+py_library(
+    name = "pytest_bazel",
+    srcs = glob(["**/*.py"]),
+    deps = [
+        "@pypi//pytest",
+    ],
+    visibility = ["//:__subpackages__"],
+)
