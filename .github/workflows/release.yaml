@@ -8,7 +8,12 @@ on:
 
 jobs:
   release:
-    environment: release
+    environment:
+      name: release
+      url: https://pypi.org/p/pytest-bazel
+    permissions:
+      id-token: write
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,14 +21,15 @@ jobs:
 
       - name: Publish wheel dist
         env:
-          # This special value tells PyPI that the user identity is supplied
-          # within the token
           TWINE_USERNAME: __token__
-          # Note, the PYPI_API_TOKEN is added via
-          # https://github.com/aignas/pytest-bazel/settings/secrets/actions
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_PASSWORD: ${{ steps.mint-token.outputs.api-token }}
         run: |
-          bazel run --stamp --embed_label=${{ github.ref_name }} //dist:whl.publish
+          bazel build --stamp --embed_label=${{ github.ref_name }} //dist:whl
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: bazel-bin/dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2

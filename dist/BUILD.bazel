@@ -16,7 +16,7 @@ py_wheel(
     author_email = "pypi@anikevicius.lt",
     classifiers = [
         "Development Status :: 4 - Beta",
-        "Programming Language :: Python"
+        "Programming Language :: Python",
     ],
     description_file = "//:README.md",
     distribution = "pytest_bazel",
@@ -37,10 +37,12 @@ py_wheel(
         "Repository": "https://github.com/aignas/pytest-bazel.git",
     },
     python_tag = "py3",
-    requires = ["pytest"],
+    requires = [
+        "pytest",
+    ],
     summary = "A pytest runner with bazel support",
     # this can be replaced by building with --stamp --embed_label=1.2.3
     version = "{BUILD_EMBED_LABEL}",
-    deps = [":srcs"],
     visibility = ["//tests:__subpackages__"],
+    deps = [":srcs"],
 )
