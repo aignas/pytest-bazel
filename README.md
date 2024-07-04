@@ -55,34 +55,43 @@ all of the necessary files in a single place.
 
 ```starlark
 # pytest_test.bzl contents
-load("@rules_python//python:py_test.bzl", "py_test")
 load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
 load("@rules_python//python/entry_points:py_console_script_binary.bzl", "py_console_script_binary")
 
-def pytest_test(name, visibility = None, **kwargs):
+def pytest_test(name, srcs, **kwargs):
     # this is only needed for passing srcs
+    deps = kwargs.pop("deps", [])
+    data = kwargs.pop("data", [])
+    env = kwargs.pop("env", {})
     py_library(
         name = name + ".lib",
-        #testonly = True,
+        srcs = srcs,
+        deps = deps,
+        data = data,
+        testonly = True,
         **kwargs,
     )
 
     py_console_script_binary(
-        name = "test_simple",
+        name = name,
         pkg = "@pypi//pytest_bazel",  # assuming your hub repo name is `pypi`.
+        script = "pytest_bazel",
         binary_rule = py_test,
         deps = [
             # The test sources are here
             name + ".lib",
             # Add extra test deps below, e.g. for sharding support, etc.
         ],
-        # TODO @aignas 2024-06-29: support testonly here
-        #testonly = True,
+        data = data + srcs,
+        env = env,
+        testonly = True,
         # The following is reusing the ideas defined in
         # https://github.com/caseyduquettesc/rules_python_pytest/blob/main/python_pytest/defs.bzl
         args = kwargs.get("args", []) + [
-            "$(location :%s)" % x for x in srcs],
+            "$(location :%s)" % x for x in srcs
         ],
+        **kwargs,
     )
 
 # BUILD.bazel contents
