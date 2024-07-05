@@ -11,7 +11,7 @@ Features ported from [rules_python_pytest]:
   passing the filenames to the runner.
 - [x] Test sharding support using [pytest-shard].
 - [x] Supporting filtering tests via `bazel test --test_filter <target>`.
-- [ ] Installing [pytest-shard] via extras `pytest-bazel[shard]`.
+- [x] Installing [pytest-shard] via extras `pytest-bazel[shard]`.
 
 Features ported from [rules_py]:
 - [x] Use `-p no:cacheprovider`

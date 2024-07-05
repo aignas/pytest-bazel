@@ -24,6 +24,12 @@ classifiers = [
   "Programming Language :: Python"
 ]
 
+[project.optional-dependencies]
+all = ["pytest-bazel[shard]"]
+shard = [
+  "pytest-shard",
+]
+
 [project.urls]
 Homepage = "https://github.com/aignas/pytest-bazel"
 # TODO @aignas 2024-06-29: add RTD
