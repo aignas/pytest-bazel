@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
-Nothing yet.
+### Fixed
+
+- Fix the version bumping in the PyPI package when making a new release.
 
 ## [0.0.6]
 
