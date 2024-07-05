@@ -7,8 +7,17 @@ https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35
 
 import sys
 import os
+import warnings
 
 import pytest
+
+def _write_to_file_factory(out_file):
+    """Return a function that used to overwrite the warnings.showwarning to write to the file we specified"""
+
+    def bazel_collect_warning(message, category, filename, lineno, file=sys.stderr, line=None):
+        out_file.write(warnings.formatwarning(message, category, filename, lineno, line))
+
+    return bazel_collect_warning
 
 
 def main():
@@ -40,6 +49,12 @@ def main():
                 xml_output_file=os.environ.get("XML_OUTPUT_FILE")
             )
         )
+
+    # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
+    # cleaned up correctly in case things are not cleaned up correctly.
+    tmp_dir = os.environ.get("TEST_TMPDIR")
+    if tmp_dir:
+        args.append(f"--basetemp={tmp_dir}")
 
     # Handle test sharding - requires pytest-shard plugin.
     if os.environ.get("TEST_SHARD_INDEX") and os.environ.get("TEST_TOTAL_SHARDS"):
@@ -93,7 +108,13 @@ def main():
     else:
         pytest_args.extend(args)
 
-    exit_code = pytest.main(pytest_args)
+    warnings_file = os.environ.get("TEST_WARNINGS_OUTPUT_FILE")
+    if warnings_file:
+        with open(warnings_file, "w") as f:
+            warnings.showwarning = _write_to_file_factory(f)
+            exit_code = pytest.main(args)
+    else:
+        exit_code = pytest.main(args)
 
     if exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support `TEST_WARNINGS_OUTPUT_FILE` is used to output `warnings.warn` usage.
+- Support `TEST_TMPDIR` to set the base tmpdir that affects the `tmpdir` fixture.
+
 ### Changed
 
 ### Removed
