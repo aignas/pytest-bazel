@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.0.4]
+
+### Fixed
+
+- CI for generating release notes.
+
 ## [0.0.3]
 
 ### Added
@@ -43,7 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/v0.0.3...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/aignas/pytest-bazel/releases/tag/0.0.4
 [0.0.3]: https://github.com/aignas/pytest-bazel/releases/tag/0.0.3
 [0.0.2]: https://github.com/aignas/pytest-bazel/releases/tag/0.0.2
 [0.0.1]: https://github.com/aignas/pytest-bazel/releases/tag/0.0.1
