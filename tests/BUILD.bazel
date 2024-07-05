@@ -9,17 +9,17 @@ load("@rules_python//third_party/rules_pycross/pycross/private:wheel_library.bzl
 # `py_wheel_library`?
 py_wheel_library(
     name = "pytest-bazel",
-    wheel = "//dist:whl",
+    wheel = "//pkg:whl",
     deps = [
         "@pypi//pytest",
     ],
-    #testonly = True,
+    testonly = True,
 )
 
 py_library(
     name = "test_example",
     srcs = ["test_example.py"],
-    #testonly = True,
+    testonly = True,
 )
 
 filegroup(
@@ -37,6 +37,5 @@ py_console_script_binary(
         ":test_example",
         # Extra deps
     ],
-    # TODO @aignas 2024-06-29: support testonly here
-    #testonly = True,
+    testonly = True,
 )
