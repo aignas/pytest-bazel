@@ -12,6 +12,8 @@ py_wheel_library(
     wheel = "//pkg:whl",
     deps = [
         "@pypi//pytest",
+        "@pypi//pytest_shard",
+        "@pypi//pytest_randomly",
     ],
     testonly = True,
 )

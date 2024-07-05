@@ -50,6 +50,10 @@ def main():
             )
         )
 
+    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get("TEST_RUN_NUMBER")
+    if random_seed:
+        pytest_args.append(f"--randomly-seed={random_seed}")
+
     # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
     # cleaned up correctly in case things are not cleaned up correctly.
     tmp_dir = os.environ.get("TEST_TMPDIR")
@@ -118,6 +122,6 @@ def main():
 
     if exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
-        print("Ran pytest.main with " + str(args), file=sys.stderr)
+        print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
 
     sys.exit(exit_code)

@@ -22,7 +22,7 @@ Extra features implementing [test_encyclopedia] spec:
 - [x] `TEST_WARNINGS_OUTPUT_FILE` is used to output `warnings.warn` usage.
 - [x] `TEST_TMPDIR` is used
 - [ ] `TEST_SRCDIR` is maybe used to pass in the root where to start discovery.
-- [ ] `TEST_RANDOM_SEED` is used for predictive tests, consider integrating with https://pypi.org/project/pytest-randomly/.
+- [x] `TEST_RANDOM_SEED` is used for predictive tests, consider integrating with https://pypi.org/project/pytest-randomly/.
 - [ ] `TEST_INFRASTRUCTURE_FAILURE_FILE` is used when `pytest` fails to discover any tests.
 - [ ] `TEST_SIZE` is supported and users can mark tests to be run only when a particular `size` is set in the rule.
 - [ ] different default args depending on whether `bazel run` or `bazel test` is used (see `BAZEL_TEST` env var).
