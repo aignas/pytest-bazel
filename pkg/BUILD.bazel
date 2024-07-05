@@ -42,8 +42,7 @@ py_wheel(
         "pytest",
     ],
     summary = "A pytest runner with bazel support",
-    # this can be replaced by building with --stamp --embed_label=1.2.3
-    version = "0.0.2",
+    version = "0.0.3",
     visibility = ["//tests:__subpackages__"],
     deps = [":srcs"],
 )
