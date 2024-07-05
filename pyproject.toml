@@ -25,10 +25,12 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-all = ["pytest-bazel[shard]"]
-shard = [
-  "pytest-shard",
+all = [
+    "pytest-bazel[random]",
+    "pytest-bazel[shard]",
 ]
+shard = ["pytest-shard"]
+random = ["pytest-randomly"]
 
 [project.urls]
 Homepage = "https://github.com/aignas/pytest-bazel"

@@ -9,6 +9,7 @@ pip_compile(
         "--universal",
         "--generate-hashes",
         "--extra=all",
+        "--no-strip-extras",
     ],
     requirements_in = "//:pyproject.toml",
     requirements_txt = "//:requirements.txt",
