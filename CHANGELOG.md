@@ -7,13 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-### Changed
-
-### Removed
-
 ### Fixed
+
+- Add a script for bumping the version number so that there is less chance to
+  make mistakes.
 
 ## [0.0.4]
 

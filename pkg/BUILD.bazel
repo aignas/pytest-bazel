@@ -1,6 +1,7 @@
 # TODO @aignas 2024-06-29: autogenerate this file as all of the info is in pyproject.toml already
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("//:version.bzl", "VERSION")
 
 licenses(["notice"])  # Apache 2.0
 
@@ -42,7 +43,7 @@ py_wheel(
         "pytest",
     ],
     summary = "A pytest runner with bazel support",
-    version = "0.0.3",
+    version = VERSION,
     visibility = ["//tests:__subpackages__"],
     deps = [":srcs"],
 )
