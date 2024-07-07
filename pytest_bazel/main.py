@@ -8,14 +8,20 @@ https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35
 import sys
 import os
 import warnings
+from pathlib import Path
 
 import pytest
+
 
 def _write_to_file_factory(out_file):
     """Return a function that used to overwrite the warnings.showwarning to write to the file we specified"""
 
-    def bazel_collect_warning(message, category, filename, lineno, file=sys.stderr, line=None):
-        out_file.write(warnings.formatwarning(message, category, filename, lineno, line))
+    def bazel_collect_warning(
+        message, category, filename, lineno, file=sys.stderr, line=None
+    ):
+        out_file.write(
+            warnings.formatwarning(message, category, filename, lineno, line)
+        )
 
     return bazel_collect_warning
 
@@ -50,7 +56,9 @@ def main():
             )
         )
 
-    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get("TEST_RUN_NUMBER")
+    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get(
+        "TEST_RUN_NUMBER"
+    )
     if random_seed:
         pytest_args.append(f"--randomly-seed={random_seed}")
 
@@ -58,6 +66,7 @@ def main():
     # cleaned up correctly in case things are not cleaned up correctly.
     tmp_dir = os.environ.get("TEST_TMPDIR")
     if tmp_dir:
+        tmp_dir = Path(tmp_dir) / "pytest"
         args.append(f"--basetemp={tmp_dir}")
 
     # Handle test sharding - requires pytest-shard plugin.
