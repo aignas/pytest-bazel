@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from pytest_bazel import main
+from pytest_bazel.main import BazelEnv
 
 
 def mock_pytest_main(args=None, collect_args=None, return_exit=0):
@@ -45,6 +48,24 @@ def test_return_non_zero_exit():
     )
 
     assert got_exit_code == [42]
+
+
+def test_no_sharding_by_default(tmpdir):
+    shard_status_file = Path(tmpdir) / "mock_file"
+    main(
+        pytest_main=lambda args: mock_pytest_main(args),
+        env=BazelEnv(
+            {
+                "TEST_SHARD_INDEX": "1",
+                "TEST_TOTAL_SHARDS": "2",
+                "TEST_SHARD_STATUS_FILE": str(shard_status_file),
+            }
+        ),
+    )
+
+    assert (
+        not shard_status_file.exists()
+    ), "Sharding should not be advertised as supported"
 
 
 if __name__ == "__main__":

@@ -41,13 +41,15 @@ Repository = "https://github.com/aignas/pytest-bazel.git"
 "Bug Tracker" = "https://github.com/aignas/pytest-bazel/issues"
 Changelog = "https://github.com/aignas/pytest-bazel/blob/main/CHANGELOG.md"
 
+[tool.ruff]
+target-version = "py38"
+
 [tool.ruff.lint]
 select = [
     "E", "E7", "E9",  # pycodestyle
     "F",  # pyflakes
     "I",  # isort
     "UP",  # pyupgrade
-    "FA",  # future-annotations
     "B",  # flake-bugbear
     "PT",  # flake8-pytest-style
     "TCH",  # flake8-type-checking
@@ -56,7 +58,7 @@ select = [
     "PL",  # pylint
 ]
 ignore = ["E501"]
-unfixable = ["B"]
+fixable = ["ALL"]
 
 # 4. Ignore `E402` (import violations) in all `__init__.py` files, and in select subdirectories.
 [tool.ruff.lint.per-file-ignores]
