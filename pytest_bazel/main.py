@@ -136,5 +136,6 @@ def main(pytest_main=pytest.main, sys_exit=sys.exit):
     if exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
         print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
+        sys_exit(exit_code)
 
-    sys_exit(exit_code)
+    # By default python programs exit with 0, so no need for this, it just makes the testing harder

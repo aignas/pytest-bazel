@@ -12,7 +12,6 @@ def test_pytest_default_args():
     got_args = []
     main(
         pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
-        sys_exit=lambda _: ...,
     )
 
     got_tmpdir = got_args.pop(-1)
@@ -25,6 +24,16 @@ def test_pytest_default_args():
     ] == got_args
     assert got_junitxml.endswith("test_pytest_base/test.xml")
     assert got_tmpdir.endswith("/pytest")
+
+
+def test_return_non_zero_exit():
+    got_exit_code = []
+    main(
+        pytest_main=lambda args: mock_pytest_main(args, return_exit=42),
+        sys_exit=lambda code: got_exit_code.append(code),
+    )
+
+    assert got_exit_code == [42]
 
 
 if __name__ == "__main__":
