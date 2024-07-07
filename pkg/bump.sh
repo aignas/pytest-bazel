@@ -13,7 +13,7 @@ readonly CHANGELOG=CHANGELOG.md
 # * The extra text should be inserted at the top.
 # * The links at the bottom should be updated
 sed \
-    -e "s/## \[Unreleased\]/## [Unreleased\n\nNothing yet.\n\n## [$VERSION]/g" \
+    -e "s/## \[Unreleased\]/## [Unreleased]\n\nNothing yet.\n\n## [$VERSION]/g" \
     -e "s|\[unreleased\]:.*|[unreleased]: $ROOT/compare/$VERSION...HEAD\n[$VERSION]: $ROOT/releases/tag/$VERSION|g" \
     "${CHANGELOG}" > "${CHANGELOG}.new"
 mv "${CHANGELOG}.new" "${CHANGELOG}"

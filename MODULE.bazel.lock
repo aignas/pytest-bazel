@@ -1391,7 +1391,7 @@
         "bzlTransitiveDigest": "vAqTblipWZ7Ds7xB8ypjmtVSr+h7IuWQBLqwk+OABOg=",
         "usagesDigest": "kcRoseu6XHHGelX2cc7dWYneAAUgBPQzKrm0uKZ1pgY=",
         "recordedFileInputs": {
-          "@@//requirements.txt": "1708479e8337825cb72eb19060e3b7a117baa140913d7ef5f09be6548a798f21"
+          "@@//requirements.txt": "1ffccd76ef5fb567e514564618ca681b33240126b3d0659b84d4a07a9386a8cc"
         },
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1449,6 +1449,34 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/a6/58/e993ca5357553c966b9e73cb3475d9c935fe9488746e13ebdf9b80fae508/pytest-8.2.2.tar.gz"
+              ]
+            }
+          },
+          "pypi_39_numpy_cp39_cp39_macosx_11_0_arm64_9667575f": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp39-cp39-macosx_11_0_arm64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "pypi_39",
+              "requirement": "numpy==1.24.4",
+              "sha256": "9667575fb6d13c95f1b36aca12c5ee3356bf001b714fc354eb5465ce1609e62f",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/14/27/638aaa446f39113a3ed38b37a66243e21b38110d021bfcb940c383e120f2/numpy-1.24.4-cp39-cp39-macosx_11_0_arm64.whl"
               ]
             }
           },
@@ -1760,6 +1788,34 @@
               ]
             }
           },
+          "pypi_38_numpy_sdist_80f5e3a4": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4.tar.gz",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_8_host//:python",
+              "quiet": true,
+              "repo": "pypi_38",
+              "requirement": "numpy==1.24.4",
+              "sha256": "80f5e3a4e498641401868df4208b74581206afbee7cf7b8329daae82676d9463",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a4/9b/027bec52c633f6556dba6b722d9a0befb40498b9ceddd29cbe67a45a127c/numpy-1.24.4.tar.gz"
+              ]
+            }
+          },
           "pypi_310_pytest_shard_py3_none_any_407a1df3": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -1897,6 +1953,34 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/20/38/f5c473fe9b90c8debdd29ea68d5add0289f1936d6f923b6b9cc0b931194c/zipp-3.19.2-py3-none-any.whl"
+              ]
+            }
+          },
+          "pypi_310_numpy_cp310_cp310_macosx_11_0_arm64_ed094d4f": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp310-cp310-macosx_11_0_arm64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_10_host//:python",
+              "quiet": true,
+              "repo": "pypi_310",
+              "requirement": "numpy==1.24.4",
+              "sha256": "ed094d4f0c177b1b8e7aa9cba7d6ceed51c0e569a5318ac0ca9a090680a6a1b1",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/64/5f/3f01d753e2175cfade1013eea08db99ba1ee4bdb147ebcf3623b75d12aa7/numpy-1.24.4-cp310-cp310-macosx_11_0_arm64.whl"
               ]
             }
           },
@@ -2208,6 +2292,34 @@
               ]
             }
           },
+          "pypi_311_numpy_cp311_cp311_win_amd64_b7b1fc98": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp311-cp311-win_amd64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_11_host//:python",
+              "quiet": true,
+              "repo": "pypi_311",
+              "requirement": "numpy==1.24.4",
+              "sha256": "b7b1fc9864d7d39e28f41d089bfd6353cb5f27ecd9905348c24187a768c79694",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/d8/ec/ebef2f7d7c28503f958f0f8b992e7ce606fb74f9e891199329d5f5f87404/numpy-1.24.4-cp311-cp311-win_amd64.whl"
+              ]
+            }
+          },
           "pypi_39_pytest_randomly_sdist_b9085296": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -2376,6 +2488,34 @@
               ]
             }
           },
+          "pypi_39_numpy_sdist_80f5e3a4": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4.tar.gz",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "pypi_39",
+              "requirement": "numpy==1.24.4",
+              "sha256": "80f5e3a4e498641401868df4208b74581206afbee7cf7b8329daae82676d9463",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a4/9b/027bec52c633f6556dba6b722d9a0befb40498b9ceddd29cbe67a45a127c/numpy-1.24.4.tar.gz"
+              ]
+            }
+          },
           "pypi_310_exceptiongroup_sdist_a4785e48": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -2516,6 +2656,34 @@
               ]
             }
           },
+          "pypi_311_numpy_cp311_cp311_manylinux_2_17_x86_64_7215847c": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_11_host//:python",
+              "quiet": true,
+              "repo": "pypi_311",
+              "requirement": "numpy==1.24.4",
+              "sha256": "7215847ce88a85ce39baf9e89070cb860c98fdddacbaa6c0da3ffb31b3350bd5",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/22/97/dfb1a31bb46686f09e68ea6ac5c63fdee0d22d7b23b8f3f7ea07712869ef/numpy-1.24.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+              ]
+            }
+          },
           "pypi_38_colorama_py2_none_any_4f1d9991": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -2600,6 +2768,34 @@
               ]
             }
           },
+          "pypi_311_numpy_sdist_80f5e3a4": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4.tar.gz",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_11_host//:python",
+              "quiet": true,
+              "repo": "pypi_311",
+              "requirement": "numpy==1.24.4",
+              "sha256": "80f5e3a4e498641401868df4208b74581206afbee7cf7b8329daae82676d9463",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a4/9b/027bec52c633f6556dba6b722d9a0befb40498b9ceddd29cbe67a45a127c/numpy-1.24.4.tar.gz"
+              ]
+            }
+          },
           "pypi_38_pytest_shard_py3_none_any_407a1df3": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -2653,6 +2849,34 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/c9/d4/6e924a0b2855736d942703dec88dfc98b4fe0881c8fa849b6b0fbb9182fa/pytest_randomly-3.15.0.tar.gz"
+              ]
+            }
+          },
+          "pypi_311_numpy_cp311_cp311_macosx_11_0_arm64_e2926dac": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp311-cp311-macosx_11_0_arm64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_11_host//:python",
+              "quiet": true,
+              "repo": "pypi_311",
+              "requirement": "numpy==1.24.4",
+              "sha256": "e2926dac25b313635e4d6cf4dc4e51c8c0ebfed60b801c799ffc4c32bf3d1254",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/c0/bc/77635c657a3668cf652806210b8662e1aff84b818a55ba88257abf6637a8/numpy-1.24.4-cp311-cp311-macosx_11_0_arm64.whl"
               ]
             }
           },
@@ -2936,6 +3160,34 @@
               ]
             }
           },
+          "pypi_312_numpy_sdist_80f5e3a4": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4.tar.gz",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_12_host//:python",
+              "quiet": true,
+              "repo": "pypi_312",
+              "requirement": "numpy==1.24.4",
+              "sha256": "80f5e3a4e498641401868df4208b74581206afbee7cf7b8329daae82676d9463",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a4/9b/027bec52c633f6556dba6b722d9a0befb40498b9ceddd29cbe67a45a127c/numpy-1.24.4.tar.gz"
+              ]
+            }
+          },
           "pypi_312_pytest_randomly_sdist_b9085296": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -2992,6 +3244,34 @@
               ]
             }
           },
+          "pypi_39_numpy_cp39_cp39_win_amd64_befe2bf7": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp39-cp39-win_amd64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "pypi_39",
+              "requirement": "numpy==1.24.4",
+              "sha256": "befe2bf740fd8373cf56149a5c23a0f601e82869598d41f8e188a0e9869926f8",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/63/38/6cc19d6b8bfa1d1a459daf2b3fe325453153ca7019976274b6f33d8b5663/numpy-1.24.4-cp39-cp39-win_amd64.whl"
+              ]
+            }
+          },
           "pypi_312_pluggy_sdist_2cffa88e": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -3017,6 +3297,62 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz"
+              ]
+            }
+          },
+          "pypi_39_numpy_cp39_cp39_macosx_10_9_x86_64_2541312f": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp39-cp39-macosx_10_9_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "pypi_39",
+              "requirement": "numpy==1.24.4",
+              "sha256": "2541312fbf09977f3b3ad449c4e5f4bb55d0dbf79226d7724211acc905049400",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/9a/cd/d5b0402b801c8a8b56b04c1e85c6165efab298d2f0ab741c2406516ede3a/numpy-1.24.4-cp39-cp39-macosx_10_9_x86_64.whl"
+              ]
+            }
+          },
+          "pypi_310_numpy_cp310_cp310_macosx_10_9_x86_64_c0bfb52d": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp310-cp310-macosx_10_9_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_10_host//:python",
+              "quiet": true,
+              "repo": "pypi_310",
+              "requirement": "numpy==1.24.4",
+              "sha256": "c0bfb52d2169d58c1cdb8cc1f16989101639b34c7d3ce60ed70b19c63eba0b64",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/6b/80/6cdfb3e275d95155a34659163b83c09e3a3ff9f1456880bec6cc63d71083/numpy-1.24.4-cp310-cp310-macosx_10_9_x86_64.whl"
               ]
             }
           },
@@ -3076,6 +3412,34 @@
               ]
             }
           },
+          "pypi_311_numpy_cp311_cp311_manylinux_2_17_aarch64_222e40d0": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_11_host//:python",
+              "quiet": true,
+              "repo": "pypi_311",
+              "requirement": "numpy==1.24.4",
+              "sha256": "222e40d0e2548690405b0b3c7b21d1169117391c2e82c378467ef9ab4c8f0da7",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a7/4c/96cdaa34f54c05e97c1c50f39f98d608f96f0677a6589e64e53104e22904/numpy-1.24.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+              ]
+            }
+          },
           "pypi_312_colorama_sdist_08695f5c": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -3129,6 +3493,34 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/20/ff/bd28f70283b9cca0cbf0c2a6082acbecd822d1962ae7b2a904861b9965f8/importlib_metadata-8.0.0.tar.gz"
+              ]
+            }
+          },
+          "pypi_39_numpy_cp39_cp39_manylinux_2_17_x86_64_d11efb4d": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "pypi_39",
+              "requirement": "numpy==1.24.4",
+              "sha256": "d11efb4dbecbdf22508d55e48d9c8384db795e1b7b51ea735289ff96613ff74d",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/7a/7c/d7b2a0417af6428440c0ad7cb9799073e507b1a465f827d058b826236964/numpy-1.24.4-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
               ]
             }
           },
@@ -3272,6 +3664,34 @@
               ]
             }
           },
+          "pypi_38_numpy_cp38_cp38_manylinux_2_17_x86_64_dd80e219": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_8_host//:python",
+              "quiet": true,
+              "repo": "pypi_38",
+              "requirement": "numpy==1.24.4",
+              "sha256": "dd80e219fd4c71fc3699fc1dadac5dcf4fd882bfc6f7ec53d30fa197b8ee22dc",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/98/5d/5738903efe0ecb73e51eb44feafba32bdba2081263d40c5043568ff60faf/numpy-1.24.4-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+              ]
+            }
+          },
           "pypi_312_exceptiongroup_py3_none_any_5258b9ed": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -3384,6 +3804,62 @@
               ]
             }
           },
+          "pypi_310_numpy_cp310_cp310_win_amd64_b4bea75e": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp310-cp310-win_amd64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_10_host//:python",
+              "quiet": true,
+              "repo": "pypi_310",
+              "requirement": "numpy==1.24.4",
+              "sha256": "b4bea75e47d9586d31e892a7401f76e909712a0fd510f58f5337bea9572c571e",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/22/55/3d5a7c1142e0d9329ad27cece17933b0e2ab4e54ddc5c1861fbfeb3f7693/numpy-1.24.4-cp310-cp310-win_amd64.whl"
+              ]
+            }
+          },
+          "pypi_38_numpy_cp38_cp38_win_amd64_692f2e0f": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp38-cp38-win_amd64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_8_host//:python",
+              "quiet": true,
+              "repo": "pypi_38",
+              "requirement": "numpy==1.24.4",
+              "sha256": "692f2e0f55794943c5bfff12b3f56f99af76f902fc47487bdfe97856de51a706",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/69/65/0d47953afa0ad569d12de5f65d964321c208492064c38fe3b0b9744f8d44/numpy-1.24.4-cp38-cp38-win_amd64.whl"
+              ]
+            }
+          },
           "pypi_312_packaging_sdist_026ed72c": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -3465,6 +3941,62 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/dc/ef/38766b2edb096260d9b1b6ad35adaa0bce3b0567abb452b21eb074af88c4/importlib_metadata-8.0.0-py3-none-any.whl"
+              ]
+            }
+          },
+          "pypi_310_numpy_sdist_80f5e3a4": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4.tar.gz",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_10_host//:python",
+              "quiet": true,
+              "repo": "pypi_310",
+              "requirement": "numpy==1.24.4",
+              "sha256": "80f5e3a4e498641401868df4208b74581206afbee7cf7b8329daae82676d9463",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a4/9b/027bec52c633f6556dba6b722d9a0befb40498b9ceddd29cbe67a45a127c/numpy-1.24.4.tar.gz"
+              ]
+            }
+          },
+          "pypi_311_numpy_cp311_cp311_macosx_10_9_x86_64_f136bab9": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp311-cp311-macosx_10_9_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_11_host//:python",
+              "quiet": true,
+              "repo": "pypi_311",
+              "requirement": "numpy==1.24.4",
+              "sha256": "f136bab9c2cfd8da131132c2cf6cc27331dd6fae65f95f69dcd4ae3c3639c810",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a9/cc/5ed2280a27e5dab12994c884f1f4d8c3bd4d885d02ae9e52a9d213a6a5e2/numpy-1.24.4-cp311-cp311-macosx_10_9_x86_64.whl"
               ]
             }
           },
@@ -3577,6 +4109,34 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/20/38/f5c473fe9b90c8debdd29ea68d5add0289f1936d6f923b6b9cc0b931194c/zipp-3.19.2-py3-none-any.whl"
+              ]
+            }
+          },
+          "pypi_38_numpy_cp38_cp38_manylinux_2_17_aarch64_a5425b11": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_8_host//:python",
+              "quiet": true,
+              "repo": "pypi_38",
+              "requirement": "numpy==1.24.4",
+              "sha256": "a5425b114831d1e77e4b5d812b69d11d962e104095a5b9c3b641a218abcc050e",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/25/6f/2586a50ad72e8dbb1d8381f837008a0321a3516dfd7cb57fc8cf7e4bb06b/numpy-1.24.4-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
               ]
             }
           },
@@ -3888,6 +4448,62 @@
               ]
             }
           },
+          "pypi_38_numpy_cp38_cp38_macosx_11_0_arm64_04640dab": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp38-cp38-macosx_11_0_arm64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_8_host//:python",
+              "quiet": true,
+              "repo": "pypi_38",
+              "requirement": "numpy==1.24.4",
+              "sha256": "04640dab83f7c6c85abf9cd729c5b65f1ebd0ccf9de90b270cd61935eef0197f",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/a7/ae/f53b7b265fdc701e663fbb322a8e9d4b14d9cb7b2385f45ddfabfc4327e4/numpy-1.24.4-cp38-cp38-macosx_11_0_arm64.whl"
+              ]
+            }
+          },
+          "pypi_310_numpy_cp310_cp310_manylinux_2_17_x86_64_7ffe43c7": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_10_host//:python",
+              "quiet": true,
+              "repo": "pypi_310",
+              "requirement": "numpy==1.24.4",
+              "sha256": "7ffe43c74893dbf38c2b0a1f5428760a1a9c98285553c89e12d70a96a7f3a4d6",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/10/be/ae5bf4737cb79ba437879915791f6f26d92583c738d7d960ad94e5c36adf/numpy-1.24.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+              ]
+            }
+          },
           "pypi_38_packaging_py3_none_any_5b8f2217": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -4056,6 +4672,34 @@
               ]
             }
           },
+          "pypi_38_numpy_cp38_cp38_macosx_10_9_x86_64_1452241c": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp38-cp38-macosx_10_9_x86_64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_8_host//:python",
+              "quiet": true,
+              "repo": "pypi_38",
+              "requirement": "numpy==1.24.4",
+              "sha256": "1452241c290f3e2a312c137a9999cdbf63f78864d63c79039bda65ee86943f61",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/11/10/943cfb579f1a02909ff96464c69893b1d25be3731b5d3652c2e0cf1281ea/numpy-1.24.4-cp38-cp38-macosx_10_9_x86_64.whl"
+              ]
+            }
+          },
           "pypi_310_importlib_metadata_sdist_188bd24e": {
             "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
             "ruleClassName": "whl_library",
@@ -4137,6 +4781,34 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/65/7a/dbeb4c54e9fc3b59622f410091365f354a69cda1af10c3b83ac0ca6e6f4f/pytest_shard-0.1.2-py3-none-any.whl"
+              ]
+            }
+          },
+          "pypi_310_numpy_cp310_cp310_manylinux_2_17_aarch64_79fc682a": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_10_host//:python",
+              "quiet": true,
+              "repo": "pypi_310",
+              "requirement": "numpy==1.24.4",
+              "sha256": "79fc682a374c4a8ed08b331bef9c5f582585d1048fa6d80bc6c35bc384eee9b4",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/5a/b3/2f9c21d799fa07053ffa151faccdceeb69beec5a010576b8991f614021f7/numpy-1.24.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
               ]
             }
           },
@@ -4343,6 +5015,7 @@
               "repo_name": "pypi",
               "whl_map": {
                 "zipp": "[{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"zipp-3.19.2-py3-none-any.whl\",\"repo\":\"pypi_38_zipp_py3_none_any_f091755f\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"zipp-3.19.2.tar.gz\",\"repo\":\"pypi_38_zipp_sdist_bf1dcf64\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"zipp-3.19.2-py3-none-any.whl\",\"repo\":\"pypi_39_zipp_py3_none_any_f091755f\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"zipp-3.19.2.tar.gz\",\"repo\":\"pypi_39_zipp_sdist_bf1dcf64\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"zipp-3.19.2-py3-none-any.whl\",\"repo\":\"pypi_310_zipp_py3_none_any_f091755f\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"zipp-3.19.2.tar.gz\",\"repo\":\"pypi_310_zipp_sdist_bf1dcf64\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"zipp-3.19.2-py3-none-any.whl\",\"repo\":\"pypi_311_zipp_py3_none_any_f091755f\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"zipp-3.19.2.tar.gz\",\"repo\":\"pypi_311_zipp_sdist_bf1dcf64\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"zipp-3.19.2-py3-none-any.whl\",\"repo\":\"pypi_312_zipp_py3_none_any_f091755f\",\"target_platforms\":null,\"version\":\"3.12\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"zipp-3.19.2.tar.gz\",\"repo\":\"pypi_312_zipp_sdist_bf1dcf64\",\"target_platforms\":null,\"version\":\"3.12\"}]",
+                "numpy": "[{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"numpy-1.24.4-cp38-cp38-macosx_11_0_arm64.whl\",\"repo\":\"pypi_38_numpy_cp38_cp38_macosx_11_0_arm64_04640dab\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"numpy-1.24.4-cp38-cp38-macosx_10_9_x86_64.whl\",\"repo\":\"pypi_38_numpy_cp38_cp38_macosx_10_9_x86_64_1452241c\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"numpy-1.24.4-cp38-cp38-win_amd64.whl\",\"repo\":\"pypi_38_numpy_cp38_cp38_win_amd64_692f2e0f\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"numpy-1.24.4-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl\",\"repo\":\"pypi_38_numpy_cp38_cp38_manylinux_2_17_aarch64_a5425b11\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"numpy-1.24.4-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl\",\"repo\":\"pypi_38_numpy_cp38_cp38_manylinux_2_17_x86_64_dd80e219\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"numpy-1.24.4.tar.gz\",\"repo\":\"pypi_38_numpy_sdist_80f5e3a4\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"numpy-1.24.4-cp39-cp39-macosx_10_9_x86_64.whl\",\"repo\":\"pypi_39_numpy_cp39_cp39_macosx_10_9_x86_64_2541312f\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"numpy-1.24.4-cp39-cp39-macosx_11_0_arm64.whl\",\"repo\":\"pypi_39_numpy_cp39_cp39_macosx_11_0_arm64_9667575f\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"numpy-1.24.4-cp39-cp39-win_amd64.whl\",\"repo\":\"pypi_39_numpy_cp39_cp39_win_amd64_befe2bf7\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"numpy-1.24.4-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl\",\"repo\":\"pypi_39_numpy_cp39_cp39_manylinux_2_17_x86_64_d11efb4d\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"numpy-1.24.4-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl\",\"repo\":\"pypi_39_numpy_cp39_cp39_manylinux_2_17_aarch64_f3a86ed2\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"numpy-1.24.4.tar.gz\",\"repo\":\"pypi_39_numpy_sdist_80f5e3a4\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"numpy-1.24.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl\",\"repo\":\"pypi_310_numpy_cp310_cp310_manylinux_2_17_aarch64_79fc682a\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"numpy-1.24.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl\",\"repo\":\"pypi_310_numpy_cp310_cp310_manylinux_2_17_x86_64_7ffe43c7\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"numpy-1.24.4-cp310-cp310-win_amd64.whl\",\"repo\":\"pypi_310_numpy_cp310_cp310_win_amd64_b4bea75e\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"numpy-1.24.4-cp310-cp310-macosx_10_9_x86_64.whl\",\"repo\":\"pypi_310_numpy_cp310_cp310_macosx_10_9_x86_64_c0bfb52d\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"numpy-1.24.4-cp310-cp310-macosx_11_0_arm64.whl\",\"repo\":\"pypi_310_numpy_cp310_cp310_macosx_11_0_arm64_ed094d4f\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"numpy-1.24.4.tar.gz\",\"repo\":\"pypi_310_numpy_sdist_80f5e3a4\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"numpy-1.24.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl\",\"repo\":\"pypi_311_numpy_cp311_cp311_manylinux_2_17_aarch64_222e40d0\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"numpy-1.24.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl\",\"repo\":\"pypi_311_numpy_cp311_cp311_manylinux_2_17_x86_64_7215847c\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"numpy-1.24.4-cp311-cp311-win_amd64.whl\",\"repo\":\"pypi_311_numpy_cp311_cp311_win_amd64_b7b1fc98\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"numpy-1.24.4-cp311-cp311-macosx_11_0_arm64.whl\",\"repo\":\"pypi_311_numpy_cp311_cp311_macosx_11_0_arm64_e2926dac\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"numpy-1.24.4-cp311-cp311-macosx_10_9_x86_64.whl\",\"repo\":\"pypi_311_numpy_cp311_cp311_macosx_10_9_x86_64_f136bab9\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"numpy-1.24.4.tar.gz\",\"repo\":\"pypi_311_numpy_sdist_80f5e3a4\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"numpy-1.24.4.tar.gz\",\"repo\":\"pypi_312_numpy_sdist_80f5e3a4\",\"target_platforms\":null,\"version\":\"3.12\"}]",
                 "tomli": "[{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"tomli-2.0.1-py3-none-any.whl\",\"repo\":\"pypi_38_tomli_py3_none_any_939de3e7\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"tomli-2.0.1.tar.gz\",\"repo\":\"pypi_38_tomli_sdist_de526c12\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"tomli-2.0.1-py3-none-any.whl\",\"repo\":\"pypi_39_tomli_py3_none_any_939de3e7\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"tomli-2.0.1.tar.gz\",\"repo\":\"pypi_39_tomli_sdist_de526c12\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"tomli-2.0.1-py3-none-any.whl\",\"repo\":\"pypi_310_tomli_py3_none_any_939de3e7\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"tomli-2.0.1.tar.gz\",\"repo\":\"pypi_310_tomli_sdist_de526c12\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"tomli-2.0.1-py3-none-any.whl\",\"repo\":\"pypi_311_tomli_py3_none_any_939de3e7\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"tomli-2.0.1.tar.gz\",\"repo\":\"pypi_311_tomli_sdist_de526c12\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"tomli-2.0.1-py3-none-any.whl\",\"repo\":\"pypi_312_tomli_py3_none_any_939de3e7\",\"target_platforms\":null,\"version\":\"3.12\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"tomli-2.0.1.tar.gz\",\"repo\":\"pypi_312_tomli_sdist_de526c12\",\"target_platforms\":null,\"version\":\"3.12\"}]",
                 "pluggy": "[{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"pluggy-1.5.0-py3-none-any.whl\",\"repo\":\"pypi_38_pluggy_py3_none_any_44e1ad92\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"pluggy-1.5.0.tar.gz\",\"repo\":\"pypi_38_pluggy_sdist_2cffa88e\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"pluggy-1.5.0-py3-none-any.whl\",\"repo\":\"pypi_39_pluggy_py3_none_any_44e1ad92\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"pluggy-1.5.0.tar.gz\",\"repo\":\"pypi_39_pluggy_sdist_2cffa88e\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"pluggy-1.5.0-py3-none-any.whl\",\"repo\":\"pypi_310_pluggy_py3_none_any_44e1ad92\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"pluggy-1.5.0.tar.gz\",\"repo\":\"pypi_310_pluggy_sdist_2cffa88e\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"pluggy-1.5.0-py3-none-any.whl\",\"repo\":\"pypi_311_pluggy_py3_none_any_44e1ad92\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"pluggy-1.5.0.tar.gz\",\"repo\":\"pypi_311_pluggy_sdist_2cffa88e\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"pluggy-1.5.0-py3-none-any.whl\",\"repo\":\"pypi_312_pluggy_py3_none_any_44e1ad92\",\"target_platforms\":null,\"version\":\"3.12\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"pluggy-1.5.0.tar.gz\",\"repo\":\"pypi_312_pluggy_sdist_2cffa88e\",\"target_platforms\":null,\"version\":\"3.12\"}]",
                 "pytest": "[{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"pytest-8.2.2-py3-none-any.whl\",\"repo\":\"pypi_38_pytest_py3_none_any_c4345981\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.8\",\"filename\":\"pytest-8.2.2.tar.gz\",\"repo\":\"pypi_38_pytest_sdist_de4bb810\",\"target_platforms\":null,\"version\":\"3.8\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"pytest-8.2.2-py3-none-any.whl\",\"repo\":\"pypi_39_pytest_py3_none_any_c4345981\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.9\",\"filename\":\"pytest-8.2.2.tar.gz\",\"repo\":\"pypi_39_pytest_sdist_de4bb810\",\"target_platforms\":null,\"version\":\"3.9\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"pytest-8.2.2-py3-none-any.whl\",\"repo\":\"pypi_310_pytest_py3_none_any_c4345981\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.10\",\"filename\":\"pytest-8.2.2.tar.gz\",\"repo\":\"pypi_310_pytest_sdist_de4bb810\",\"target_platforms\":null,\"version\":\"3.10\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"pytest-8.2.2-py3-none-any.whl\",\"repo\":\"pypi_311_pytest_py3_none_any_c4345981\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.11\",\"filename\":\"pytest-8.2.2.tar.gz\",\"repo\":\"pypi_311_pytest_sdist_de4bb810\",\"target_platforms\":null,\"version\":\"3.11\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"pytest-8.2.2-py3-none-any.whl\",\"repo\":\"pypi_312_pytest_py3_none_any_c4345981\",\"target_platforms\":null,\"version\":\"3.12\"},{\"config_setting\":\"//_config:is_python_3.12\",\"filename\":\"pytest-8.2.2.tar.gz\",\"repo\":\"pypi_312_pytest_sdist_de4bb810\",\"target_platforms\":null,\"version\":\"3.12\"}]",
@@ -4439,6 +5112,34 @@
               "timeout": 600,
               "urls": [
                 "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz"
+              ]
+            }
+          },
+          "pypi_39_numpy_cp39_cp39_manylinux_2_17_aarch64_f3a86ed2": {
+            "bzlFile": "@@rules_python~//python/pip_install:pip_repository.bzl",
+            "ruleClassName": "whl_library",
+            "attributes": {
+              "dep_template": "@pypi//{name}:{target}",
+              "experimental_target_platforms": [
+                "linux_aarch64",
+                "linux_arm",
+                "linux_ppc",
+                "linux_s390x",
+                "linux_x86_64",
+                "osx_aarch64",
+                "osx_x86_64",
+                "windows_x86_64"
+              ],
+              "filename": "numpy-1.24.4-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+              "isolated": true,
+              "python_interpreter_target": "@@rules_python~~python~python_3_9_host//:python",
+              "quiet": true,
+              "repo": "pypi_39",
+              "requirement": "numpy==1.24.4",
+              "sha256": "f3a86ed21e4f87050382c7bc96571755193c4c1392490744ac73d660e8f564a9",
+              "timeout": 600,
+              "urls": [
+                "https://files.pythonhosted.org/packages/8f/27/91894916e50627476cff1a4e4363ab6179d01077d71b9afed41d9e1f18bf/numpy-1.24.4-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
               ]
             }
           },
@@ -4639,7 +5340,7 @@
     },
     "@@rules_python~//python/private/bzlmod:pip.bzl%pip_internal": {
       "general": {
-        "bzlTransitiveDigest": "xVPA71UbqiqvtS+Fj1PyzWwjgDSvniYWlI0zyhf84Bg=",
+        "bzlTransitiveDigest": "4/xJ1MvEGGWO81T3cvtM/uXqsbSRNQ7k5AvlPYiwGno=",
         "usagesDigest": "spYTfmH5Mw462zD7a6kcJXCuJA9q0cpZZc4yYSSxiPw=",
         "recordedFileInputs": {
           "@@rules_python~//tools/publish/requirements.txt": "8ced1e640eab3ee44298590e5ad88cd612f5bf96245af1981709f7a8884a982b",
@@ -6994,13 +7695,28 @@
           ],
           [
             "rules_python~~python~pythons_hub",
+            "python_3_10_host",
+            "rules_python~~python~python_3_10_host"
+          ],
+          [
+            "rules_python~~python~pythons_hub",
             "python_3_11_host",
             "rules_python~~python~python_3_11_host"
           ],
           [
             "rules_python~~python~pythons_hub",
+            "python_3_12_host",
+            "rules_python~~python~python_3_12_host"
+          ],
+          [
+            "rules_python~~python~pythons_hub",
             "python_3_8_host",
             "rules_python~~python~python_3_8_host"
+          ],
+          [
+            "rules_python~~python~pythons_hub",
+            "python_3_9_host",
+            "rules_python~~python~python_3_9_host"
           ]
         ]
       }

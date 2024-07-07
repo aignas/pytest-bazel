@@ -8,30 +8,39 @@ https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35
 import sys
 import os
 import warnings
+from pathlib import Path
 
 import pytest
+
 
 def _write_to_file_factory(out_file):
     """Return a function that used to overwrite the warnings.showwarning to write to the file we specified"""
 
-    def bazel_collect_warning(message, category, filename, lineno, file=sys.stderr, line=None):
-        out_file.write(warnings.formatwarning(message, category, filename, lineno, line))
+    def bazel_collect_warning(
+        message, category, filename, lineno, file=sys.stderr, line=None
+    ):
+        out_file.write(
+            warnings.formatwarning(message, category, filename, lineno, line)
+        )
 
     return bazel_collect_warning
 
 
-def main():
+def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
     pytest_args = [
-        # All of the external python packages will have `site-packages` in them.
+        # Only needed if users are not specifying
+        # build --nolegacy_external_runfiles
         "--ignore=external",
-        "--ignore=site-packages",
+        # The following is a rules_python convention to have the packages extracted in `site-packages` folder, this
+        # also means that if the user is using the `py_wheel_library` from `pycross` they may end up with site-packages
+        # in it.
+        "--ignore-glob=**/site-packages",
         # Avoid loading of the plugin "cacheprovider".
         "-p",
         "no:cacheprovider",
     ]
 
-    args = sys.argv[1:]
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
     # Remove any __init__.py file to avoid that.
     # pytest.version_tuple is available since pytest 7.0
@@ -50,15 +59,18 @@ def main():
             )
         )
 
-    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get("TEST_RUN_NUMBER")
-    if random_seed:
-        pytest_args.append(f"--randomly-seed={random_seed}")
-
     # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
     # cleaned up correctly in case things are not cleaned up correctly.
     tmp_dir = os.environ.get("TEST_TMPDIR")
     if tmp_dir:
-        args.append(f"--basetemp={tmp_dir}")
+        tmp_dir = Path(tmp_dir) / "pytest"
+        pytest_args.append(f"--basetemp={tmp_dir}")
+
+    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get(
+        "TEST_RUN_NUMBER"
+    )
+    if random_seed:
+        pytest_args.append(f"--randomly-seed={random_seed}")
 
     # Handle test sharding - requires pytest-shard plugin.
     if os.environ.get("TEST_SHARD_INDEX") and os.environ.get("TEST_TOTAL_SHARDS"):
@@ -116,12 +128,13 @@ def main():
     if warnings_file:
         with open(warnings_file, "w") as f:
             warnings.showwarning = _write_to_file_factory(f)
-            exit_code = pytest.main(args)
+            exit_code = pytest_main(pytest_args)
     else:
-        exit_code = pytest.main(args)
+        exit_code = pytest_main(pytest_args)
 
     if exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
         print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
+        sys_exit(exit_code)
 
-    sys.exit(exit_code)
+    # By default python programs exit with 0, so no need for this, it just makes the testing harder

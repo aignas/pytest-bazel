@@ -8,7 +8,7 @@ pip_compile(
     args = [
         "--universal",
         "--generate-hashes",
-        "--extra=all",
+        "--all-extras",
         "--no-strip-extras",
     ],
     requirements_in = "//:pyproject.toml",
