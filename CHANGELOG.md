@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the `tmpdir` usage on Linux. It seems that `bazel` pre-creates the
   directory on Linux in the sandbox and `pytest` `tmpdir` behaviour is
   different from MacOS and it starts failing.
+- Ignore tests that do not belong to the current workspace, this is achieved by
+  ignoring the `external` folder at the root, which may be present if the users
+  are not using `--nolegacy_external_runfiles` or somewhere deeper in the tree
+  if they are using rules that create a `py_library` like target from a `whl`,
+  which happens to extract files into a `site-packages` directory. This makes
+  the discovery robust enough to allow `pytest` to do its job itself and not
+  need to provide the filenames to test manually.
 
 ## [0.0.7]
 

@@ -29,9 +29,13 @@ def _write_to_file_factory(out_file):
 def main():
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
     pytest_args = [
-        # All of the external python packages will have `site-packages` in them.
+        # Only needed if users are not specifying
+        # build --nolegacy_external_runfiles
         "--ignore=external",
-        "--ignore=site-packages",
+        # The following is a rules_python convention to have the packages extracted in `site-packages` folder, this
+        # also means that if the user is using the `py_wheel_library` from `pycross` they may end up with site-packages
+        # in it.
+        "--ignore-glob=**/site-packages",
         # Avoid loading of the plugin "cacheprovider".
         "-p",
         "no:cacheprovider",
@@ -125,9 +129,9 @@ def main():
     if warnings_file:
         with open(warnings_file, "w") as f:
             warnings.showwarning = _write_to_file_factory(f)
-            exit_code = pytest.main(args)
+            exit_code = pytest.main(pytest_args)
     else:
-        exit_code = pytest.main(args)
+        exit_code = pytest.main(pytest_args)
 
     if exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)

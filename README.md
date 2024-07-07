@@ -105,6 +105,8 @@ def pytest_test(name, srcs, **kwargs):
         # The following is reusing the ideas defined in
         # https://github.com/caseyduquettesc/rules_python_pytest/blob/main/python_pytest/defs.bzl
         args = kwargs.get("args", []) + [
+            # Passing of srcs is optional and this is only to show how one
+            # would reimplement what `rules_python_pytest` has done.
             "$(location :%s)" % x for x in srcs
         ],
         **kwargs,
