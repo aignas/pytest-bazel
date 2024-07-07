@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Make the sharding detection implementation a little bit more robust and
+  ensure that we are not telling bazel that we support sharding even if we
+  don't. Sharding requires extra `pytest-shard` plugin to be present at
+  runtime.
 
 ## [0.0.8]
 

@@ -8,9 +8,20 @@ https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35
 import os
 import sys
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import pytest
+
+
+def _supports_sharding() -> bool:
+    try:
+        import pytest_shard as _  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
 
 
 def _write_to_file_factory(out_file):
@@ -26,8 +37,65 @@ def _write_to_file_factory(out_file):
     return bazel_collect_warning
 
 
-def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):  # noqa: PLR0912
+def _maybe_path(p) -> Optional[Path]:
+    return Path(p) if p else None
+
+
+@dataclass
+class BazelEnv:
+    env: dict
+
+    @property
+    def test_shard_index(self) -> int:
+        return int(self.env.get("TEST_SHARD_INDEX") or 0)
+
+    @property
+    def test_shard_status_file(self) -> Optional[Path]:
+        return _maybe_path(self.env.get("TEST_SHARD_STATUS_FILE"))
+
+    @property
+    def test_total_shards(self) -> int:
+        return int(self.env.get("TEST_TOTAL_SHARDS") or 0)
+
+    @property
+    def test_random_seed(self) -> int:
+        return int(self.env.get("TEST_RANDOM_SEED", 0))
+
+    @property
+    def test_run_number(self) -> int:
+        return int(self.env.get("TEST_RUN_NUMBER", 0))
+
+    @property
+    def test_tmpdir(self) -> Optional[Path]:
+        return _maybe_path(self.env.get("TEST_TMPDIR"))
+
+    @property
+    def test_undeclared_outputs_dir(self) -> Optional[Path]:
+        return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
+
+    @property
+    def test_warnings_output_file(self) -> Optional[Path]:
+        return _maybe_path(self.env.get("TEST_WARNINGS_OUTPUT_FILE"))
+
+    @property
+    def test_filter(self) -> str:
+        # TestClass.test_fn -> TestClass::test_fn
+        return self.env.get("TESTBRIDGE_TEST_ONLY", "").replace(".", "::")
+
+    @property
+    def xml_output_file(self) -> Optional[Path]:
+        return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
+
+
+def main(  # noqa: PLR0912
+    args=sys.argv[1:],
+    pytest_main=pytest.main,
+    sys_exit=sys.exit,
+    env: Optional[BazelEnv] = None,
+):  # noqa: PLR0912
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
+
+    env = env or BazelEnv(os.environ)
     pytest_args = [
         # Only needed if users are not specifying
         # build --nolegacy_external_runfiles
@@ -52,45 +120,31 @@ def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):  # noqa
             if arg.startswith("-") or Path(arg).name != "__init__.py"
         ]
 
-    if os.environ.get("XML_OUTPUT_FILE"):
-        pytest_args.append(
-            "--junitxml={xml_output_file}".format(
-                xml_output_file=os.environ.get("XML_OUTPUT_FILE")
-            )
-        )
+    if env.xml_output_file:
+        pytest_args.append(f"--junitxml={env.xml_output_file}")
 
     # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
     # cleaned up correctly in case things are not cleaned up correctly.
-    tmp_dir = os.environ.get("TEST_TMPDIR")
-    if tmp_dir:
-        tmp_dir = Path(tmp_dir) / "pytest"
+    if env.test_tmpdir:
+        tmp_dir = env.test_tmpdir / "pytest"
         pytest_args.append(f"--basetemp={tmp_dir}")
 
-    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get(
-        "TEST_RUN_NUMBER"
-    )
+    random_seed = env.test_random_seed or env.test_run_number
     if random_seed:
-        pytest_args.append(f"--randomly-seed={random_seed}")
+        pytest_args.append(f"--randomly-seed={random_seed}")  # using pytest-randomly
 
     # Handle test sharding - requires pytest-shard plugin.
-    if os.environ.get("TEST_SHARD_INDEX") and os.environ.get("TEST_TOTAL_SHARDS"):
-        pytest_args.append(
-            "--shard-id={shard_id}".format(shard_id=os.environ.get("TEST_SHARD_INDEX"))
-        )
-        pytest_args.append(
-            "--num-shards={num_shards}".format(
-                num_shards=os.environ.get("TEST_TOTAL_SHARDS")
-            )
-        )
-        shard_status_file = os.environ.get("TEST_SHARD_STATUS_FILE")
-        if shard_status_file:
-            Path(shard_status_file).open("a").close()  # Ensure that the file exists
+    if env.test_shard_index and env.test_total_shards:
+        # https://bazel.build/reference/test-encyclopedia#test-sharding
+        pytest_args.append(f"--shard-id={env.test_shard_index}")
+        pytest_args.append(f"--num-shards={env.test_total_shards}")
+        if env.test_shard_status_file and _supports_sharding():
+            env.test_shard_status_file.touch(exist_ok=True)
 
     # Handle plugins that generate reports - if they are provided with relative paths (via args),
     # re-write it under bazel's test undeclared outputs dir.
-    if os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):
-        undeclared_output_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
-
+    undeclared_output_dir = env.test_undeclared_outputs_dir
+    if undeclared_output_dir:
         # Flags that take file paths as value.
         path_flags = [
             "--report-log",  # pytest-reportlog
@@ -104,31 +158,27 @@ def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):  # noqa
                     if p and not Path.is_absolute(flag_value):
                         args[i] = f"{flag}={undeclared_output_dir}/{p}"
 
-    if os.environ.get("TESTBRIDGE_TEST_ONLY"):
-        # TestClass.test_fn -> TestClass::test_fn
-        module_name = os.environ["TESTBRIDGE_TEST_ONLY"].replace(".", "::")
-
+    if not env.test_filter:
+        pytest_args.extend(args)
+    elif not env.test_filter[0].isupper():
         # If the test filter does not start with a class-like name, then use test filtering instead
         # --test_filter=test_fn
-        if not module_name[0].isupper():
-            pytest_args.extend(args)
-            pytest_args.append(f"-k={module_name}")
-        else:
-            # --test_filter=TestClass.test_fn
-            # Add test filter to path-like args
-            for arg in args:
-                if not arg.startswith("--"):
-                    # Maybe a src file? Add test class/method selection to it. Not sure if this will work if the
-                    # symbol can't be found in the test file.
-                    pytest_args.append(f"{arg}::{module_name}")
-                else:
-                    pytest_args.append(arg)
-    else:
         pytest_args.extend(args)
+        pytest_args.append(f"-k={env.test_filter}")
+    else:
+        # --test_filter=TestClass.test_fn
+        # Add test filter to path-like args
+        for arg in args:
+            if not arg.startswith("--"):
+                # Maybe a src file? Add test class/method selection to it. Not sure if this will work if the
+                # symbol can't be found in the test file.
+                pytest_args.append(f"{arg}::{env.test_filter}")
+            else:
+                pytest_args.append(arg)
 
-    warnings_file = os.environ.get("TEST_WARNINGS_OUTPUT_FILE")
+    warnings_file = env.test_warnings_output_file
     if warnings_file:
-        with Path(warnings_file).open("w") as f:
+        with warnings_file.open("w") as f:
             warnings.showwarning = _write_to_file_factory(f)
             exit_code = pytest_main(pytest_args)
     else:
