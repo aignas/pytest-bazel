@@ -5,3 +5,14 @@ py_test(
     srcs = ["test_pytest_base.py"],
     deps = ["//pytest_bazel"],
 )
+
+# Run the following test by passing `--runs_per_test`
+py_test(
+    name = "test_random",
+    srcs = ["test_random.py"],
+    deps = [
+        "//pytest_bazel",
+        "@pypi//pytest_randomly",
+    ],
+    tags = ["manual"],
+)
