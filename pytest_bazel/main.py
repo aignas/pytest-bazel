@@ -26,7 +26,7 @@ def _write_to_file_factory(out_file):
     return bazel_collect_warning
 
 
-def main(pytest_main=pytest.main, sys_exit=sys.exit):
+def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
     pytest_args = [
         # Only needed if users are not specifying
@@ -41,7 +41,6 @@ def main(pytest_main=pytest.main, sys_exit=sys.exit):
         "no:cacheprovider",
     ]
 
-    args = sys.argv[1:]
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
     # Remove any __init__.py file to avoid that.
     # pytest.version_tuple is available since pytest 7.0
@@ -60,18 +59,18 @@ def main(pytest_main=pytest.main, sys_exit=sys.exit):
             )
         )
 
-    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get(
-        "TEST_RUN_NUMBER"
-    )
-    if random_seed:
-        pytest_args.append(f"--randomly-seed={random_seed}")
-
     # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
     # cleaned up correctly in case things are not cleaned up correctly.
     tmp_dir = os.environ.get("TEST_TMPDIR")
     if tmp_dir:
         tmp_dir = Path(tmp_dir) / "pytest"
-        args.append(f"--basetemp={tmp_dir}")
+        pytest_args.append(f"--basetemp={tmp_dir}")
+
+    random_seed = os.environ.get("TEST_RANDOM_SEED") or os.environ.get(
+        "TEST_RUN_NUMBER"
+    )
+    if random_seed:
+        pytest_args.append(f"--randomly-seed={random_seed}")
 
     # Handle test sharding - requires pytest-shard plugin.
     if os.environ.get("TEST_SHARD_INDEX") and os.environ.get("TEST_TOTAL_SHARDS"):
