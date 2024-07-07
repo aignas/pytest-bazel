@@ -1,5 +1,5 @@
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 
 def test_tmpdir(tmpdir):
@@ -12,4 +12,4 @@ def test_tmpdir(tmpdir):
 
 class TestCase(unittest.TestCase):
     def test_simple(self):
-        self.assertEqual("42", "42")
+        self.assertEqual("42", "42")  # noqa

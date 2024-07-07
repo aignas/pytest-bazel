@@ -5,8 +5,8 @@ The original template code is based on
 https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35c7c53d9316f6162088dd13
 """
 
-import sys
 import os
+import sys
 import warnings
 from pathlib import Path
 
@@ -16,7 +16,7 @@ import pytest
 def _write_to_file_factory(out_file):
     """Return a function that used to overwrite the warnings.showwarning to write to the file we specified"""
 
-    def bazel_collect_warning(
+    def bazel_collect_warning(  # noqa: PLR0913
         message, category, filename, lineno, file=sys.stderr, line=None
     ):
         out_file.write(
@@ -26,7 +26,7 @@ def _write_to_file_factory(out_file):
     return bazel_collect_warning
 
 
-def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
+def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):  # noqa: PLR0912
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
     pytest_args = [
         # Only needed if users are not specifying
@@ -49,7 +49,7 @@ def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
         args = [
             arg
             for arg in args
-            if arg.startswith("-") or os.path.basename(arg) != "__init__.py"
+            if arg.startswith("-") or Path(arg).name != "__init__.py"
         ]
 
     if os.environ.get("XML_OUTPUT_FILE"):
@@ -82,8 +82,9 @@ def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
                 num_shards=os.environ.get("TEST_TOTAL_SHARDS")
             )
         )
-        if os.environ.get("TEST_SHARD_STATUS_FILE"):
-            open(os.environ["TEST_SHARD_STATUS_FILE"], "a").close()
+        shard_status_file = os.environ.get("TEST_SHARD_STATUS_FILE")
+        if shard_status_file:
+            Path(shard_status_file).open("a").close()  # Ensure that the file exists
 
     # Handle plugins that generate reports - if they are provided with relative paths (via args),
     # re-write it under bazel's test undeclared outputs dir.
@@ -99,9 +100,9 @@ def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
         for i, arg in enumerate(args):
             for flag in path_flags:
                 if arg.startswith(f"{flag}="):
-                    arg_split = arg.split("=", 1)
-                    if len(arg_split) == 2 and not os.path.isabs(arg_split[1]):
-                        args[i] = f"{flag}={undeclared_output_dir}/{arg_split[1]}"
+                    flag_value, _, p = arg.partition("=")
+                    if p and not Path.is_absolute(flag_value):
+                        args[i] = f"{flag}={undeclared_output_dir}/{p}"
 
     if os.environ.get("TESTBRIDGE_TEST_ONLY"):
         # TestClass.test_fn -> TestClass::test_fn
@@ -111,7 +112,7 @@ def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
         # --test_filter=test_fn
         if not module_name[0].isupper():
             pytest_args.extend(args)
-            pytest_args.append("-k={filter}".format(filter=module_name))
+            pytest_args.append(f"-k={module_name}")
         else:
             # --test_filter=TestClass.test_fn
             # Add test filter to path-like args
@@ -119,14 +120,15 @@ def main(args=sys.argv[1:], pytest_main=pytest.main, sys_exit=sys.exit):
                 if not arg.startswith("--"):
                     # Maybe a src file? Add test class/method selection to it. Not sure if this will work if the
                     # symbol can't be found in the test file.
-                    arg = "{arg}::{module_fn}".format(arg=arg, module_fn=module_name)
-                pytest_args.append(arg)
+                    pytest_args.append(f"{arg}::{module_name}")
+                else:
+                    pytest_args.append(arg)
     else:
         pytest_args.extend(args)
 
     warnings_file = os.environ.get("TEST_WARNINGS_OUTPUT_FILE")
     if warnings_file:
-        with open(warnings_file, "w") as f:
+        with Path(warnings_file).open("w") as f:
             warnings.showwarning = _write_to_file_factory(f)
             exit_code = pytest_main(pytest_args)
     else:
