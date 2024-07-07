@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Actually pass the constructed args to `pytest.main`.
 - Fixed the `tmpdir` usage on Linux. It seems that `bazel` pre-creates the
   directory on Linux in the sandbox and `pytest` `tmpdir` behaviour is
   different from MacOS and it starts failing.

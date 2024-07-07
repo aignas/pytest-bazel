@@ -26,7 +26,7 @@ def _write_to_file_factory(out_file):
     return bazel_collect_warning
 
 
-def main():
+def main(pytest_main=pytest.main, sys_exit=sys.exit):
     """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
     pytest_args = [
         # Only needed if users are not specifying
@@ -129,12 +129,12 @@ def main():
     if warnings_file:
         with open(warnings_file, "w") as f:
             warnings.showwarning = _write_to_file_factory(f)
-            exit_code = pytest.main(pytest_args)
+            exit_code = pytest_main(pytest_args)
     else:
-        exit_code = pytest.main(pytest_args)
+        exit_code = pytest_main(pytest_args)
 
     if exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
         print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
 
-    sys.exit(exit_code)
+    sys_exit(exit_code)
