@@ -1,5 +1,4 @@
-"""
-The main entrypoint for pytest with bazel integration.
+"""The main entrypoint for pytest with bazel integration.
 
 The original template code is based on
 https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35c7c53d9316f6162088dd13
@@ -25,16 +24,19 @@ def _supports_sharding() -> bool:
 
 
 def _write_to_file_factory(out_file):
-    """Return a function that used to overwrite the warnings.showwarning to write to the file we specified"""
+    """Return a function that used to replace the warnings.showwarning function.
 
-    def bazel_collect_warning(  # noqa: PLR0913
+    This is used to write everything to a file that bazel specifies.
+    """
+
+    def _fn(  # noqa: PLR0913
         message, category, filename, lineno, file=sys.stderr, line=None
     ):
         out_file.write(
             warnings.formatwarning(message, category, filename, lineno, line)
         )
 
-    return bazel_collect_warning
+    return _fn
 
 
 def _maybe_path(p) -> Optional[Path]:
@@ -43,47 +45,62 @@ def _maybe_path(p) -> Optional[Path]:
 
 @dataclass
 class BazelEnv:
+    """The initial conditions environment described in the bazel docs.
+
+    See https://bazel.build/reference/test-encyclopedia#initial-conditions
+    """
+
     env: dict
 
     @property
     def test_shard_index(self) -> int:
+        """Return the TEST_SHARD_INDEX value."""
         return int(self.env.get("TEST_SHARD_INDEX") or 0)
 
     @property
     def test_shard_status_file(self) -> Optional[Path]:
+        """Return the TEST_SHARD_STATUS_FILE value or None."""
         return _maybe_path(self.env.get("TEST_SHARD_STATUS_FILE"))
 
     @property
     def test_total_shards(self) -> int:
+        """Return the TEST_TOTAL_SHARDS value."""
         return int(self.env.get("TEST_TOTAL_SHARDS") or 0)
 
     @property
     def test_random_seed(self) -> int:
+        """Return the TEST_RANDOM_SEED value. If zero, it should be interpreted as no value."""
         return int(self.env.get("TEST_RANDOM_SEED", 0))
 
     @property
     def test_run_number(self) -> int:
+        """Return the TEST_RUN_NUMBER value. If zero, then --runs_per_test is likely not used."""
         return int(self.env.get("TEST_RUN_NUMBER", 0))
 
     @property
     def test_tmpdir(self) -> Optional[Path]:
+        """Return the TEST_TMPDIR value or None if unset."""
         return _maybe_path(self.env.get("TEST_TMPDIR"))
 
     @property
     def test_undeclared_outputs_dir(self) -> Optional[Path]:
+        """Return the TEST_UNDECLARED_OUTPUTS_DIR valu or None if unset.."""
         return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
 
     @property
     def test_warnings_output_file(self) -> Optional[Path]:
+        """Return the TEST_WARNINGS_OUTPUT_FILE value or None if unset."""
         return _maybe_path(self.env.get("TEST_WARNINGS_OUTPUT_FILE"))
 
     @property
     def test_filter(self) -> str:
+        """Return the TESTBRIDGE_TEST_ONLY value after substituting `.` with `::`."""
         # TestClass.test_fn -> TestClass::test_fn
         return self.env.get("TESTBRIDGE_TEST_ONLY", "").replace(".", "::")
 
     @property
     def xml_output_file(self) -> Optional[Path]:
+        """Return the XML_OUTPUT_FILE value or None if unset."""
         return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
 
 
@@ -93,8 +110,16 @@ def main(  # noqa: PLR0912
     sys_exit=sys.exit,
     env: Optional[BazelEnv] = None,
 ):  # noqa: PLR0912
-    """The main entrypoint wrapping pytest to be used in py_console_script_binary."""
+    """Execute pytest.
 
+    Args:
+    ----
+        args: the list of extra arguments to pass. Defaults to sys.argv[1:].
+        pytest_main: the function to run instead of `pytest.main`. Used mainly for testing.
+        sys_exit: the function to run instead of `sys.exit`. Used mainly for testing, defaults to `sys.exit`.
+        env: the bazel environment. Used mainly for testing, defaults to reading from environment variables.
+
+    """
     env = env or BazelEnv(os.environ)
     pytest_args = [
         # Only needed if users are not specifying
