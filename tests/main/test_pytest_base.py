@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from pytest_bazel import main
 from pytest_bazel.main import BazelEnv
+from pytest_bazel.main import main as _main
 
 
 def mock_pytest_main(args=None, collect_args=None, return_exit=0):
@@ -13,7 +13,7 @@ def mock_pytest_main(args=None, collect_args=None, return_exit=0):
 
 def test_pytest_default_args():
     got_args = []
-    main(
+    _main(
         pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
     )
 
@@ -32,7 +32,7 @@ def test_pytest_default_args():
 
 def test_pytest_extra_args_passed():
     got_args = []
-    main(
+    _main(
         args=["super", "custom", "args"],
         pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
     )
@@ -41,24 +41,25 @@ def test_pytest_extra_args_passed():
 
 
 def test_return_non_zero_exit():
-    got_exit_code = []
-    main(
-        pytest_main=lambda args: mock_pytest_main(args, return_exit=42),
-        sys_exit=lambda code: got_exit_code.append(code),
+    want = 42
+    assert (
+        _main(
+            pytest_main=lambda args: mock_pytest_main(args, return_exit=42),
+        )
+        == want
     )
-
-    assert got_exit_code == [42]
 
 
 def test_no_sharding_by_default(tmpdir):
     shard_status_file = Path(tmpdir) / "mock_file"
-    main(
+    _main(
         pytest_main=lambda args: mock_pytest_main(args),
         env=BazelEnv(
             {
                 "TEST_SHARD_INDEX": "1",
                 "TEST_TOTAL_SHARDS": "2",
                 "TEST_SHARD_STATUS_FILE": str(shard_status_file),
+                "BAZEL_TEST": "1",
             }
         ),
     )
@@ -69,4 +70,6 @@ def test_no_sharding_by_default(tmpdir):
 
 
 if __name__ == "__main__":
+    from pytest_bazel import main
+
     main()

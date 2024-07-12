@@ -11,7 +11,6 @@ Features ported from [rules_python_pytest]:
   passing the filenames to the runner.
 - [x] Test sharding support using [pytest-shard].
 - [x] Supporting filtering tests via `bazel test --test_filter <target>`.
-- [x] Installing [pytest-shard] via extras `pytest-bazel[shard]`.
 
 Features ported from [rules_py]:
 - [x] Use `-p no:cacheprovider`
@@ -21,15 +20,13 @@ Features ported from [rules_py]:
 Extra features implementing [test_encyclopedia] spec:
 - [x] `TEST_WARNINGS_OUTPUT_FILE` is used to output `warnings.warn` usage.
 - [x] `TEST_TMPDIR` is used
-- [ ] `TEST_SRCDIR` is maybe used to pass in the root where to start discovery.
 - [x] `TEST_RANDOM_SEED` is used for predictive tests, consider integrating with https://pypi.org/project/pytest-randomly/.
-- [ ] `TEST_INFRASTRUCTURE_FAILURE_FILE` is used when `pytest` fails to discover any tests.
-- [ ] `TEST_SIZE` is supported and users can mark tests to be run only when a particular `size` is set in the rule.
-- [ ] different default args depending on whether `bazel run` or `bazel test` is used (see `BAZEL_TEST` env var).
+- [x] short circuit if not running under bazel (see `BAZEL_TEST` env var).
 
 Extras that have tests:
-- [ ] No passing of files as args is needed. Pytest discovery is working as
-  expected.
+- [x] No passing of files as args is needed. Pytest discovery is working as
+  expected. Note that this may not scale well with extremely large sandboxes.
+  Please leave feedback in the repo.
 - [ ] Recommendations on project structure (separate `tests` dir may
   facilitate integration with `pytest`, but this needs further checking).
 
@@ -37,7 +34,12 @@ Extras that have tests:
 
 ## Usage
 
-**NOTE, this is not fully tested and is in a very early POC state!**
+Install this by including it into your `requirements.in` or `pyproject.toml` file:
+```
+pytest-bazel[all]
+```
+
+And then you can use it as follows:
 
 ### Pattern 1
 

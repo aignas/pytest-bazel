@@ -23,8 +23,17 @@ py_test(
 ```
 """
 
-from .main import main
+import sys
 
-__all__ = [
-    "main",
-]
+from .main import main as _main
+
+
+def main(args=None):
+    """Run pytest.
+
+    Args:
+    ----
+        args: args to pytest.main
+
+    """
+    sys.exit(_main(args=args))

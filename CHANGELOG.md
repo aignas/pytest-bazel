@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The python code has more docstrings.
+- Short-circuit and do not try to access special bazel env variables if we are
+  not running under `bazel` (signified by the `TEST_BAZEL` env variable.
+- Add more docs and installation guide.
 
 ## [0.0.8]
 

@@ -9,9 +9,16 @@ import sys
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 import pytest
+
+# Flags that take file paths as value.
+_FLAGS_OUTPUTING_FILES = [
+    "--report-log",  # pytest-reportlog
+    "--json-report-file",  # pytest-json-report
+    "--html",  # pytest-html
+]
 
 
 def _supports_sharding() -> bool:
@@ -50,7 +57,7 @@ class BazelEnv:
     See https://bazel.build/reference/test-encyclopedia#initial-conditions
     """
 
-    env: dict
+    env: Dict[str, str]
 
     @property
     def test_shard_index(self) -> int:
@@ -76,6 +83,11 @@ class BazelEnv:
     def test_run_number(self) -> int:
         """Return the TEST_RUN_NUMBER value. If zero, then --runs_per_test is likely not used."""
         return int(self.env.get("TEST_RUN_NUMBER", 0))
+
+    @property
+    def is_test(self) -> int:
+        """Return the BAZEL_TEST value as a boolean."""
+        return "BAZEL_TEST" in self.env
 
     @property
     def test_tmpdir(self) -> Optional[Path]:
@@ -104,23 +116,59 @@ class BazelEnv:
         return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
 
 
-def main(  # noqa: PLR0912
-    args=sys.argv[1:],
-    pytest_main=pytest.main,
-    sys_exit=sys.exit,
-    env: Optional[BazelEnv] = None,
-):
-    """Execute pytest.
+def _process_args(args: List[str], env: BazelEnv) -> List[str]:
+    # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
+    # Remove any __init__.py file to avoid that.
+    # pytest.version_tuple is available since pytest 7.0
+    # https://github.com/pytest-dev/pytest/issues/9313
+    if not hasattr(pytest, "version_tuple") or pytest.version_tuple < (8, 0):
+        args = [
+            arg
+            for arg in args
+            if arg.startswith("-") or Path(arg).name != "__init__.py"
+        ]
+
+    # Handle plugins that generate reports - if they are provided with relative paths (via args),
+    # re-write it under bazel's test undeclared outputs dir.
+    undeclared_output_dir = env.test_undeclared_outputs_dir
+    if undeclared_output_dir:
+        for i, arg in enumerate(args):
+            for flag in _FLAGS_OUTPUTING_FILES:
+                if arg.startswith(f"{flag}="):
+                    flag_value, _, p = arg.partition("=")
+                    if p and not Path(flag_value).is_absolute():
+                        args[i] = f"{flag}={undeclared_output_dir}/{p}"
+
+    if not env.test_filter:
+        return args
+
+    if not env.test_filter[0].isupper():
+        # If the test filter does not start with a class-like name, then use test filtering instead
+        # --test_filter=test_fn
+        return [*args, f"-k={env.test_filter}"]
+
+    # --test_filter=TestClass.test_fn
+    # Add test filter to path-like args
+    return [
+        # Maybe a src file? Add test class/method selection to it. Not sure if this will work if the
+        # symbol can't be found in the test file.
+        f"{arg}::{env.test_filter}" if not arg.startswith("--") else arg
+        for arg in args
+    ]
+
+
+def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
+    """Construct pytest args.
 
     Args:
     ----
-        args: the list of extra arguments to pass. Defaults to sys.argv[1:].
-        pytest_main: the function to run instead of `pytest.main`. Used mainly for testing.
-        sys_exit: the function to run instead of `sys.exit`. Used mainly for testing, defaults to `sys.exit`.
-        env: the bazel environment. Used mainly for testing, defaults to reading from environment variables.
+        args: the list of extra arguments to pass.
+        env: the bazel environment.
 
     """
-    env = env or BazelEnv(os.environ)
+    if not env.is_test:
+        return args
+
     pytest_args = [
         # Only needed if users are not specifying
         # build --nolegacy_external_runfiles
@@ -133,17 +181,6 @@ def main(  # noqa: PLR0912
         "-p",
         "no:cacheprovider",
     ]
-
-    # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
-    # Remove any __init__.py file to avoid that.
-    # pytest.version_tuple is available since pytest 7.0
-    # https://github.com/pytest-dev/pytest/issues/9313
-    if not hasattr(pytest, "version_tuple") or pytest.version_tuple < (8, 0):
-        args = [
-            arg
-            for arg in args
-            if arg.startswith("-") or Path(arg).name != "__init__.py"
-        ]
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
@@ -166,40 +203,26 @@ def main(  # noqa: PLR0912
         if env.test_shard_status_file and _supports_sharding():
             env.test_shard_status_file.touch(exist_ok=True)
 
-    # Handle plugins that generate reports - if they are provided with relative paths (via args),
-    # re-write it under bazel's test undeclared outputs dir.
-    undeclared_output_dir = env.test_undeclared_outputs_dir
-    if undeclared_output_dir:
-        # Flags that take file paths as value.
-        path_flags = [
-            "--report-log",  # pytest-reportlog
-            "--json-report-file",  # pytest-json-report
-            "--html",  # pytest-html
-        ]
-        for i, arg in enumerate(args):
-            for flag in path_flags:
-                if arg.startswith(f"{flag}="):
-                    flag_value, _, p = arg.partition("=")
-                    if p and not Path.is_absolute(flag_value):
-                        args[i] = f"{flag}={undeclared_output_dir}/{p}"
+    pytest_args.extend(_process_args(args=args, env=env))
+    return pytest_args
 
-    if not env.test_filter:
-        pytest_args.extend(args)
-    elif not env.test_filter[0].isupper():
-        # If the test filter does not start with a class-like name, then use test filtering instead
-        # --test_filter=test_fn
-        pytest_args.extend(args)
-        pytest_args.append(f"-k={env.test_filter}")
-    else:
-        # --test_filter=TestClass.test_fn
-        # Add test filter to path-like args
-        for arg in args:
-            if not arg.startswith("--"):
-                # Maybe a src file? Add test class/method selection to it. Not sure if this will work if the
-                # symbol can't be found in the test file.
-                pytest_args.append(f"{arg}::{env.test_filter}")
-            else:
-                pytest_args.append(arg)
+
+def main(
+    args=None,
+    pytest_main=pytest.main,
+    env: Optional[BazelEnv] = None,
+) -> int:
+    """Execute pytest.
+
+    Args:
+    ----
+        args: the list of extra arguments to pass. Defaults to sys.argv[1:].
+        pytest_main: the function to run instead of `pytest.main`. Used mainly for testing.
+        env: the bazel environment. Used mainly for testing, defaults to reading from environment variables.
+
+    """
+    env = env or BazelEnv(os.environ)
+    pytest_args = _pytest_args(args=args or sys.argv[1:], env=env)
 
     warnings_file = env.test_warnings_output_file
     if warnings_file:
@@ -212,6 +235,5 @@ def main(  # noqa: PLR0912
     if exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
         print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
-        sys_exit(exit_code)
 
-    # By default python programs exit with 0, so no need for this, it just makes the testing harder
+    return exit_code
