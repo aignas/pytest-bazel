@@ -23,10 +23,6 @@ Extra features implementing [test_encyclopedia] spec:
 - [x] `TEST_RANDOM_SEED` is used for predictive tests, consider integrating with https://pypi.org/project/pytest-randomly/.
 - [x] short circuit if not running under bazel (see `BAZEL_TEST` env var).
 
-- [ ] `TEST_SRCDIR` is maybe used to pass in the root where to start discovery.
-- [ ] `TEST_INFRASTRUCTURE_FAILURE_FILE` is used when `pytest` fails to discover any tests.
-- [ ] `TEST_SIZE` is supported and users can mark tests to be run only when a particular `size` is set in the rule.
-
 Extras that have tests:
 - [x] No passing of files as args is needed. Pytest discovery is working as
   expected. Note that this may not scale well with extremely large sandboxes.
