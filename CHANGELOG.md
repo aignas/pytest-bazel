@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   don't. Sharding requires extra `pytest-shard` plugin to be present at
   runtime.
 
+### Added
+
+- The python code has more docstrings.
+
 ## [0.0.8]
 
 ### Fixed

@@ -24,9 +24,9 @@ def test_pytest_default_args():
         "no:cacheprovider",
     ], f"unexpected args: {got_args}"
 
-    got_junitxml = [arg for arg in got_args if arg.startswith("--junitxml")][0]
+    got_junitxml = next(arg for arg in got_args if arg.startswith("--junitxml"))
     assert got_junitxml.endswith("test_pytest_base/test.xml")
-    got_tmpdir = [arg for arg in got_args if arg.startswith("--basetemp")][0]
+    got_tmpdir = next(arg for arg in got_args if arg.startswith("--basetemp"))
     assert got_tmpdir.endswith("/pytest")
 
 
@@ -37,7 +37,7 @@ def test_pytest_extra_args_passed():
         pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
     )
 
-    assert ["super", "custom", "args"] == got_args[-3:]
+    assert got_args[-3:] == ["super", "custom", "args"]
 
 
 def test_return_non_zero_exit():
