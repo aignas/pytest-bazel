@@ -1,5 +1,7 @@
 """Run the pytest bazel wrapper."""
 
+import sys
+
 from pytest_bazel.main import main
 
-main()
+sys.exit(main())
