@@ -38,7 +38,12 @@ Extras that have tests:
 
 ## Usage
 
-**NOTE, this is not fully tested and is in a very early POC state!**
+Install this by including it into your `requirements.in` or `pyproject.toml` file:
+```
+pytest-bazel[all]
+```
+
+And then you can use it as follows:
 
 ### Pattern 1
 
