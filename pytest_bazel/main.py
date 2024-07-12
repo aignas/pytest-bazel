@@ -109,7 +109,7 @@ def main(  # noqa: PLR0912
     pytest_main=pytest.main,
     sys_exit=sys.exit,
     env: Optional[BazelEnv] = None,
-):  # noqa: PLR0912
+):
     """Execute pytest.
 
     Args:
