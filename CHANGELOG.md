@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.1.2]
+
 ### Changed
 
 - Return exit code 0 (then `bazel` will report targets as `PASSED`) if there
@@ -106,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.1...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.2...HEAD
+[0.1.2]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.2
 [0.1.1]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.1
 [0.1.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.0
 [0.0.8]: https://github.com/aignas/pytest-bazel/releases/tag/0.0.8
