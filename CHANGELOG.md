@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- [RTD](https://pytest-bazel.readthedocs.io/en/latest/) setup for publishing
+  docs about the project.
 
 ## [0.1.0]
 
