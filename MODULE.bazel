@@ -25,6 +25,8 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
     ]
 ]
 
+use_repo(python, "python_3_12")
+
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 
 [
