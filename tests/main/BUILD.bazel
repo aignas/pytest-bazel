@@ -1,6 +1,12 @@
 load("@rules_python//python:py_test.bzl", "py_test")
 
 py_test(
+    name = "test_filter",
+    srcs = ["test_filter.py"],
+    deps = ["//pytest_bazel"],
+)
+
+py_test(
     name = "test_pytest_base",
     srcs = ["test_pytest_base.py"],
     deps = ["//pytest_bazel"],

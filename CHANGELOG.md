@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- Return exit code 0 (then `bazel` will report targets as `PASSED`) if there
+  are no tests collected and the test filter is specified.
+
+### Fixed
+
+- Backport [rules_python_pytest PR#12][backport_pr_12] to correctly handle
+  filenames in test filters. Whilst doing this work, we also ensure that more
+  complex filters (`'test_foo or test_bar'`) also work.
+
+[backport_pr_12]: https://github.com/caseyduquettesc/rules_python_pytest/pull/12/files
 
 ## [0.1.1]
 
