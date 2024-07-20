@@ -31,7 +31,14 @@ all = [
 ]
 shard = ["pytest-shard"]
 random = ["pytest-randomly"]
-test_deps = ["numpy"]
+tests = ["numpy"]
+docs = [
+    "sphinx",
+    "myst-parser",
+    "sphinx_rtd_theme",
+    "readthedocs-sphinx-ext",
+    "typing-extensions"
+]
 
 [project.urls]
 Homepage = "https://github.com/aignas/pytest-bazel"
