@@ -107,8 +107,16 @@ class BazelEnv:
     @property
     def test_filter(self) -> str:
         """Return the TESTBRIDGE_TEST_ONLY value after substituting `.` with `::`."""
+        test_filter = self.env.get("TESTBRIDGE_TEST_ONLY", "")
+        if not test_filter:
+            return ""
+
+        if not test_filter[0].isupper():
+            # --test_filter=test_module.test_fn or --test_filter=test_module/test_file.py
+            return test_filter
+
         # TestClass.test_fn -> TestClass::test_fn
-        return self.env.get("TESTBRIDGE_TEST_ONLY", "").replace(".", "::")
+        return test_filter.replace(".", "::")
 
     @property
     def xml_output_file(self) -> Optional[Path]:
@@ -142,19 +150,7 @@ def _process_args(args: List[str], env: BazelEnv) -> List[str]:
     if not env.test_filter:
         return args
 
-    if not env.test_filter[0].isupper():
-        # If the test filter does not start with a class-like name, then use test filtering instead
-        # --test_filter=test_fn
-        return [*args, f"-k={env.test_filter}"]
-
-    # --test_filter=TestClass.test_fn
-    # Add test filter to path-like args
-    return [
-        # Maybe a src file? Add test class/method selection to it. Not sure if this will work if the
-        # symbol can't be found in the test file.
-        f"{arg}::{env.test_filter}" if not arg.startswith("--") else arg
-        for arg in args
-    ]
+    return [*args, "-k", f"{env.test_filter}"]
 
 
 def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
@@ -232,7 +228,10 @@ def main(
     else:
         exit_code = pytest_main(pytest_args)
 
-    if exit_code != 0:
+    if env.test_filter and exit_code == pytest.ExitCode.NO_TESTS_COLLECTED:
+        # If users are filtering out the tests, then exit with a zero if the error code is no-tests collected.
+        return 0
+    elif exit_code != 0:
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
         print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
 
