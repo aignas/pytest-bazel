@@ -25,6 +25,8 @@ create_venv(
 exports_files(
     [
         "README.md",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
         "LICENSE",
     ],
     visibility = ["//:__subpackages__"],

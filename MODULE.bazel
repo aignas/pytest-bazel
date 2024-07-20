@@ -5,8 +5,19 @@ module(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
-bazel_dep(name = "rules_python", version = "0.33.2", dev_dependency = True)
-bazel_dep(name = "rules_uv", version = "0.17.0", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "0.34.0", dev_dependency = True)
+
+# TODO @aignas 2024-07-20: remove after
+# https://bazelbuild/rules_python/pull/2080 is merged and a new version is
+# released.
+single_version_override(
+    module_name = "rules_python",
+    patch_strip = 1,
+    patches = ["//patches:rules_python_pr2080.patch"],
+    version = "0.34.0",
+)
+
+bazel_dep(name = "rules_uv", version = "0.18.0", dev_dependency = True)
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 
@@ -24,6 +35,8 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
         "3.12",
     ]
 ]
+
+use_repo(python, "python_3_12")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 
