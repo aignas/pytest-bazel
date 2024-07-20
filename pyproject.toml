@@ -42,8 +42,7 @@ docs = [
 
 [project.urls]
 Homepage = "https://github.com/aignas/pytest-bazel"
-# TODO @aignas 2024-06-29: add RTD
-Documentation = "https://github.com/aignas/pytest-bazel"
+Documentation = "https://pytest-bazel.readthedocs.io/"
 Repository = "https://github.com/aignas/pytest-bazel.git"
 "Bug Tracker" = "https://github.com/aignas/pytest-bazel/issues"
 Changelog = "https://github.com/aignas/pytest-bazel/blob/main/CHANGELOG.md"
