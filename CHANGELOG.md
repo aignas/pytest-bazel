@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- Support for `--test_runner_fail_fast` flag
 
 ## [0.1.2]
 
