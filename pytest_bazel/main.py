@@ -85,7 +85,7 @@ class BazelEnv:
         return int(self.env.get("TEST_RUN_NUMBER", 0))
 
     @property
-    def is_test(self) -> int:
+    def is_test(self) -> bool:
         """Return the BAZEL_TEST value as a boolean."""
         return "BAZEL_TEST" in self.env
 
