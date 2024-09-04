@@ -22,6 +22,7 @@ Extra features implementing [test_encyclopedia] spec:
 - `TEST_WARNINGS_OUTPUT_FILE` is used to output `warnings.warn` usage.
 - `TEST_TMPDIR` is used
 - `TEST_RANDOM_SEED` is used for predictive tests, consider integrating with https://pypi.org/project/pytest-randomly/.
+- `TESTBRIDGE_TEST_RUNNER_FAIL_FAST` is used to stop execution upon first failure (enabled by `--test_runner_fail_fast` flag).
 - short circuit if not running under bazel (see `BAZEL_TEST` env var).
 
 Extras that have tests:

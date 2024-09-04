@@ -123,6 +123,11 @@ class BazelEnv:
         """Return the XML_OUTPUT_FILE value or None if unset."""
         return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
 
+    @property
+    def test_runner_fail_fast(self) -> bool:
+        """Return the TESTBRIDGE_TEST_RUNNER_FAIL_FAST value as a boolean."""
+        return self.env.get("TESTBRIDGE_TEST_RUNNER_FAIL_FAST") == "1"
+
 
 def _process_args(args: List[str], env: BazelEnv) -> List[str]:
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
@@ -198,6 +203,9 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
         pytest_args.append(f"--num-shards={env.test_total_shards}")
         if env.test_shard_status_file and _supports_sharding():
             env.test_shard_status_file.touch(exist_ok=True)
+
+    if env.test_runner_fail_fast:
+        pytest_args.append("--exitfirst")
 
     pytest_args.extend(_process_args(args=args, env=env))
     return pytest_args
