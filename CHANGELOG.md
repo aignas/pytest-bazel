@@ -11,6 +11,10 @@ Nothing yet.
 
 ## [0.1.3]
 
+Nothing yet.
+
+## [0.1.3]
+
 ### Added
 
 - Support for `--test_runner_fail_fast` flag
@@ -117,6 +121,7 @@ Nothing yet.
 - A simple test that is currently failing.
 
 [unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.3...HEAD
+[0.1.3]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.3
 [0.1.3]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.3
 [0.1.2]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.2
 [0.1.1]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.1
