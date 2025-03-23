@@ -96,7 +96,7 @@ class BazelEnv:
 
     @property
     def test_undeclared_outputs_dir(self) -> Optional[Path]:
-        """Return the TEST_UNDECLARED_OUTPUTS_DIR valu or None if unset.."""
+        """Return the TEST_UNDECLARED_OUTPUTS_DIR value or None if unset."""
         return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
 
     @property
