@@ -231,8 +231,12 @@ def main(
     warnings_file = env.test_warnings_output_file
     if warnings_file:
         with warnings_file.open("w") as f:
+            original_showwarning = warnings.showwarning
             warnings.showwarning = _write_to_file_factory(f)
-            exit_code = pytest_main(pytest_args)
+            try:
+                exit_code = pytest_main(pytest_args)
+            finally:
+                warnings.showwarning = original_showwarning
     else:
         exit_code = pytest_main(pytest_args)
 
