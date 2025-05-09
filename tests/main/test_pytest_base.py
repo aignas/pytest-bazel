@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 
 from pytest_bazel.main import BazelEnv
@@ -67,6 +68,23 @@ def test_no_sharding_by_default(tmpdir):
     assert (
         not shard_status_file.exists()
     ), "Sharding should not be advertised as supported"
+
+
+def test_pytest_showwarning():
+    """Ensure that the original warning function is restored after pytest runs."""
+
+    original_showwarning = warnings.showwarning
+
+    got_args = []
+    _main(
+        pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
+    )
+    assert warnings.showwarning == original_showwarning
+
+    _main(
+        pytest_main=lambda args: mock_pytest_main(args, return_exit=42),
+    )
+    assert warnings.showwarning == original_showwarning
 
 
 if __name__ == "__main__":
