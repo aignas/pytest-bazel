@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Restore `warnings.showwarning` value after running pytest.
+  [#16](https://github.com/aignas/pytest-bazel/pull/16).
 
 ## [0.1.3]
 
