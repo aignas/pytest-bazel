@@ -23,6 +23,7 @@ echo "VERSION = \"$VERSION\"" > version.bzl
 
 # Git commit, tag and push
 git commit -am "release: $VERSION"
-git push
-git tag $VERSION
-git push --tags
+gh pr create
+# git push
+# git tag $VERSION
+# git push --tags
