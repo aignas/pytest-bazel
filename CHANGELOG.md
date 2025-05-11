@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.1.4]
+
+### Fixed
+
+- Restore `warnings.showwarning` value after running pytest.
+  [#16](https://github.com/aignas/pytest-bazel/pull/16).
+
 ## [0.1.3]
 
 Nothing yet.
@@ -120,7 +127,8 @@ Nothing yet.
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.3...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.4...HEAD
+[0.1.4]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.4
 [0.1.3]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.3
 [0.1.3]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.3
 [0.1.2]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.2
