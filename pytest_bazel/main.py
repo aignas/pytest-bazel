@@ -228,6 +228,8 @@ def main(
     env = env or BazelEnv(os.environ)
     pytest_args = _pytest_args(args=args or sys.argv[1:], env=env)
 
+    print(f"Running pytest.main with: {pytest_args}", file=sys.stderr)
+
     warnings_file = env.test_warnings_output_file
     if warnings_file:
         with warnings_file.open("w") as f:
@@ -247,6 +249,5 @@ def main(
         sys.stdout.flush()
         sys.stderr.flush()
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
-        print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
 
     return exit_code
