@@ -244,6 +244,8 @@ def main(
         # If users are filtering out the tests, then exit with a zero if the error code is no-tests collected.
         return 0
     elif exit_code != 0:
+        sys.stdout.flush()
+        sys.stderr.flush()
         print("Pytest exit code: " + str(exit_code), file=sys.stderr)
         print("Ran pytest.main with " + str(pytest_args), file=sys.stderr)
 
