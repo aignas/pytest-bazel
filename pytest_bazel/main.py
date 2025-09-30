@@ -49,6 +49,8 @@ def _write_to_file_factory(out_file):
 def _maybe_path(p) -> Optional[Path]:
     return Path(p) if p else None
 
+def _maybe_int(v: Optional[str]) -> Optional[int]:
+    return int(v) if v is not None else None
 
 @dataclass
 class BazelEnv:
@@ -60,9 +62,9 @@ class BazelEnv:
     env: Dict[str, str]
 
     @property
-    def test_shard_index(self) -> int:
+    def test_shard_index(self) -> Optional[int]:
         """Return the TEST_SHARD_INDEX value."""
-        return int(self.env.get("TEST_SHARD_INDEX") or 0)
+        return _maybe_int(self.env.get("TEST_SHARD_INDEX"))
 
     @property
     def test_shard_status_file(self) -> Optional[Path]:
@@ -72,7 +74,7 @@ class BazelEnv:
     @property
     def test_total_shards(self) -> int:
         """Return the TEST_TOTAL_SHARDS value."""
-        return int(self.env.get("TEST_TOTAL_SHARDS") or 0)
+        return _maybe_int(self.env.get("TEST_TOTAL_SHARDS"))
 
     @property
     def test_random_seed(self) -> int:
@@ -197,7 +199,7 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
         pytest_args.append(f"--randomly-seed={random_seed}")  # using pytest-randomly
 
     # Handle test sharding - requires pytest-shard plugin.
-    if env.test_shard_index and env.test_total_shards:
+    if env.test_shard_index is not None and env.test_total_shards is not None:
         # https://bazel.build/reference/test-encyclopedia#test-sharding
         pytest_args.append(f"--shard-id={env.test_shard_index}")
         pytest_args.append(f"--num-shards={env.test_total_shards}")
