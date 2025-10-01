@@ -11,7 +11,12 @@ Nothing yet.
 
 ## [0.1.5]
 
-Nothing yet.
+### Fixed
+
+- Fix printing of status messages and launch parameters
+  [#19](https://github.com/aignas/pytest-bazel/pull/19).
+- Fix sharding support for the 0th shard
+  [#20](https://github.com/aignas/pytest-bazel/pull/20).
 
 ## [0.1.4]
 
