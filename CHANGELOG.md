@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.1.5]
+
+### Fixed
+
+- Fix printing of status messages and launch parameters
+  [#19](https://github.com/aignas/pytest-bazel/pull/19).
+- Fix sharding support for the 0th shard
+  [#20](https://github.com/aignas/pytest-bazel/pull/20).
+
 ## [0.1.4]
 
 ### Fixed
@@ -127,7 +136,8 @@ Nothing yet.
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.4...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.5...HEAD
+[0.1.5]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.5
 [0.1.4]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.4
 [0.1.3]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.3
 [0.1.3]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.3
