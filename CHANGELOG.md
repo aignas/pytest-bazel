@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Support `--runs_per_test` without `pytest-randomly`
+  [#24](https://github.com/aignas/pytest-bazel/issues/24).
 
 ## [0.1.5]
 
