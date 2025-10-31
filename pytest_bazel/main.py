@@ -4,7 +4,9 @@ The original template code is based on
 https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35c7c53d9316f6162088dd13
 """
 
+import importlib.util
 import os
+import random
 import sys
 import warnings
 from dataclasses import dataclass
@@ -49,8 +51,10 @@ def _write_to_file_factory(out_file):
 def _maybe_path(p) -> Optional[Path]:
     return Path(p) if p else None
 
+
 def _maybe_int(v: Optional[str]) -> Optional[int]:
     return int(v) if v is not None else None
+
 
 @dataclass
 class BazelEnv:
@@ -196,7 +200,11 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
 
     random_seed = env.test_random_seed or env.test_run_number
     if random_seed:
-        pytest_args.append(f"--randomly-seed={random_seed}")  # using pytest-randomly
+        if importlib.util.find_spec("pytest_randomly"):
+            # using pytest-randomly
+            pytest_args.append(f"--randomly-seed={random_seed}")
+        else:
+            random.seed(random_seed)
 
     # Handle test sharding - requires pytest-shard plugin.
     if env.test_shard_index is not None and env.test_total_shards is not None:
