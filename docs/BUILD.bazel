@@ -51,7 +51,7 @@ sphinx_docs(
 sphinx_stardocs(
     name = "bzl_api_docs",
     srcs = [
-        "//:pytest",
+        "//pytest_lib:pytest",
     ],
     prefix = "api/pytest.bzl/",
     target_compatible_with = _TARGET_COMPATIBLE_WITH,

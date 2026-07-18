@@ -1,4 +1,4 @@
-load("//:pytest.bzl", "pytest_test")
+load("//pytest_lib:pytest.bzl", "pytest_test")
 
 pytest_test(
     name = "test_example",
