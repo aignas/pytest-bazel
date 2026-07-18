@@ -18,10 +18,7 @@ _TARGET_COMPATIBLE_WITH = select({
 # * `ibazel build //docs` to automatically rebuild docs
 sphinx_docs(
     name = "docs",
-    srcs = [
-        "//:CHANGELOG.md",
-        "//:CONTRIBUTING.md",
-    ] + glob(
+    srcs = [] + glob(
         include = [
             "*.md",
             "**/*.md",
