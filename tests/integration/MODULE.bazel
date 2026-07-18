@@ -1,0 +1,28 @@
+module(
+    name = "example",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_python", version = "2.2.0", dev_dependency = True)
+# TODO @aignas 2026-07-18: Remove once merged
+# https://github.com/bazel-contrib/rules_python/pull/3935
+single_version_override(
+    module_name = "rules_python",
+    patch_strip = 1,
+    patches = ["local_path.patch"],
+    version = "2.2.0",
+)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version="3.14")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "pytest_bazel",
+    # TODO @aignas 2024-06-29: support setting up all versions
+    python_version = "3.14",
+    requirements_lock = "//:requirements.txt",
+    # Since this is a bazel-in-bazel test the RUNFILES_DIR will be set when initializing.
+    envsubst = ["RUNFILES_DIR"],
+)
+use_repo(pip, "pypi")

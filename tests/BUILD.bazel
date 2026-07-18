@@ -1,5 +1,30 @@
+load("@bazel_binaries//:defs.bzl", "bazel_binaries")
+load(
+    "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
+    "bazel_integration_test",
+    "default_test_runner",
+    "integration_test_utils",
+)
+
 filegroup(
     name = "entry_points",
     srcs = ["entry_points.txt"],
     visibility = [":__subpackages__"],
 )
+
+# Declare a test runner to drive the integration tests.
+default_test_runner(
+    name = "simple_test_runner",
+)
+
+bazel_integration_test(
+    name = "integration_test",
+    bazel_binaries = bazel_binaries,
+    bazel_version = bazel_binaries.versions.current,
+    test_runner = ":simple_test_runner",
+    workspace_files = integration_test_utils.glob_workspace_files("integration") + [
+        "//pkg:whl",
+    ],
+    workspace_path = "integration",
+)
+
