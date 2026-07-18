@@ -299,7 +299,7 @@
     "@@rules_bazel_integration_test+//:extensions.bzl%bazel_binaries": {
       "general": {
         "bzlTransitiveDigest": "XC9nqZ31LIbq8N7cEK+rYa2iXNQLcJ3cyGWw+zPZlc0=",
-        "usagesDigest": "DGcmxGaggnbMSLJPa/Lhb30NLhOdTEovr3MQnYkBGkY=",
+        "usagesDigest": "sAH7m4pJdxmc/sfyZUxe7LYiC+cyblb9t+NaR/5KGOM=",
         "recordedInputs": [
           "REPO_MAPPING:rules_bazel_integration_test+,bazel_skylib bazel_skylib+",
           "REPO_MAPPING:rules_bazel_integration_test+,cgrindel_bazel_starlib cgrindel_bazel_starlib+"
@@ -400,7 +400,7 @@
     "@@rules_python+//python/uv:uv.bzl%uv": {
       "general": {
         "bzlTransitiveDigest": "ELjwPp2kLku5M3S/gpjjVjy3TwT760/zVEQ70nJreHU=",
-        "usagesDigest": "3b8gUS4Bovkt8E/OsBHVe+nXaDNvYWl+Aq9MVDpaw9I=",
+        "usagesDigest": "Gb1eFOXiuEDUKAsrh1E/yBJPa0td+z3uWatX4B/eRF4=",
         "recordedInputs": [
           "REPO_MAPPING:rules_python+,bazel_tools bazel_tools",
           "REPO_MAPPING:rules_python+,platforms platforms"

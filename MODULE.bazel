@@ -1,11 +1,12 @@
 module(
-    name = "pytest-bazel",
+    name = "pytest.bzl",
     version = "0.0.0",
 )
 
+bazel_dep(name = "rules_python", version = "2.2.0")
+
 bazel_dep(name = "bazel_skylib", version = "1.9.0", dev_dependency = True)
 bazel_dep(name = "platforms", version = "1.1.0", dev_dependency = True)
-bazel_dep(name = "rules_python", version = "2.2.0", dev_dependency = True)
 bazel_dep(name = "sphinxdocs", version = "2.2.0", dev_dependency = True)
 bazel_dep(name = "rules_shell", version = "0.8.0", dev_dependency = True)
 bazel_dep(name = "rules_bazel_integration_test", version = "0.37.1", dev_dependency = True)
@@ -21,7 +22,7 @@ bazel_binaries = use_extension(
 bazel_binaries.download(version_file = "//:.bazelversion")
 use_repo(bazel_binaries, "bazel_binaries", "bazel_binaries_bazelisk", "build_bazel_bazel_.bazelversion")
 
-python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
 
 [
     python.toolchain(
@@ -37,13 +38,17 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
     ]
 ]
 
-use_repo(python, "python_3_12")
-
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
-pip.default(default_hub = "pytest_bazel")
+pip.dep(name = "pytest")
+pip.dep(name = "pytest-bazel")
+pip.dep(name = "pytest-randomly")
+pip.dep(name = "pytest-shard")
+
+dev_pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
+dev_pip.default(default_hub = "pytest_bazel")
 
 [
-    pip.parse(
+    dev_pip.parse(
         hub_name = "pytest_bazel",
         # TODO @aignas 2024-06-29: support setting up all versions
         python_version = version,
