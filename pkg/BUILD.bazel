@@ -43,6 +43,14 @@ py_wheel(
     requires = [
         "pytest",
     ],
+    extra_requires = {
+        "all": [
+            "pytest[random]",
+            "pytest[shard]",
+        ],
+        "random": ["pytest-randomly"],
+        "shard": ["pytest-shard"],
+    },
     summary = "A pytest runner with bazel support",
     version = VERSION,
     visibility = ["//tests:__subpackages__"],

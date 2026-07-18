@@ -34,3 +34,15 @@ py_console_script_binary(
     ],
     testonly = True,
 )
+
+py_test(
+    name = "test_simple_main_module",
+    main_module = "pytest_bazel",
+    deps = [
+        ":test_example",
+        # Extra deps
+        "@pypi//numpy",
+        "//pytest_bazel",
+    ],
+)
+
