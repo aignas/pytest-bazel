@@ -1,5 +1,6 @@
 load("@sphinxdocs//sphinxdocs:readthedocs.bzl", "readthedocs_install")
 load("@sphinxdocs//sphinxdocs:sphinx.bzl", "sphinx_build_binary", "sphinx_docs")
+load("@sphinxdocs//sphinxdocs:sphinx_stardoc.bzl", "sphinx_stardocs")
 
 # We only build for Linux and Mac because:
 # 1. The actual doc process only runs on Linux
@@ -18,7 +19,7 @@ _TARGET_COMPATIBLE_WITH = select({
 # * `ibazel build //docs` to automatically rebuild docs
 sphinx_docs(
     name = "docs",
-    srcs = [] + glob(
+    srcs = glob(
         include = [
             "*.md",
             "**/*.md",
@@ -32,6 +33,7 @@ sphinx_docs(
         ],
         allow_empty=True,
     ),
+    deps = [":bzl_api_docs"],
     config = "conf.py",
     formats = [
         "html",
@@ -43,6 +45,15 @@ sphinx_docs(
     sphinx = ":sphinx-build",
     strip_prefix = package_name() + "/",
     tags = ["docs"],
+    target_compatible_with = _TARGET_COMPATIBLE_WITH,
+)
+
+sphinx_stardocs(
+    name = "bzl_api_docs",
+    srcs = [
+        "//:pytest",
+    ],
+    prefix = "api/pytest.bzl/",
     target_compatible_with = _TARGET_COMPATIBLE_WITH,
 )
 
