@@ -412,4 +412,4 @@ zipp==3.19.2 ; python_version < '3.10' \
     --hash=sha256:bf1dcf6450f873a13e952a29504887c89e6de7506209e5b1bcc3460135d4de19 \
     --hash=sha256:f091755f667055f2d02b32c53771a7a6c8b47e1fdbc4b72a8b9072b3eef8015c
     # via importlib-metadata
-pytest_bazel @ file:///${RUNFILES_DIR}/_main/pkg/pytest_bazel-0.1.5-py3-none-any.whl
+pytest_bazel @ file:///${RUNFILES_DIR}/_main/pkg/pytest_bazel-0.1.6-py3-none-any.whl
