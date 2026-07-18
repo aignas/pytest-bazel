@@ -33,12 +33,13 @@ shard = ["pytest-shard"]
 random = ["pytest-randomly"]
 tests = ["numpy"]
 docs = [
-    "sphinx_rtd_theme>=2.0",
-    "sphinx-autodoc2",
+    "docutils<0.19",
     "myst-parser",
     "readthedocs-sphinx-ext",
     "sphinx",
+    "sphinx-autodoc2",
     "sphinx_rtd_theme",
+    "sphinx_rtd_theme>=2.0",
     "typing-extensions"
 ]
 
