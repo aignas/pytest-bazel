@@ -1,0 +1,157 @@
+commit 0d270c0a338a47939d41056a01ed36fad67c42b2
+Author: Ignas Anikevicius <240938+aignas@users.noreply.github.com>
+Date:   Sat Jul 18 09:14:18 2026 +0900
+
+    fix(pypi): handle absolute file URLs in wheel downloader
+    
+    This fixes the normalization function to return correctly normalized
+    file URLs which is the minimum that we need to get absolute file
+    URLs handled correctly. We also handle envsubst.
+    
+    Related #3312
+
+diff --git a/news/3935.fixed.md b/news/3935.fixed.md
+new file mode 100644
+index 00000000..83cd0473
+--- /dev/null
++++ b/news/3935.fixed.md
+@@ -0,0 +1,4 @@
++(pypi) fixed the URL normalization function to correctly handle local paths
++enabling wheel sources files to point to an absolute path. Currently it supports
++the `file://<absolute_path>` for linux and windows like paths. We also support
++envsubst for the said paths from now on.
+diff --git a/python/private/pypi/BUILD.bazel b/python/private/pypi/BUILD.bazel
+index 8dd32afb..07d2300c 100644
+--- a/python/private/pypi/BUILD.bazel
++++ b/python/private/pypi/BUILD.bazel
+@@ -510,6 +510,12 @@ bzl_library(
+     ],
+ )
+ 
++bzl_library(
++    name = "urllib",
++    srcs = ["urllib.bzl"],
++    deps = ["//python/private:envsubst"],
++)
++
+ bzl_library(
+     name = "argparse",
+     srcs = ["argparse.bzl"],
+@@ -555,11 +561,6 @@ bzl_library(
+     srcs = ["platform.bzl"],
+ )
+ 
+-bzl_library(
+-    name = "urllib",
+-    srcs = ["urllib.bzl"],
+-)
+-
+ bzl_library(
+     name = "version_from_filename",
+     srcs = ["version_from_filename.bzl"],
+diff --git a/python/private/pypi/urllib.bzl b/python/private/pypi/urllib.bzl
+index ea4cd32c..3350ed0f 100644
+--- a/python/private/pypi/urllib.bzl
++++ b/python/private/pypi/urllib.bzl
+@@ -1,5 +1,7 @@
+ """Utilities for getting an absolute URL from index_url and the URL we find on PyPI index."""
+ 
++load("//python/private:envsubst.bzl", _envsubst = "envsubst")
++
+ def _get_root_directory(url):
+     scheme_end = url.find("://")
+     if scheme_end == -1:
+@@ -53,6 +55,12 @@ def _absolute_url(index_url, candidate):
+     # relative path without up-references
+     return "{}/{}".format(index_url.rstrip("/"), candidate)
+ 
++def _with_envsubst(url, envsubst = None, getenv = None):
++    if not url or not envsubst or not getenv:
++        return url
++
++    return _envsubst(url, envsubst, getenv)
++
+ def _strip_empty_path_segments(url):
+     """Removes empty path segments from a URL. Does nothing for urls with no scheme.
+ 
+@@ -65,18 +73,23 @@ def _strip_empty_path_segments(url):
+         The url with empty path segments removed and any trailing slash preserved.
+         If the url had no scheme it is returned unchanged.
+     """
+-    scheme, _, rest = url.partition("://")
++    sep = "://"
++    scheme, _, rest = url.partition(sep)
++    if scheme == "file" and rest.startswith("/"):
++        sep = sep + "/"
++        rest = rest[1:]
++
+     if rest == "":
+         return url
+     stripped = "/".join([p for p in rest.split("/") if p])
+     if url.endswith("/"):
+-        return "{}://{}/".format(scheme, stripped)
++        return "{}{}{}/".format(scheme, sep, stripped)
+     else:
+-        return "{}://{}".format(scheme, stripped)
++        return "{}{}{}".format(scheme, sep, stripped)
+ 
+ urllib = struct(
+     is_absolute = _is_downloadable,
+     # Ensure that we strip empty path segments when making an absolute URL
+-    absolute_url = lambda index_url, candidate: _strip_empty_path_segments(_absolute_url(index_url, candidate)),
++    absolute_url = lambda index_url, candidate, *, envsubst = None, getenv = None: _strip_empty_path_segments(_with_envsubst(_absolute_url(index_url, candidate), envsubst, getenv)),
+     strip_empty_path_segments = _strip_empty_path_segments,
+ )
+diff --git a/python/private/pypi/whl_library.bzl b/python/private/pypi/whl_library.bzl
+index 37cc3649..1e75d69c 100644
+--- a/python/private/pypi/whl_library.bzl
++++ b/python/private/pypi/whl_library.bzl
+@@ -327,8 +327,10 @@ def _whl_library_impl(rctx):
+         urls = rctx.attr.urls
+         urls = [
+             urllib.absolute_url(
+-                envsubst(rctx.attr.index_url, rctx.attr.envsubst, rctx.getenv),
++                rctx.attr.index_url,
+                 url,
++                envsubst = rctx.attr.envsubst,
++                getenv = rctx.getenv,
+             )
+             for url in urls
+         ]
+diff --git a/tests/pypi/urllib/urllib_tests.bzl b/tests/pypi/urllib/urllib_tests.bzl
+index 40c48dc8..2fbc969e 100644
+--- a/tests/pypi/urllib/urllib_tests.bzl
++++ b/tests/pypi/urllib/urllib_tests.bzl
+@@ -8,7 +8,8 @@ _tests = []
+ def _test_absolute_url(env):
+     # Already absolute
+     for already_absolute in [
+-        "file://foo",
++        "file:///foo",
++        "file:///c:/foo",
+         "https://foo.com",
+         "http://foo.com",
+     ]:
+@@ -25,7 +26,13 @@ def _test_absolute_url(env):
+     env.expect.that_str(urllib.absolute_url("https://example.com/relative/", "../relative/file.whl")).equals("https://example.com/relative/file.whl")
+ 
+     # Relative URL for files
+-    env.expect.that_str(urllib.absolute_url("file://{PYPI_BAZEL_WORKSPACE_ROOT}", "vendor/distro/file.whl")).equals("file://{PYPI_BAZEL_WORKSPACE_ROOT}/vendor/distro/file.whl")
++    env.expect.that_str(urllib.absolute_url("file://${PYPI_BAZEL_WORKSPACE_ROOT}", "vendor/distro/file.whl")).equals("file://${PYPI_BAZEL_WORKSPACE_ROOT}/vendor/distro/file.whl")
++    env.expect.that_str(urllib.absolute_url(
++        "file://${PYPI_BAZEL_WORKSPACE_ROOT}",
++        "vendor/distro/file.whl",
++        envsubst = ["PYPI_BAZEL_WORKSPACE_ROOT"],
++        getenv = {"PYPI_BAZEL_WORKSPACE_ROOT": "/some/dir"}.get,
++    )).equals("file:///some/dir/vendor/distro/file.whl")
+ 
+ _tests.append(_test_absolute_url)
+ 
+@@ -36,6 +43,7 @@ def _test_strip_empty_path_segments(env):
+     env.expect.that_str(urllib.strip_empty_path_segments("scheme://with///multiple//empty/segments")).equals("scheme://with/multiple/empty/segments")
+     env.expect.that_str(urllib.strip_empty_path_segments("scheme://with//trailing/slash/")).equals("scheme://with/trailing/slash/")
+     env.expect.that_str(urllib.strip_empty_path_segments("scheme://with/trailing/slashes///")).equals("scheme://with/trailing/slashes/")
++    env.expect.that_str(urllib.strip_empty_path_segments("file:///home/user/foo/../bar")).equals("file:///home/user/foo/../bar")
+ 
+ _tests.append(_test_strip_empty_path_segments)
+ 

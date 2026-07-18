@@ -1,34 +1,36 @@
 module(
     name = "pytest-bazel",
     version = "0.0.0",
-    compatibility_level = 0,
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
-bazel_dep(name = "rules_python", version = "0.34.0", dev_dependency = True)
-
-# TODO @aignas 2024-07-20: remove after
-# https://bazelbuild/rules_python/pull/2080 is merged and a new version is
-# released.
-single_version_override(
-    module_name = "rules_python",
-    patch_strip = 1,
-    patches = ["//patches:rules_python_pr2080.patch"],
-    version = "0.34.0",
-)
-
+bazel_dep(name = "bazel_skylib", version = "1.9.0", dev_dependency = True)
+bazel_dep(name = "platforms", version = "1.1.0", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "2.2.0", dev_dependency = True)
+bazel_dep(name = "sphinxdocs", version = "2.2.0", dev_dependency = True)
 bazel_dep(name = "rules_uv", version = "0.18.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.8.0", dev_dependency = True)
+bazel_dep(name = "rules_bazel_integration_test", version = "0.37.1", dev_dependency = True)
+
+uv = use_extension("@rules_python//python/uv:uv.bzl", "uv")
+uv.configure(version = "0.11.29")
+
+bazel_binaries = use_extension(
+    "@rules_bazel_integration_test//:extensions.bzl",
+    "bazel_binaries",
+    dev_dependency = True,
+)
+bazel_binaries.download(version_file = "//:.bazelversion")
+use_repo(bazel_binaries, "bazel_binaries", "bazel_binaries_bazelisk", "build_bazel_bazel_.bazelversion")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 
 [
     python.toolchain(
-        is_default = version == "3.8",
+        is_default = version == "3.9",
         # TODO @aignas 2024-06-29: support setting up all versions
         python_version = version,
     )
     for version in [
-        "3.8",
         "3.9",
         "3.10",
         "3.11",
@@ -39,17 +41,16 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 use_repo(python, "python_3_12")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.default(default_hub = "pytest_bazel")
 
 [
     pip.parse(
-        experimental_index_url = "https://pypi.org/simple",
-        hub_name = "pypi",
+        hub_name = "pytest_bazel",
         # TODO @aignas 2024-06-29: support setting up all versions
         python_version = version,
         requirements_lock = "//:requirements.txt",
     )
     for version in [
-        "3.8",
         "3.9",
         "3.10",
         "3.11",

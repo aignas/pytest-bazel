@@ -12,3 +12,8 @@ common:ci --lockfile_mode=error
 # See .readthedocs.yml for additional flags that can only be determined from
 # the runtime environment.
 build:rtd --stamp
+
+# To update these lines, execute 
+# `bazel run @rules_bazel_integration_test//tools:update_deleted_packages`
+build --deleted_packages=tests/integration
+query --deleted_packages=tests/integration

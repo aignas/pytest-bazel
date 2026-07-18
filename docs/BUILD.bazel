@@ -1,6 +1,5 @@
-load("@rules_python//sphinxdocs:readthedocs.bzl", "readthedocs_install")
-load("@rules_python//sphinxdocs:sphinx.bzl", "sphinx_build_binary", "sphinx_docs")
-load("@python_3_12//:defs.bzl", "py_binary")
+load("@sphinxdocs//sphinxdocs:readthedocs.bzl", "readthedocs_install")
+load("@sphinxdocs//sphinxdocs:sphinx.bzl", "sphinx_build_binary", "sphinx_docs")
 
 # We only build for Linux and Mac because:
 # 1. The actual doc process only runs on Linux
@@ -34,6 +33,7 @@ sphinx_docs(
             "_*",
             "*.inv*",
         ],
+        allow_empty=True,
     ),
     config = "conf.py",
     formats = [
@@ -58,13 +58,12 @@ readthedocs_install(
 sphinx_build_binary(
     name = "sphinx-build",
     target_compatible_with = _TARGET_COMPATIBLE_WITH,
-    py_binary_rule = py_binary,
+    python_version = "3.12",
     deps = [
         "@pypi//sphinx",
         "@pypi//sphinx_rtd_theme",
         "@pypi//myst_parser",
         "@pypi//readthedocs_sphinx_ext",
         "@pypi//typing_extensions",
-        "@rules_python//sphinxdocs/src/sphinx_bzl",
     ],
 )

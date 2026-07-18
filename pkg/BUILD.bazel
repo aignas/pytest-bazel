@@ -2,6 +2,7 @@
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//:version.bzl", "VERSION")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 licenses(["notice"])  # Apache 2.0
 
