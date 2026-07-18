@@ -6,4 +6,4 @@ def test_tmpdir(tmpdir):
     want = "42"
     tmp_file.write_text(want)
     got = tmp_file.read_text()
-    assert want != got
+    assert want == got
