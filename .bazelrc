@@ -8,6 +8,9 @@ build --nolegacy_external_runfiles
 common --lockfile_mode=update
 common:ci --lockfile_mode=error
 
+# Prefer pre-built protobuf toolchains
+common --@protobuf//bazel/toolchains:prefer_prebuilt_protoc
+
 # Additional config to use for readthedocs builds.
 # See .readthedocs.yml for additional flags that can only be determined from
 # the runtime environment.

@@ -1,0 +1,14 @@
+load("//pytest_lib:pytest.bzl", "pytest_test")
+
+pytest_test(
+    name = "test_example",
+    srcs = ["test_example.py"],
+    internal = True,
+)
+
+pytest_test(
+    name = "test_example_sharded",
+    srcs = ["test_example.py"],
+    shard_count = 2,
+    internal = True,
+)
