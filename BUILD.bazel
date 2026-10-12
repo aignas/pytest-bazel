@@ -3,13 +3,9 @@ load("@rules_python//python/uv:lock.bzl", "lock")
 licenses(["notice"])  # Apache 2.0
 
 lock(
-    name = "requirements",
-    args = [
-        "--all-extras",
-        "--universal",
-    ],
+    name = "lock",
     srcs = ["//:pyproject.toml"],
-    out = "requirements.txt",
+    out = "uv.lock",
 )
 
 # dist files

@@ -3,15 +3,26 @@ module(
     version = "0.0.0",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.9.0", dev_dependency = True)
+# See https://registry.bazel.build/modules/bazel_skylib
+bazel_dep(name = "bazel_skylib", version = "1.9.2", dev_dependency = True)
+
+# See https://registry.bazel.build/modules/platforms
 bazel_dep(name = "platforms", version = "1.1.0", dev_dependency = True)
-bazel_dep(name = "rules_python", version = "2.2.0", dev_dependency = True)
-bazel_dep(name = "sphinxdocs", version = "2.2.0", dev_dependency = True)
+
+# See https://registry.bazel.build/modules/rules_python
+bazel_dep(name = "rules_python", version = "2.4.2", dev_dependency = True)
+bazel_dep(name = "sphinxdocs", version = "2.4.2", dev_dependency = True)
+
+# See https://registry.bazel.build/modules/rules_shell
 bazel_dep(name = "rules_shell", version = "0.8.0", dev_dependency = True)
+
+# See https://registry.bazel.build/modules/rules_bazel_integration_test
 bazel_dep(name = "rules_bazel_integration_test", version = "0.37.1", dev_dependency = True)
 
 uv = use_extension("@rules_python//python/uv:uv.bzl", "uv")
-uv.configure(version = "0.11.29")
+
+# See https://github.com/astral-sh/uv/releases
+uv.configure(version = "0.13.0")
 
 bazel_binaries = use_extension(
     "@rules_bazel_integration_test//:extensions.bzl",
@@ -25,15 +36,16 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 
 [
     python.toolchain(
-        is_default = version == "3.9",
+        is_default = version == "3.10",
         # TODO @aignas 2024-06-29: support setting up all versions
         python_version = version,
     )
     for version in [
-        "3.9",
         "3.10",
         "3.11",
         "3.12",
+        "3.13",
+        "3.14",
     ]
 ]
 
@@ -47,13 +59,14 @@ pip.default(default_hub = "pytest_bazel")
         hub_name = "pytest_bazel",
         # TODO @aignas 2024-06-29: support setting up all versions
         python_version = version,
-        requirements_lock = "//:requirements.txt",
+        uv_lock = "//:uv.lock",
     )
     for version in [
-        "3.9",
         "3.10",
         "3.11",
         "3.12",
+        "3.13",
+        "3.14",
     ]
 ]
 
