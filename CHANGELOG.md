@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.2.0]
+
+### Fixed
+
+- (pkg): Add installable extras to include other dependencies for sharding and
+  random number setting.
+
 ## [0.1.6]
 
 ### Fixed
@@ -144,7 +151,8 @@ Nothing yet.
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.1.6...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.2.0
 [0.1.6]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.6
 [0.1.5]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.5
 [0.1.4]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.4
