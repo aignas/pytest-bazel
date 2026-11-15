@@ -1,3 +1,12 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  keep_failed_tmp_path:
+    target: '//examples/keep_failed_tmp_path:keep_failed_tmp_path_test'
+    keep: '^FAILED|failed'
+    list_dirs: ['test.outputs']
+---
+
 # Keeping the files of failed tests
 
 Opt-in with `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=1`, this will be the default in

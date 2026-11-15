@@ -1,3 +1,16 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  sharding:
+    target: '//examples/sharding:sharding_test'
+    files: ['shard_*_of_3/test.log']
+    keep: '^collected|passed'
+  more_shards_than_tests:
+    target: '//examples/sharding:more_shards_than_tests_test'
+    files: ['shard_*_of_8/test.log']
+    keep: 'passed|deselected'
+---
+
 # Sharding with `shard_count`
 
 When a test has `shard_count`, bazel runs it in several processes and

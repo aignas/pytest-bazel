@@ -1,3 +1,11 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  junit_xml:
+    target: '//examples/junit_xml:junit_xml_test'
+    files: ['test.xml']
+---
+
 # JUnit XML reports
 
 `pytest_bazel` writes the JUnit XML report to the file bazel asks for, which

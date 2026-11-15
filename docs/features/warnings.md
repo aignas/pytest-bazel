@@ -1,3 +1,11 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  warnings:
+    target: '//examples/warnings:warnings_test'
+    keep: 'warnings summary|::test_|Warning|warnings.warn'
+---
+
 # Paths in warnings
 
 Under `bazel test`, the paths in pytest's warnings summary and in

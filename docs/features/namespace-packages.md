@@ -1,3 +1,14 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  namespace_packages_default:
+    target: '//examples/namespace_packages:default_test'
+    keep: 'module name'
+  namespace_packages:
+    target: '//examples/namespace_packages:namespace_packages_test'
+    keep: 'module name'
+---
+
 # Module names in packages without `__init__.py`
 
 Opt-in with `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES=1`, this will be the

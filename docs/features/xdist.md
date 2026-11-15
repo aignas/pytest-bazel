@@ -1,3 +1,15 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  xdist:
+    target: '//examples/xdist:xdist_test'
+    keep: 'workers \[|passed'
+  xdist_timeout:
+    target: '//examples/xdist:xdist_hangs_test'
+    flags: ['--test_timeout=10']
+    keep: 'SIGTERM|Stacks of the pytest-xdist|test_xdist_hangs.py.* in '
+---
+
 # Running tests in parallel with pytest-xdist
 
 [pytest-xdist] runs the tests of a target in several worker processes. Bazel
@@ -64,10 +76,10 @@ stopped then, so that pytest writes its reports before bazel kills the test:
 
 <!-- run: xdist_timeout -->
 ```console
-$ bazel test //examples/xdist:xdist_hangs_test --test_timeout=3
+$ bazel test //examples/xdist:xdist_hangs_test --test_timeout=10
 //examples/xdist:xdist_hangs_test TIMEOUT in <time>
 $ cat bazel-testlogs/examples/xdist/xdist_hangs_test/test.log
-bazel stopped the test with SIGTERM after the timeout of 3s. Stacks of all threads:
+bazel stopped the test with SIGTERM after the timeout of 10s. Stacks of all threads:
   File "<runfiles>/_main/examples/xdist/test_xdist_hangs.py", line 15 in <module>
 Stacks of the pytest-xdist worker gw0:
   File "<runfiles>/_main/examples/xdist/test_xdist_hangs.py", line 9 in test_hangs

@@ -1,3 +1,12 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  infrastructure_failure:
+    target: '//examples/infrastructure_failure:infrastructure_failure_test'
+    files: ['test.log', 'test.infrastructure_failure']
+    keep: 'error:|infrastructure|could not run'
+---
+
 # Telling a broken setup from failing tests
 
 When pytest cannot run the tests at all, e.g. because of an unknown flag, a

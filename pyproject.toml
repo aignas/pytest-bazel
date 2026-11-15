@@ -36,6 +36,7 @@ tests = ["numpy", "pytest-rerunfailures", "pytest-xdist"]
 docs = [
     "docutils<0.19",
     "myst-parser",
+    "pyyaml",
     "readthedocs-sphinx-ext",
     "sphinx",
     "sphinx-autodoc2",
