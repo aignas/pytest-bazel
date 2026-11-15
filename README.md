@@ -26,7 +26,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | `TEST_TARGET` | Names the JUnit test suite, and selects the package for the opt-in flags below. | [Initial conditions][te-env] |
 | `TEST_TIMEOUT` (`timeout`, `--test_timeout`) | On timeout bazel sends SIGTERM: the stacks of all threads are printed and pytest is interrupted, so it still reports where the tests hung and writes the JUnit XML. | [Initial conditions][te-env] |
 | `TEST_TMPDIR` | Used for `--basetemp` and for `TMPDIR`, `TMP` and `TEMP`, through a short alias when the path is too long for AF_UNIX sockets. | [Filesystem][te-fs] |
-| `TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR` | Not supported yet. | [Filesystem][te-fs] |
+| `TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR` | A summary of the results and the failed tests is written as an annotation, which bazel adds to `bazel-testlogs/<target>/test.outputs_manifest/ANNOTATIONS`. | [Filesystem][te-fs] |
 | `TEST_UNDECLARED_OUTPUTS_DIR` | Relative report paths of `--html`, `--json-report-file` and `--report-log` are written there. With `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=1`, so is the `tmp_path` of failed tests. | [Filesystem][te-fs] |
 | `TEST_WARNINGS_OUTPUT_FILE` | Python warnings are written to it. | [Initial conditions][te-env] |
 | `XML_OUTPUT_FILE` | Passes `--junitxml`. | [Initial conditions][te-env] |
