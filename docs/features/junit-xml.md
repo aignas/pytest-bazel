@@ -25,6 +25,10 @@ if __name__ == "__main__":
 $ bazel test //examples/junit_xml:junit_xml_test
 //examples/junit_xml:junit_xml_test PASSED in <time>
 $ cat bazel-testlogs/examples/junit_xml/junit_xml_test/test.xml
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="//examples/junit_xml:junit_xml_test" errors="0" failures="0" skipped="0" tests="1" time="<time>" timestamp="<timestamp>" hostname="<hostname>"><testcase classname="examples.junit_xml.test_junit_xml" name="test_ok" time="<time>" /></testsuite></testsuites>
+<testsuites name="pytest tests">
+  <testsuite name="//examples/junit_xml:junit_xml_test" errors="0" failures="0" skipped="0" tests="1" time="<time>" timestamp="<timestamp>" hostname="<hostname>">
+    <testcase classname="examples.junit_xml.test_junit_xml" name="test_ok" time="<time>" />
+  </testsuite>
+</testsuites>
 ```
 <!-- end -->

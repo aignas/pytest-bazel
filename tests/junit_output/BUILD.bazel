@@ -1,0 +1,7 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "test_junit_output",
+    srcs = ["test_junit_output.py"],
+    deps = ["//pytest_bazel"],
+)

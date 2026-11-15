@@ -209,6 +209,14 @@ class BazelEnv:
         return _flag(self.env, "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES")
 
     @property
+    def junit_output(self) -> bool:
+        """Return PYTEST_BAZEL_JUNIT_OUTPUT as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_JUNIT_OUTPUT")
+
+    @property
     def keep_failed_tmp_path(self) -> bool:
         """Return PYTEST_BAZEL_KEEP_FAILED_TMP_PATH as a boolean.
 
@@ -405,6 +413,11 @@ def _basetemp_args(env: BazelEnv) -> list[str]:
 def _opt_in_args(env: BazelEnv) -> list[str]:
     """Return the args for the behaviour that is opt-in until 1.0."""
     args: list[str] = []
+
+    if env.junit_output and env.xml_output_file:
+        # CI shows the JUnit XML, which only has the output of the tests with
+        # `junit_logging`. Leave it out for passing tests to keep it small.
+        args.extend(["-o", "junit_logging=all", "-o", "junit_log_passing_tests=false"])
 
     if env.consider_namespace_packages and _supports_namespace_packages():
         # Bazel packages usually have no `__init__.py`, so without this pytest
