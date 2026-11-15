@@ -193,6 +193,14 @@ class BazelEnv:
         return _flag(self.env, "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES")
 
     @property
+    def keep_failed_tmp_path(self) -> bool:
+        """Return PYTEST_BAZEL_KEEP_FAILED_TMP_PATH as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_KEEP_FAILED_TMP_PATH")
+
+    @property
     def scope_collection_to_package(self) -> bool:
         """Return PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE as a boolean.
 
@@ -349,6 +357,25 @@ def _supports_namespace_packages() -> bool:
     return _pytest_version() >= (8, 1)
 
 
+def _basetemp_args(env: BazelEnv) -> list[str]:
+    """Return the args for where pytest creates `tmp_path` and friends."""
+    outputs_dir = env.test_undeclared_outputs_dir
+    if env.keep_failed_tmp_path and outputs_dir and _pytest_version() >= (7, 3):
+        # Bazel copies the undeclared outputs to bazel-testlogs, so keep the
+        # `tmp_path` of failed tests there to help debugging them.
+        return [
+            f"--basetemp={outputs_dir / 'pytest'}",
+            "-o",
+            "tmp_path_retention_policy=failed",
+        ]
+
+    # Keep everything in the sandbox, bazel cleans TEST_TMPDIR up.
+    if env.test_tmpdir:
+        return [f"--basetemp={env.test_tmpdir / 'pytest'}"]
+
+    return []
+
+
 def _opt_in_args(env: BazelEnv) -> list[str]:
     """Return the args for the behaviour that is opt-in until 1.0."""
     args: list[str] = []
@@ -414,11 +441,7 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
             # users can still override it as their args come later.
             pytest_args.extend(["-o", f"junit_suite_name={env.test_target}"])
 
-    # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
-    # cleaned up correctly in case things are not cleaned up correctly.
-    if env.test_tmpdir:
-        tmp_dir = env.test_tmpdir / "pytest"
-        pytest_args.append(f"--basetemp={tmp_dir}")
+    pytest_args.extend(_basetemp_args(env))
 
     pytest_args.extend(_opt_in_args(env))
 

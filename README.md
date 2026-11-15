@@ -27,7 +27,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | `TEST_TIMEOUT` (`timeout`, `--test_timeout`) | On timeout bazel sends SIGTERM: the stacks of all threads are printed and pytest is interrupted, so it still reports where the tests hung and writes the JUnit XML. | [Initial conditions][te-env] |
 | `TEST_TMPDIR` | Used for `--basetemp` and for `TMPDIR`, `TMP` and `TEMP`, through a short alias when the path is too long for AF_UNIX sockets. | [Filesystem][te-fs] |
 | `TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR` | Not supported yet. | [Filesystem][te-fs] |
-| `TEST_UNDECLARED_OUTPUTS_DIR` | Relative report paths of `--html`, `--json-report-file` and `--report-log` are written there. | [Filesystem][te-fs] |
+| `TEST_UNDECLARED_OUTPUTS_DIR` | Relative report paths of `--html`, `--json-report-file` and `--report-log` are written there. With `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=1`, so is the `tmp_path` of failed tests. | [Filesystem][te-fs] |
 | `TEST_WARNINGS_OUTPUT_FILE` | Python warnings are written to it. | [Initial conditions][te-env] |
 | `XML_OUTPUT_FILE` | Passes `--junitxml`. | [Initial conditions][te-env] |
 
@@ -72,4 +72,5 @@ flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
 | --- | --- | --- | --- |
 | `PYTEST_BAZEL_CONFIG_FROM_PACKAGE` | `0` | `1` | Use the pytest config file (e.g. `pytest.ini`) in the bazel package of the target or its parents. pytest only looks in the runfiles root. |
 | `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES` | `0` | `1` | Pass `-o consider_namespace_packages=true` on pytest 8.1+, so that test modules in packages without `__init__.py` do not shadow third-party packages. |
+| `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH` | `0` | `1` | Keep the `tmp_path` of failed tests in `TEST_UNDECLARED_OUTPUTS_DIR`, i.e. in `bazel-testlogs/<target>/test.outputs`. Needs pytest 7.3+. |
 | `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. |
