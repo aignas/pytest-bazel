@@ -26,8 +26,8 @@ published to PyPI and is built and tested with Bazel.
   tests can pass a plain dict.
 * Do not change existing behaviour unless the change needs it. Put
   behaviour changes behind an opt-in `PYTEST_BAZEL_*` env var (`0` or `1`,
-  read with `_flag`) and add it to the "Planned for 1.0" table in
-  `docs/index.md`.
+  read with `_flag`) and add it to the "Planned for 1.0" table at the
+  bottom of `README.md`.
 
 ## Tests
 

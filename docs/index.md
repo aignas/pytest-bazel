@@ -30,19 +30,11 @@ Extras that have tests:
   expected. Set `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` to only collect
   the tests in the bazel package of the test target, so that tests of other
   packages that are in the runfiles via `deps` or `data` are not collected.
-  Passing paths as args overrides this.
+  Passing paths as args overrides this. This will be the default in 1.0,
+  see [Planned for 1.0][planned-1.0].
 
 [test_encyclopedia]: https://bazel.build/reference/test-encyclopedia
-
-## Planned for 1.0
-
-Behaviour changes are added behind opt-in flags first. Their defaults will be
-flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
-`test --test_env=PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` in `.bazelrc`.
-
-| Env var | Default | Default in 1.0 | Description |
-| --- | --- | --- | --- |
-| `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. |
+[planned-1.0]: https://github.com/aignas/pytest-bazel#planned-for-10
 
 ## Thanks
 
