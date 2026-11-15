@@ -118,6 +118,14 @@ def _keyword_expression(test_filter: str) -> str:
     return " and ".join(name for name in names if name)
 
 
+# pytest exit codes that mean pytest itself failed, rather than the tests.
+# https://docs.pytest.org/en/stable/reference/exit-codes.html
+_INFRASTRUCTURE_FAILURES = {
+    pytest.ExitCode.INTERNAL_ERROR: "e.g. because a plugin or a conftest.py failed",
+    pytest.ExitCode.USAGE_ERROR: "e.g. because of an unknown flag or a missing plugin",
+}
+
+
 def _flag(env: MutableMapping[str, str], name: str) -> bool:
     """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
     value = env.get(name, "0")
@@ -217,6 +225,11 @@ class BazelEnv:
     def test_undeclared_outputs_dir(self) -> Optional[Path]:
         """Return the TEST_UNDECLARED_OUTPUTS_DIR value or None if unset."""
         return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
+
+    @property
+    def test_infrastructure_failure_file(self) -> Optional[Path]:
+        """Return the TEST_INFRASTRUCTURE_FAILURE_FILE value or None if unset."""
+        return _maybe_path(self.env.get("TEST_INFRASTRUCTURE_FAILURE_FILE"))
 
     @property
     def test_timeout(self) -> Optional[int]:
@@ -473,6 +486,24 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     return pytest_args
 
 
+def _report_infrastructure_failure(env: BazelEnv, exit_code: int) -> None:
+    """Tell bazel when pytest itself failed rather than the tests.
+
+    Bazel keeps the file as `test.infrastructure_failure` in bazel-testlogs and
+    lists it in the build event protocol, so that e.g. CI can tell a broken
+    setup from a failing test.
+    """
+    failure_file = env.test_infrastructure_failure_file
+    if not failure_file or exit_code not in _INFRASTRUCTURE_FAILURES:
+        return
+
+    reason = _INFRASTRUCTURE_FAILURES[exit_code]
+    failure_file.write_text(
+        f"pytest could not run the tests ({pytest.ExitCode(exit_code).name}), {reason}. "
+        "See the test log for details.\n"
+    )
+
+
 @contextlib.contextmanager
 def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
     """Turn the SIGTERM that bazel sends on timeout into a KeyboardInterrupt.
@@ -555,6 +586,8 @@ def main(
 
     if premature_exit_file:
         premature_exit_file.unlink(missing_ok=True)
+
+    _report_infrastructure_failure(env, exit_code)
 
     if env.test_filter and exit_code == pytest.ExitCode.NO_TESTS_COLLECTED:
         # If users are filtering out the tests, then exit with a zero if the error code is no-tests collected.

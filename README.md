@@ -17,7 +17,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | --- | --- | --- |
 | `TESTBRIDGE_TEST_ONLY` (`--test_filter`) | Selects tests with a `-k` expression, e.g. `TestClass.test_fn` or a pytest node id. | [Initial conditions][te-env] |
 | `TESTBRIDGE_TEST_RUNNER_FAIL_FAST` (`--test_runner_fail_fast`) | Passes `--exitfirst`. | [Flag][fail-fast] |
-| `TEST_INFRASTRUCTURE_FAILURE_FILE` | Not supported yet. | [Initial conditions][te-env] |
+| `TEST_INFRASTRUCTURE_FAILURE_FILE` | Written when pytest itself fails, i.e. on a usage or internal error, so that a broken setup can be told apart from failing tests. | [Initial conditions][te-env] |
 | `TEST_LOGSPLITTER_OUTPUT_FILE` | Not supported. | [Initial conditions][te-env] |
 | `TEST_PREMATURE_EXIT_FILE` | Created before pytest runs and removed once it returns, so tests that exit early fail. | [Initial conditions][te-env] |
 | `TEST_RANDOM_SEED`, `TEST_RUN_NUMBER` (`--runs_per_test`) | Seeds `pytest-randomly` with `--randomly-seed`, or `random.seed` without it. | [Initial conditions][te-env] |
