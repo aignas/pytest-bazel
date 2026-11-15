@@ -85,6 +85,34 @@ def test_explicit_paths_take_precedence(pytester):
 
 
 @pytest.mark.usefixtures("_two_packages")
+@pytest.mark.parametrize(
+    "target",
+    [
+        pytest.param("//a:test", id="single"),
+        pytest.param("//a:t_py3.11_test", id="python_versions"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("srcs", "want"),
+    [
+        pytest.param(["a/test_a.py"], ["a/test_a.py::test_ok"], id="own_package"),
+        pytest.param(["b/test_b.py"], ["b/test_b.py::test_ok"], id="other_package"),
+    ],
+)
+def test_rules_python_pytest_test(pytester, target, srcs, want):
+    """`pytest_test` from rules_python 2.5+ appends the `srcs` to the args.
+
+    Its bootstrap calls `pytest_bazel.main(sys.argv[1:] + srcs)`, so the srcs
+    must be collected as they are, whatever package the target is in.
+    """
+    user_args = ["-v"]
+
+    rec = pytester.inline_run(*_pytest_args(args=user_args + srcs, env=_env(target)))
+
+    assert _passed(rec) == want
+
+
+@pytest.mark.usefixtures("_two_packages")
 def test_collects_everything_without_target(pytester):
     rec = pytester.inline_run(*_pytest_args(args=[], env=_env()))
 
