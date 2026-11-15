@@ -158,6 +158,14 @@ class BazelEnv:
         return _flag(self.env, "PYTEST_BAZEL_CONFIG_FROM_PACKAGE")
 
     @property
+    def consider_namespace_packages(self) -> bool:
+        """Return PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES")
+
+    @property
     def scope_collection_to_package(self) -> bool:
         """Return PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE as a boolean.
 
@@ -308,6 +316,44 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     return [*args, "-k", f"{env.test_filter}"]
 
 
+def _supports_namespace_packages() -> bool:
+    # https://docs.pytest.org/en/stable/reference/reference.html#confval-consider_namespace_packages
+    return _pytest_version() >= (8, 1)
+
+
+def _opt_in_args(env: BazelEnv) -> list[str]:
+    """Return the args for the behaviour that is opt-in until 1.0."""
+    args: list[str] = []
+
+    if env.consider_namespace_packages and _supports_namespace_packages():
+        # Bazel packages usually have no `__init__.py`, so without this pytest
+        # names test modules after the closest regular package only, e.g.
+        # `foo/numpy/bar_test.py` would become `numpy.bar_test` and shadow the
+        # real `numpy`. It is ignored on pytest < 8.1, which has no such option.
+        args.extend(["-o", "consider_namespace_packages=true"])
+
+    package = env.test_package
+
+    # pytest looks for config files in the current directory, which is the
+    # runfiles root, so it misses e.g. a pytest.ini next to the tests. Pass it
+    # explicitly and keep the rootdir, so that test ids and `testpaths` stay
+    # relative to the runfiles root. A `-c` in the user args wins.
+    config = (
+        _find_package_config(package) if env.config_from_package and package else None
+    )
+    if config:
+        args.extend(["-c", str(config), "--rootdir=."])
+
+    # Without args pytest collects everything under the runfiles root, which
+    # includes tests of other bazel packages that are pulled in via `deps` or
+    # `data`. Limit the collection to the bazel package of the target, pytest
+    # only uses `testpaths` if no paths are passed as args.
+    if env.scope_collection_to_package and package and Path(package).is_dir():
+        args.extend(["-o", f"testpaths={package}"])
+
+    return args
+
+
 def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     """Construct pytest args.
 
@@ -346,24 +392,7 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
         tmp_dir = env.test_tmpdir / "pytest"
         pytest_args.append(f"--basetemp={tmp_dir}")
 
-    package = env.test_package
-
-    # pytest looks for config files in the current directory, which is the
-    # runfiles root, so it misses e.g. a pytest.ini next to the tests. Pass it
-    # explicitly and keep the rootdir, so that test ids and `testpaths` stay
-    # relative to the runfiles root. A `-c` in the user args wins.
-    config = (
-        _find_package_config(package) if env.config_from_package and package else None
-    )
-    if config:
-        pytest_args.extend(["-c", str(config), "--rootdir=."])
-
-    # Without args pytest collects everything under the runfiles root, which
-    # includes tests of other bazel packages that are pulled in via `deps` or
-    # `data`. Limit the collection to the bazel package of the target, pytest
-    # only uses `testpaths` if no paths are passed as args.
-    if env.scope_collection_to_package and package and Path(package).is_dir():
-        pytest_args.extend(["-o", f"testpaths={package}"])
+    pytest_args.extend(_opt_in_args(env))
 
     random_seed = env.test_random_seed or env.test_run_number
     if random_seed:

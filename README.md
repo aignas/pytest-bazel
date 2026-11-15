@@ -27,4 +27,5 @@ flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
 | Env var | Default | Default in 1.0 | Description |
 | --- | --- | --- | --- |
 | `PYTEST_BAZEL_CONFIG_FROM_PACKAGE` | `0` | `1` | Use the pytest config file (e.g. `pytest.ini`) in the bazel package of the target or its parents. pytest only looks in the runfiles root. |
+| `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES` | `0` | `1` | Pass `-o consider_namespace_packages=true` on pytest 8.1+, so that test modules in packages without `__init__.py` do not shadow third-party packages. |
 | `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. |
