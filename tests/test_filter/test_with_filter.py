@@ -15,6 +15,10 @@ def test_selected_too():
     pytest.fail("must be deselected by the filter")
 
 
+def test_second():
+    pass
+
+
 if __name__ == "__main__":
     import pytest_bazel
 

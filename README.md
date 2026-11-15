@@ -15,7 +15,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 
 | Bazel | `pytest_bazel` | Docs | Reference |
 | --- | --- | --- | --- |
-| `TESTBRIDGE_TEST_ONLY` (`--test_filter`) | Selects tests with a `-k` expression, e.g. `TestClass.test_fn` or a pytest node id. | [Example][docs-test-filter] | [Initial conditions][te-env] |
+| `TESTBRIDGE_TEST_ONLY` (`--test_filter`) | Selects tests with a `-k` expression, e.g. `TestClass.test_fn`, a pytest node id, or several of them separated by commas. | [Example][docs-test-filter] | [Initial conditions][te-env] |
 | `TESTBRIDGE_TEST_RUNNER_FAIL_FAST` (`--test_runner_fail_fast`) | Passes `--exitfirst`. | [Example][docs-fail-fast] | [Flag][fail-fast] |
 | `TEST_INFRASTRUCTURE_FAILURE_FILE` | Written when pytest itself fails, i.e. on a usage or internal error, so that a broken setup can be told apart from failing tests. | [Example][docs-infrastructure-failure] | [Initial conditions][te-env] |
 | `TEST_LOGSPLITTER_OUTPUT_FILE` | Not supported. | [Not supported][not-supported] | [Initial conditions][te-env] |
@@ -55,6 +55,7 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 [docs-fail-fast]: https://pytest-bazel.readthedocs.io/latest/features/fail-fast.html
 [docs-infrastructure-failure]: https://pytest-bazel.readthedocs.io/latest/features/infrastructure-failure.html
 [docs-junit-xml]: https://pytest-bazel.readthedocs.io/latest/features/junit-xml.html
+[docs-junit-output]: https://pytest-bazel.readthedocs.io/latest/features/junit-output.html
 [docs-keep-failed-tmp-path]: https://pytest-bazel.readthedocs.io/latest/features/keep-failed-tmp-path.html
 [docs-namespace-packages]: https://pytest-bazel.readthedocs.io/latest/features/namespace-packages.html
 [docs-premature-exit]: https://pytest-bazel.readthedocs.io/latest/features/premature-exit.html
@@ -85,6 +86,13 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 [pytest-xdist]: https://pypi.org/project/pytest-xdist/
 [docs-xdist]: https://pytest-bazel.readthedocs.io/latest/features/xdist.html
 
+## Guides
+
+* [Debugging tests][docs-debugging]: `bazel test` gives the tests no terminal,
+  use `bazel run` instead.
+
+[docs-debugging]: https://pytest-bazel.readthedocs.io/latest/features/debugging.html
+
 ## Thanks
 
 Special thanks to [rules_python_pytest] and [rules_py] projects that had some
@@ -105,5 +113,6 @@ flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
 | --- | --- | --- | --- | --- |
 | `PYTEST_BAZEL_CONFIG_FROM_PACKAGE` | `0` | `1` | Use the pytest config file (e.g. `pytest.ini`) in the bazel package of the target or its parents. pytest only looks in the runfiles root. | [Example][docs-config-from-package] |
 | `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES` | `0` | `1` | Pass `-o consider_namespace_packages=true` on pytest 8.1+, so that test modules in packages without `__init__.py` do not shadow third-party packages. | [Example][docs-namespace-packages] |
+| `PYTEST_BAZEL_JUNIT_OUTPUT` | `0` | `1` | Add the stdout, stderr and logs of failed tests to the JUnit XML, which CI shows. | [Example][docs-junit-output] |
 | `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH` | `0` | `1` | Keep the `tmp_path` of failed tests in `TEST_UNDECLARED_OUTPUTS_DIR`, i.e. in `bazel-testlogs/<target>/test.outputs`. Needs pytest 7.3+. | [Example][docs-keep-failed-tmp-path] |
 | `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. | [Example][docs-scope-collection] |

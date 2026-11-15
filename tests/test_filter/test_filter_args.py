@@ -64,6 +64,11 @@ def _selected(pytester, test_filter):
         ),
         pytest.param("test_unrelated.py", ["pkg/test_unrelated.py::test_a"], id="file"),
         pytest.param(
+            "TestCase.test_b,TestOther.test_a",
+            ["pkg/test_mod.py::TestCase::test_b", "pkg/test_mod.py::TestOther::test_a"],
+            id="comma_separated",
+        ),
+        pytest.param(
             "TestCase and not test_b",
             ["pkg/test_mod.py::TestCase::test_a"],
             id="keyword_expression",

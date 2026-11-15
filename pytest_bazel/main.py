@@ -94,20 +94,26 @@ def _find_package_config(package: str) -> Optional[Path]:
     return None
 
 
-def _keyword_expression(test_filter: str) -> str:
-    """Turn the value of `--test_filter` into a pytest `-k` expression.
+def _split_filters(test_filter: str) -> list[str]:
+    """Split `a,b` into `a` and `b`, but not the commas of parameters `t[1,2]`."""
+    parts = []
+    depth = 0
+    current = ""
+    for char in test_filter:
+        if char == "[":
+            depth += 1
+        elif char == "]":
+            depth -= 1
+        if char == "," and depth == 0:
+            parts.append(current)
+            current = ""
+        else:
+            current += char
+    parts.append(current)
+    return [part for part in parts if part]
 
-    `-k` matches each word against the names of a test and of its parents, so
-    split the filter into those names:
-    * `TestClass.test_fn`, `TestClass::test_fn` -> `TestClass and test_fn`
-    * `test_mod.test_fn` -> `test_mod and test_fn`
-    * `dir/test_mod.py::test_fn` -> `test_mod.py and test_fn`
 
-    A filter with spaces, e.g. `foo or bar`, is already a `-k` expression.
-    """
-    if not test_filter or " " in test_filter:
-        return test_filter
-
+def _single_keyword_expression(test_filter: str) -> str:
     path, sep, rest = test_filter.partition("::")
     if sep or "/" in path or path.endswith(".py"):
         # A file or a pytest node id, the module name is the file name.
@@ -116,6 +122,27 @@ def _keyword_expression(test_filter: str) -> str:
         names = test_filter.split(".")
 
     return " and ".join(name for name in names if name)
+
+
+def _keyword_expression(test_filter: str) -> str:
+    """Turn the value of `--test_filter` into a pytest `-k` expression.
+
+    `-k` matches each word against the names of a test and of its parents, so
+    split the filter into those names:
+    * `TestClass.test_fn`, `TestClass::test_fn` -> `TestClass and test_fn`
+    * `test_mod.test_fn` -> `test_mod and test_fn`
+    * `dir/test_mod.py::test_fn` -> `test_mod.py and test_fn`
+    * `test_a,TestClass.test_b` -> `(test_a) or (TestClass and test_b)`
+
+    A filter with spaces, e.g. `foo or bar`, is already a `-k` expression.
+    """
+    if not test_filter or " " in test_filter:
+        return test_filter
+
+    expressions = [_single_keyword_expression(f) for f in _split_filters(test_filter)]
+    if len(expressions) == 1:
+        return expressions[0]
+    return " or ".join(f"({expression})" for expression in expressions)
 
 
 # pytest exit codes that mean pytest itself failed, rather than the tests.
@@ -171,8 +198,16 @@ class BazelEnv:
 
     @property
     def is_test(self) -> bool:
-        """Return the BAZEL_TEST value as a boolean."""
+        """Return the BAZEL_TEST value as a boolean.
+
+        Bazel sets it for `bazel test`, and for `bazel run` of a test target.
+        """
         return "BAZEL_TEST" in self.env
+
+    @property
+    def is_bazel_run(self) -> bool:
+        """Return True under `bazel run`, which has a terminal."""
+        return "BUILD_WORKSPACE_DIRECTORY" in self.env
 
     @property
     def test_package(self) -> Optional[str]:
@@ -199,6 +234,14 @@ class BazelEnv:
         Off by default, it will be on by default in 1.0.
         """
         return _flag(self.env, "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES")
+
+    @property
+    def junit_output(self) -> bool:
+        """Return PYTEST_BAZEL_JUNIT_OUTPUT as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_JUNIT_OUTPUT")
 
     @property
     def keep_failed_tmp_path(self) -> bool:
@@ -427,6 +470,11 @@ def _opt_in_args(env: BazelEnv) -> list[str]:
     """Return the args for the behaviour that is opt-in until 1.0."""
     args: list[str] = []
 
+    if env.junit_output and env.xml_output_file:
+        # CI shows the JUnit XML, which only has the output of the tests with
+        # `junit_logging`. Leave it out for passing tests to keep it small.
+        args.extend(["-o", "junit_logging=all", "-o", "junit_log_passing_tests=false"])
+
     if env.consider_namespace_packages and _supports_namespace_packages():
         # Bazel packages usually have no `__init__.py`, so without this pytest
         # names test modules after the closest regular package only, e.g.
@@ -480,6 +528,10 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
         "-p",
         "no:cacheprovider",
     ]
+
+    if not env.is_bazel_run:
+        # Explain how to debug, as tests get no terminal under bazel test.
+        pytest_args.extend(["-p", "pytest_bazel.debugging"])
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
@@ -664,10 +716,12 @@ def main(
 
     warnings_file = env.test_warnings_output_file
     # Only under `bazel test`, where the sandbox is gone after the test. With
-    # `bazel run` or without bazel the absolute paths exist and work from any
-    # directory.
+    # `bazel run`, which also sets BAZEL_TEST for test targets, or without bazel
+    # the absolute paths exist and work from any directory.
     relative_warning_paths = (
-        _relative_warning_paths(Path.cwd()) if env.is_test else contextlib.nullcontext()
+        _relative_warning_paths(Path.cwd())
+        if env.is_test and not env.is_bazel_run
+        else contextlib.nullcontext()
     )
     with _interrupt_on_sigterm(env), relative_warning_paths:
         if warnings_file:

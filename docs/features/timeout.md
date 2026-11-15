@@ -36,6 +36,7 @@ bazel stopped the test with SIGTERM after the timeout of 3s. Stacks of all threa
   File "<runfiles>/_main/examples/timeout/test_timeout.py", line 9 in test_hangs
   File "<runfiles>/_main/examples/timeout/test_timeout.py", line 15 in <module>
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+<runfiles>/_main/examples/timeout/test_timeout.py:9: KeyboardInterrupt
 ============================== 1 passed in <time> ===============================
 ```
 <!-- end -->

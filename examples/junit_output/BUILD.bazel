@@ -1,0 +1,10 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "junit_output_test",
+    srcs = ["test_junit_output.py"],
+    env = {"PYTEST_BAZEL_JUNIT_OUTPUT": "1"},
+    main = "test_junit_output.py",
+    tags = ["manual"],
+    deps = ["//pytest_bazel"],
+)

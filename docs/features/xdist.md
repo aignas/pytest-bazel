@@ -58,7 +58,9 @@ $ cat bazel-testlogs/examples/xdist/xdist_test/test.log
 
 Sharding, `--test_filter`, the JUnit XML and the annotations work with the
 workers too. When bazel times out the test, the stacks of the workers are
-printed as well, as the tests run there:
+printed as well, as the tests run there. That works for tests, fixtures and
+collection that hang, and for workers that ignore the SIGTERM. The workers are
+stopped then, so that pytest writes its reports before bazel kills the test:
 
 <!-- run: xdist_timeout -->
 ```console

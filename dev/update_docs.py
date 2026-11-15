@@ -22,6 +22,7 @@ import difflib
 import re
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -81,6 +82,11 @@ EXAMPLES = {
     "test_filter": Example(
         "//examples/test_filter:test_filter_test", ["--test_filter=TestMath.test_add"]
     ),
+    "test_filter_commas": Example(
+        "//examples/test_filter:test_filter_test",
+        ["--test_filter=TestMath.test_add,test_other"],
+        keep=r"collected|passed",
+    ),
     "fail_fast": Example(
         "//examples/fail_fast:fail_fast_test", ["--test_runner_fail_fast"]
     ),
@@ -129,6 +135,17 @@ EXAMPLES = {
         ["--test_timeout=3"],
         keep=r"SIGTERM|Stacks of the pytest-xdist|test_xdist_hangs.py.* in ",
     ),
+    "junit_output": Example(
+        "//examples/junit_output:junit_output_test", files=["test.xml"]
+    ),
+    "debugging_breakpoint": Example(
+        "//examples/debugging:debugging_test", keep=r"RuntimeError|failed"
+    ),
+    "debugging_pdb": Example(
+        "//examples/debugging:debugging_test",
+        ["--test_arg=--pdb"],
+        keep=r"error:|needs a terminal",
+    ),
     "keep_failed_tmp_path": Example(
         "//examples/keep_failed_tmp_path:keep_failed_tmp_path_test",
         keep=r"^FAILED|failed",
@@ -171,6 +188,15 @@ def _sanitize(text: str) -> str:
     return "\n".join(lines)
 
 
+def _read(path: Path) -> str:
+    """Read a test output, indent XML files to make them readable."""
+    if path.suffix != ".xml":
+        return path.read_text()
+    tree = ET.parse(path)
+    ET.indent(tree)
+    return ET.tostring(tree.getroot(), encoding="unicode")
+
+
 def _testlogs(target: str) -> Path:
     package, _, name = target.removeprefix("//").partition(":")
     return TESTLOGS / package / name
@@ -199,7 +225,7 @@ def _run(example: Example) -> str:
     keep = re.compile(example.keep) if example.keep else None
     for pattern in example.files:
         for path in sorted(testlogs.glob(pattern)):
-            text = _sanitize(path.read_text())
+            text = _sanitize(_read(path))
             if keep:
                 text = "\n".join(
                     line for line in text.splitlines() if keep.search(line)

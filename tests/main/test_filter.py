@@ -16,6 +16,11 @@ from pytest_bazel.main import BazelEnv
         ("dir/test_mod.py::TestClass::fn", "test_mod.py and TestClass and fn"),
         ("test_fn[1]", "test_fn[1]"),
         ("foo or bar", "foo or bar"),
+        ("test_a,test_b", "(test_a) or (test_b)"),
+        ("TestClass.fn,test_b", "(TestClass and fn) or (test_b)"),
+        ("test_a,", "test_a"),
+        ("test_x[1,2]", "test_x[1,2]"),
+        ("test_x[1,2],test_y", "(test_x[1,2]) or (test_y)"),
     ],
 )
 def test_filter(filter: str, want: str):
