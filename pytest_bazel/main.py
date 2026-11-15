@@ -8,6 +8,7 @@ import importlib.util
 import os
 import random
 import sys
+import tempfile
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
@@ -135,6 +136,26 @@ class BazelEnv:
         return self.env.get("TESTBRIDGE_TEST_RUNNER_FAIL_FAST") == "1"
 
 
+def _set_tmpdir(env: BazelEnv) -> None:
+    """Point the temp dir env vars at Bazel's per-test TEST_TMPDIR.
+
+    Bazel does not export TMPDIR for tests, so `tempfile` and anything built on
+    it would use the shared system temp dir instead of the test's private one.
+    That is non-hermetic and breaks on remote execution workers that mount
+    `/tmp` as `noexec`. TMP and TEMP are set for `tempfile` on Windows.
+    """
+    if not env.is_test or not env.test_tmpdir:
+        return
+
+    tmpdir = str(env.test_tmpdir)
+    for var in ("TMPDIR", "TMP", "TEMP"):
+        env.env[var] = tmpdir
+
+    if env.env is os.environ:
+        # `tempfile.gettempdir()` caches its result process-wide.
+        tempfile.tempdir = None
+
+
 def _process_args(args: List[str], env: BazelEnv) -> List[str]:
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
     # Remove any __init__.py file to avoid that.
@@ -236,6 +257,7 @@ def main(
 
     """
     env = env or BazelEnv(os.environ)
+    _set_tmpdir(env)
     pytest_args = _pytest_args(args=args or sys.argv[1:], env=env)
 
     print(f"Running pytest.main with: {pytest_args}", file=sys.stderr)
