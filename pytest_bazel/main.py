@@ -171,8 +171,16 @@ class BazelEnv:
 
     @property
     def is_test(self) -> bool:
-        """Return the BAZEL_TEST value as a boolean."""
+        """Return the BAZEL_TEST value as a boolean.
+
+        Bazel sets it for `bazel test`, and for `bazel run` of a test target.
+        """
         return "BAZEL_TEST" in self.env
+
+    @property
+    def is_bazel_run(self) -> bool:
+        """Return True under `bazel run`, which has a terminal."""
+        return "BUILD_WORKSPACE_DIRECTORY" in self.env
 
     @property
     def test_package(self) -> Optional[str]:
@@ -634,10 +642,12 @@ def main(
 
     warnings_file = env.test_warnings_output_file
     # Only under `bazel test`, where the sandbox is gone after the test. With
-    # `bazel run` or without bazel the absolute paths exist and work from any
-    # directory.
+    # `bazel run`, which also sets BAZEL_TEST for test targets, or without bazel
+    # the absolute paths exist and work from any directory.
     relative_warning_paths = (
-        _relative_warning_paths(Path.cwd()) if env.is_test else contextlib.nullcontext()
+        _relative_warning_paths(Path.cwd())
+        if env.is_test and not env.is_bazel_run
+        else contextlib.nullcontext()
     )
     with _interrupt_on_sigterm(env), relative_warning_paths:
         if warnings_file:
