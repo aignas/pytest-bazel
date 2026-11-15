@@ -131,6 +131,14 @@ EXAMPLES = {
     "junit_output": Example(
         "//examples/junit_output:junit_output_test", files=["test.xml"]
     ),
+    "debugging_breakpoint": Example(
+        "//examples/debugging:debugging_test", keep=r"RuntimeError|failed"
+    ),
+    "debugging_pdb": Example(
+        "//examples/debugging:debugging_test",
+        ["--test_arg=--pdb"],
+        keep=r"error:|needs a terminal",
+    ),
     "keep_failed_tmp_path": Example(
         "//examples/keep_failed_tmp_path:keep_failed_tmp_path_test",
         keep=r"^FAILED|failed",
