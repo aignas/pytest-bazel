@@ -22,6 +22,7 @@ import difflib
 import re
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -122,6 +123,9 @@ EXAMPLES = {
         "//examples/warnings:warnings_test",
         keep=r"warnings summary|::test_|Warning|warnings.warn",
     ),
+    "junit_output": Example(
+        "//examples/junit_output:junit_output_test", files=["test.xml"]
+    ),
     "keep_failed_tmp_path": Example(
         "//examples/keep_failed_tmp_path:keep_failed_tmp_path_test",
         keep=r"^FAILED|failed",
@@ -164,6 +168,15 @@ def _sanitize(text: str) -> str:
     return "\n".join(lines)
 
 
+def _read(path: Path) -> str:
+    """Read a test output, indent XML files to make them readable."""
+    if path.suffix != ".xml":
+        return path.read_text()
+    tree = ET.parse(path)
+    ET.indent(tree)
+    return ET.tostring(tree.getroot(), encoding="unicode")
+
+
 def _testlogs(target: str) -> Path:
     package, _, name = target.removeprefix("//").partition(":")
     return TESTLOGS / package / name
@@ -192,7 +205,7 @@ def _run(example: Example) -> str:
     keep = re.compile(example.keep) if example.keep else None
     for pattern in example.files:
         for path in sorted(testlogs.glob(pattern)):
-            text = _sanitize(path.read_text())
+            text = _sanitize(_read(path))
             if keep:
                 text = "\n".join(
                     line for line in text.splitlines() if keep.search(line)

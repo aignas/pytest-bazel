@@ -55,6 +55,7 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 [docs-fail-fast]: https://pytest-bazel.readthedocs.io/latest/features/fail-fast.html
 [docs-infrastructure-failure]: https://pytest-bazel.readthedocs.io/latest/features/infrastructure-failure.html
 [docs-junit-xml]: https://pytest-bazel.readthedocs.io/latest/features/junit-xml.html
+[docs-junit-output]: https://pytest-bazel.readthedocs.io/latest/features/junit-output.html
 [docs-keep-failed-tmp-path]: https://pytest-bazel.readthedocs.io/latest/features/keep-failed-tmp-path.html
 [docs-namespace-packages]: https://pytest-bazel.readthedocs.io/latest/features/namespace-packages.html
 [docs-premature-exit]: https://pytest-bazel.readthedocs.io/latest/features/premature-exit.html
@@ -92,5 +93,6 @@ flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
 | --- | --- | --- | --- | --- |
 | `PYTEST_BAZEL_CONFIG_FROM_PACKAGE` | `0` | `1` | Use the pytest config file (e.g. `pytest.ini`) in the bazel package of the target or its parents. pytest only looks in the runfiles root. | [Example][docs-config-from-package] |
 | `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES` | `0` | `1` | Pass `-o consider_namespace_packages=true` on pytest 8.1+, so that test modules in packages without `__init__.py` do not shadow third-party packages. | [Example][docs-namespace-packages] |
+| `PYTEST_BAZEL_JUNIT_OUTPUT` | `0` | `1` | Add the stdout, stderr and logs of failed tests to the JUnit XML, which CI shows. | [Example][docs-junit-output] |
 | `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH` | `0` | `1` | Keep the `tmp_path` of failed tests in `TEST_UNDECLARED_OUTPUTS_DIR`, i.e. in `bazel-testlogs/<target>/test.outputs`. Needs pytest 7.3+. | [Example][docs-keep-failed-tmp-path] |
 | `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. | [Example][docs-scope-collection] |
