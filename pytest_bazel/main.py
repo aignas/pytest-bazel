@@ -203,6 +203,11 @@ class BazelEnv:
         return _maybe_path(self.env.get("TEST_TMPDIR"))
 
     @property
+    def test_undeclared_outputs_annotations_dir(self) -> Optional[Path]:
+        """Return the TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR value or None if unset."""
+        return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR"))
+
+    @property
     def test_undeclared_outputs_dir(self) -> Optional[Path]:
         """Return the TEST_UNDECLARED_OUTPUTS_DIR value or None if unset."""
         return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
@@ -421,6 +426,16 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
             pytest_args.append(f"--randomly-seed={random_seed}")
         else:
             random.seed(random_seed)
+
+    annotations_dir = env.test_undeclared_outputs_annotations_dir
+    if annotations_dir:
+        pytest_args.extend(
+            [
+                "-p",
+                "pytest_bazel.annotations",
+                f"--bazel-annotations-dir={annotations_dir}",
+            ]
+        )
 
     if env.test_shard_index is not None and env.test_total_shards is not None:
         # https://bazel.build/reference/test-encyclopedia#test-sharding
