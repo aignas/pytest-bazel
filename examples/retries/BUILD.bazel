@@ -1,0 +1,24 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+# Bazel runs the whole test again, up to 3 times.
+py_test(
+    name = "flaky_in_bazel_test",
+    srcs = ["test_flaky_in_bazel.py"],
+    flaky = True,
+    main = "test_flaky_in_bazel.py",
+    tags = ["manual"],
+    deps = ["//pytest_bazel"],
+)
+
+# pytest-rerunfailures runs the failed tests again in the same process.
+py_test(
+    name = "rerun_in_pytest_test",
+    srcs = ["test_rerun_in_pytest.py"],
+    args = ["--reruns=2"],
+    main = "test_rerun_in_pytest.py",
+    tags = ["manual"],
+    deps = [
+        "//pytest_bazel",
+        "@pypi//pytest_rerunfailures",
+    ],
+)

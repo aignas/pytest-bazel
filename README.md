@@ -90,8 +90,11 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 
 * [Debugging tests][docs-debugging]: `bazel test` gives the tests no terminal,
   use `bazel run` instead.
+* [Retrying flaky tests][docs-retries]: with bazel or with
+  `pytest-rerunfailures`, and why not both.
 
 [docs-debugging]: https://pytest-bazel.readthedocs.io/latest/features/debugging.html
+[docs-retries]: https://pytest-bazel.readthedocs.io/latest/features/retries.html
 
 ## Thanks
 
