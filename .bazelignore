@@ -1,0 +1,2 @@
+# Git worktrees of Claude Code agents, which bazel would load as packages.
+.claude
