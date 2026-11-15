@@ -118,6 +118,10 @@ EXAMPLES = {
         "//examples/annotations:annotations_test",
         files=["test.outputs_manifest/ANNOTATIONS"],
     ),
+    "warnings": Example(
+        "//examples/warnings:warnings_test",
+        keep=r"warnings summary|::test_|Warning|warnings.warn",
+    ),
     "keep_failed_tmp_path": Example(
         "//examples/keep_failed_tmp_path:keep_failed_tmp_path_test",
         keep=r"^FAILED|failed",

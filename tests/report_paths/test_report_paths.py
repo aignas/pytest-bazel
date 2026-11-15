@@ -14,7 +14,12 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import pytest
 
-from pytest_bazel.main import _relative_to_runfiles, _relative_warning_paths
+from pytest_bazel.main import (
+    BazelEnv,
+    _relative_to_runfiles,
+    _relative_warning_paths,
+)
+from pytest_bazel.main import main as _main
 
 _SAMPLE = "tests/report_paths/sample/failing.py"
 
@@ -110,15 +115,36 @@ def test_formatwarning_is_restored(tmp_path):
     assert warnings.formatwarning is original
 
 
-@pytest.mark.skipif("BAZEL_TEST" not in os.environ, reason="needs bazel test")
-def test_report_locations_can_be_opened():
-    """Run the failing sample through pytest_bazel and check its report."""
+@pytest.mark.parametrize(
+    ("environ", "want_wrapped"),
+    [
+        pytest.param({"BAZEL_TEST": "1"}, True, id="bazel_test"),
+        pytest.param({}, False, id="bazel_run_or_without_bazel"),
+    ],
+)
+def test_only_under_bazel_test(environ, want_wrapped):
+    original = warnings.formatwarning
+    seen = []
+
+    def pytest_main(_args):
+        seen.append(warnings.formatwarning is not original)
+        return 0
+
+    _main(args=["-q"], pytest_main=pytest_main, env=BazelEnv(environ))
+
+    assert seen == [want_wrapped]
+    assert warnings.formatwarning is original
+
+
+def _run_sample(*, bazel_test):
     env = {
         k: v
         for k, v in os.environ.items()
-        if not k.startswith(("TEST_", "XML_", "TESTBRIDGE_"))
+        if not k.startswith(("TEST_", "XML_", "TESTBRIDGE_", "BAZEL_TEST"))
     }
     env["PYTHONPATH"] = os.pathsep.join(sys.path)
+    if bazel_test:
+        env["BAZEL_TEST"] = "1"
 
     result = subprocess.run(
         [sys.executable, "-m", "pytest_bazel", "-p", "no:randomly", _SAMPLE],
@@ -129,6 +155,21 @@ def test_report_locations_can_be_opened():
     )
     output = result.stdout + result.stderr
     assert result.returncode == pytest.ExitCode.TESTS_FAILED, output
+    return output
+
+
+@pytest.mark.skipif("BAZEL_TEST" not in os.environ, reason="needs bazel test")
+def test_absolute_warning_paths_without_bazel_test():
+    output = _run_sample(bazel_test=False)
+
+    helper = Path.cwd() / "tests" / "report_paths" / "helper" / "helper.py"
+    assert f"{helper}:9: UserWarning" in output, output
+
+
+@pytest.mark.skipif("BAZEL_TEST" not in os.environ, reason="needs bazel test")
+def test_report_locations_can_be_opened():
+    """Run the failing sample like bazel test and check its report."""
+    output = _run_sample(bazel_test=True)
 
     locations = {(m["path"], int(m["line"])) for m in _LOCATION.finditer(output)}
     for want in [

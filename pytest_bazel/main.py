@@ -584,7 +584,7 @@ def _relative_to_runfiles(filename: str, start: PurePath) -> str:
 
 @contextlib.contextmanager
 def _relative_warning_paths(start: Path) -> Iterator[None]:
-    """Print the paths of warnings relative to the runfiles root.
+    """Print the paths of warnings relative to the runfiles root under bazel test.
 
     Python prints the absolute path of the file that issued a warning, which
     under bazel is deep in the sandbox and does not exist after the test. pytest
@@ -633,7 +633,13 @@ def main(
         premature_exit_file.touch()
 
     warnings_file = env.test_warnings_output_file
-    with _interrupt_on_sigterm(env), _relative_warning_paths(Path.cwd()):
+    # Only under `bazel test`, where the sandbox is gone after the test. With
+    # `bazel run` or without bazel the absolute paths exist and work from any
+    # directory.
+    relative_warning_paths = (
+        _relative_warning_paths(Path.cwd()) if env.is_test else contextlib.nullcontext()
+    )
+    with _interrupt_on_sigterm(env), relative_warning_paths:
         if warnings_file:
             with warnings_file.open("w") as f:
                 original_showwarning = warnings.showwarning

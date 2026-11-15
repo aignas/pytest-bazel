@@ -28,7 +28,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | `TEST_TMPDIR` | Used for `--basetemp` and for `TMPDIR`, `TMP` and `TEMP`, through a short alias when the path is too long for AF_UNIX sockets. | [Filesystem][te-fs] |
 | `TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR` | A summary of the results and the failed tests is written as an annotation, which bazel adds to `bazel-testlogs/<target>/test.outputs_manifest/ANNOTATIONS`. | [Filesystem][te-fs] |
 | `TEST_UNDECLARED_OUTPUTS_DIR` | Relative report paths of `--html`, `--json-report-file` and `--report-log` are written there. With `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=1`, so is the `tmp_path` of failed tests. | [Filesystem][te-fs] |
-| `TEST_WARNINGS_OUTPUT_FILE` | Python warnings are written to it. Here and in pytest's warnings summary, the paths are relative to the runfiles root, i.e. the workspace root, so editors can open them. | [Initial conditions][te-env] |
+| `TEST_WARNINGS_OUTPUT_FILE` | Python warnings are written to it. Under `bazel test`, here and in pytest's warnings summary, the paths are relative to the runfiles root, i.e. the workspace root, so editors can open them. | [Initial conditions][te-env] |
 | `XML_OUTPUT_FILE` | Passes `--junitxml`. | [Initial conditions][te-env] |
 
 See [the features in the docs][features] for each of them in action.
