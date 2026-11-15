@@ -24,7 +24,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | `TEST_SHARD_INDEX`, `TEST_TOTAL_SHARDS`, `TEST_SHARD_STATUS_FILE` (`shard_count`) | Built-in sharding: balanced shards, empty shards pass. | [Test sharding][te-sharding] |
 | `TEST_SIZE` | Not supported. | [Initial conditions][te-env] |
 | `TEST_TARGET` | Names the JUnit test suite, and selects the package for the opt-in flags below. | [Initial conditions][te-env] |
-| `TEST_TIMEOUT` | Not supported yet. | [Initial conditions][te-env] |
+| `TEST_TIMEOUT` (`timeout`, `--test_timeout`) | On timeout bazel sends SIGTERM: the stacks of all threads are printed and pytest is interrupted, so it still reports where the tests hung and writes the JUnit XML. | [Initial conditions][te-env] |
 | `TEST_TMPDIR` | Used for `--basetemp` and for `TMPDIR`, `TMP` and `TEMP`, through a short alias when the path is too long for AF_UNIX sockets. | [Filesystem][te-fs] |
 | `TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR` | Not supported yet. | [Filesystem][te-fs] |
 | `TEST_UNDECLARED_OUTPUTS_DIR` | Relative report paths of `--html`, `--json-report-file` and `--report-log` are written there. | [Filesystem][te-fs] |

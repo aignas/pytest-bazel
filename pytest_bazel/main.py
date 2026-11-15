@@ -6,13 +6,16 @@ https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35
 
 import atexit
 import contextlib
+import faulthandler
 import importlib.util
 import os
 import random
+import signal
 import sys
 import tempfile
+import threading
 import warnings
-from collections.abc import MutableMapping
+from collections.abc import Iterator, MutableMapping
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Optional
@@ -206,6 +209,11 @@ class BazelEnv:
     def test_undeclared_outputs_dir(self) -> Optional[Path]:
         """Return the TEST_UNDECLARED_OUTPUTS_DIR value or None if unset."""
         return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
+
+    @property
+    def test_timeout(self) -> Optional[int]:
+        """Return the TEST_TIMEOUT value in seconds or None if unset."""
+        return _maybe_int(self.env.get("TEST_TIMEOUT"))
 
     @property
     def test_premature_exit_file(self) -> Optional[Path]:
@@ -442,6 +450,46 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     return pytest_args
 
 
+@contextlib.contextmanager
+def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
+    """Turn the SIGTERM that bazel sends on timeout into a KeyboardInterrupt.
+
+    pytest then prints where the tests were interrupted and writes its
+    reports, e.g. the JUnit XML, before bazel kills the process. The stacks of
+    all threads are printed too, in case the test hangs in another thread.
+    """
+    if (
+        not env.is_test
+        or os.name != "posix"
+        or threading.current_thread() is not threading.main_thread()
+    ):
+        yield
+        return
+
+    # pytest redirects the stderr file descriptor while tests run, so keep a
+    # copy of it to print to.
+    stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
+
+    def handler(_signum, _frame):
+        timeout = (
+            f" after the timeout of {env.test_timeout}s" if env.test_timeout else ""
+        )
+        print(
+            f"\nbazel stopped the test with SIGTERM{timeout}. Stacks of all threads:",
+            file=stderr,
+            flush=True,
+        )
+        faulthandler.dump_traceback(file=stderr, all_threads=True)
+        raise KeyboardInterrupt
+
+    previous = signal.signal(signal.SIGTERM, handler)
+    try:
+        yield
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+        stderr.close()
+
+
 def main(
     args=None,
     pytest_main=pytest.main,
@@ -470,16 +518,17 @@ def main(
         premature_exit_file.touch()
 
     warnings_file = env.test_warnings_output_file
-    if warnings_file:
-        with warnings_file.open("w") as f:
-            original_showwarning = warnings.showwarning
-            warnings.showwarning = _write_to_file_factory(f)
-            try:
-                exit_code = pytest_main(pytest_args)
-            finally:
-                warnings.showwarning = original_showwarning
-    else:
-        exit_code = pytest_main(pytest_args)
+    with _interrupt_on_sigterm(env):
+        if warnings_file:
+            with warnings_file.open("w") as f:
+                original_showwarning = warnings.showwarning
+                warnings.showwarning = _write_to_file_factory(f)
+                try:
+                    exit_code = pytest_main(pytest_args)
+                finally:
+                    warnings.showwarning = original_showwarning
+        else:
+            exit_code = pytest_main(pytest_args)
 
     if premature_exit_file:
         premature_exit_file.unlink(missing_ok=True)
