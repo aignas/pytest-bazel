@@ -28,9 +28,15 @@ if __name__ == "__main__":
 
 <!-- run: timeout -->
 ```console
-$ bazel test //examples/timeout:timeout_test --test_timeout=3
+$ bazel test //examples/timeout:timeout_test --test_timeout=10
 //examples/timeout:timeout_test TIMEOUT in <time>
 $ cat bazel-testlogs/examples/timeout/timeout_test/test.log
-
+examples/timeout/test_timeout.py .-- Test timed out at <date> UTC --
+bazel stopped the test with SIGTERM after the timeout of 10s. Stacks of all threads:
+  File "<runfiles>/_main/examples/timeout/test_timeout.py", line 9 in test_hangs
+  File "<runfiles>/_main/examples/timeout/test_timeout.py", line 15 in <module>
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+<runfiles>/_main/examples/timeout/test_timeout.py:9: KeyboardInterrupt
+============================== 1 passed in <time> ===============================
 ```
 <!-- end -->

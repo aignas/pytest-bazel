@@ -64,10 +64,10 @@ stopped then, so that pytest writes its reports before bazel kills the test:
 
 <!-- run: xdist_timeout -->
 ```console
-$ bazel test //examples/xdist:xdist_hangs_test --test_timeout=3
+$ bazel test //examples/xdist:xdist_hangs_test --test_timeout=10
 //examples/xdist:xdist_hangs_test TIMEOUT in <time>
 $ cat bazel-testlogs/examples/xdist/xdist_hangs_test/test.log
-bazel stopped the test with SIGTERM after the timeout of 3s. Stacks of all threads:
+bazel stopped the test with SIGTERM after the timeout of 10s. Stacks of all threads:
   File "<runfiles>/_main/examples/xdist/test_xdist_hangs.py", line 15 in <module>
 Stacks of the pytest-xdist worker gw0:
   File "<runfiles>/_main/examples/xdist/test_xdist_hangs.py", line 9 in test_hangs

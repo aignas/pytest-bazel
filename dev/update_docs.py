@@ -109,7 +109,7 @@ EXAMPLES = {
     "junit_xml": Example("//examples/junit_xml:junit_xml_test", files=["test.xml"]),
     "timeout": Example(
         "//examples/timeout:timeout_test",
-        ["--test_timeout=3"],
+        ["--test_timeout=10"],
         # Not the frames of rules_python and pytest_bazel, which change often.
         keep=r"SIGTERM|Thread|test_timeout.py|!+ KeyboardInterrupt|passed",
     ),
@@ -132,7 +132,7 @@ EXAMPLES = {
     "xdist": Example("//examples/xdist:xdist_test", keep=r"workers \[|passed"),
     "xdist_timeout": Example(
         "//examples/xdist:xdist_hangs_test",
-        ["--test_timeout=3"],
+        ["--test_timeout=10"],
         keep=r"SIGTERM|Stacks of the pytest-xdist|test_xdist_hangs.py.* in ",
     ),
     "junit_output": Example(
