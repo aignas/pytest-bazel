@@ -7,7 +7,9 @@ import zipfile
 from pathlib import Path
 
 import pytest
-import tomllib
+
+# Runs on Python 3.12, see pkg/BUILD.bazel, but pyrefly checks against 3.8.
+import tomllib  # pyrefly: ignore[missing-import]
 
 _DEV_ONLY_EXTRAS = {"docs", "tests"}
 
