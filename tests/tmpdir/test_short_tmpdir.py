@@ -20,7 +20,7 @@ _MAX_ALIAS_SUFFIX_LEN = 40
 _main_module = importlib.import_module("pytest_bazel.main")
 
 
-@pytest.fixture()
+@pytest.fixture
 def alias_root(tmp_path, monkeypatch):
     root = tmp_path / "root"
     root.mkdir()
@@ -28,7 +28,7 @@ def alias_root(tmp_path, monkeypatch):
     return root
 
 
-@pytest.fixture()
+@pytest.fixture
 def long_dir(tmp_path):
     p = tmp_path / ("x" * 80)
     p.mkdir()
