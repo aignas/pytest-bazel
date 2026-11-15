@@ -12,6 +12,16 @@ filegroup(
     visibility = [":__subpackages__"],
 )
 
+# The unstamped wheel of //pkg:whl has a `{BUILD_EMBED_LABEL}` placeholder in
+# its file name, give it the name of the version in its metadata, so that the
+# integration workspace can install it, see integration/requirements.txt.
+genrule(
+    name = "whl_for_integration",
+    srcs = ["//pkg:whl"],
+    outs = ["pytest_bazel-0+build.embed.label-py3-none-any.whl"],
+    cmd = "for f in $(SRCS); do case $$f in *.whl) cp $$f $@;; esac; done",
+)
+
 # Declare a test runner to drive the integration tests.
 default_test_runner(
     name = "simple_test_runner",
@@ -23,7 +33,7 @@ bazel_integration_test(
     bazel_version = bazel_binaries.versions.current,
     test_runner = ":simple_test_runner",
     workspace_files = integration_test_utils.glob_workspace_files("integration") + [
-        "//pkg:whl",
+        ":whl_for_integration",
     ],
     workspace_path = "integration",
 )

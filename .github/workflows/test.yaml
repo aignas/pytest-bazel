@@ -14,6 +14,10 @@ jobs:
       - name: Test
         run: |
           bazel test //...
+      # Tagged manual, as it runs bazel in bazel. Its workspace pins Python 3.14,
+      # so it runs only here and not for each Python version.
+      - name: Test installing the wheel in a bazel workspace
+        run: bazel test //tests:integration_test
       - name: Build the release wheel
         run: ./pkg/build.sh 0.0.0 dist
 

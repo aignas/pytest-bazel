@@ -3,6 +3,8 @@ load("@rules_python//python:py_test.bzl", "py_test")
 py_test(
     name = "test_xdist",
     srcs = ["test_xdist.py"],
+    # The tests start pytest in subprocesses and wait for timeouts.
+    shard_count = 4,
     deps = [
         "//pytest_bazel",
         "@pypi//pytest_xdist",
