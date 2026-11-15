@@ -3,10 +3,11 @@
 import email
 import os
 import re
-import tomllib
-import unittest
 import zipfile
 from pathlib import Path
+
+import pytest
+import tomllib
 
 _DEV_ONLY_EXTRAS = {"docs", "tests"}
 
@@ -16,70 +17,82 @@ def _normalize(name):
 
 
 def _requirement(req):
-    """Normalize a `Requires-Dist` value."""
+    """Return a normalized `(requirement, marker)` for a `Requires-Dist` value."""
     req, _, marker = req.partition(";")
     name, sep, extras = req.strip().partition("[")
     return f"{_normalize(name)}{sep}{extras}", marker.strip()
 
 
-class WheelTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        # Unstamped wheels are named `pytest_bazel-{BUILD_EMBED_LABEL}-...`, which
-        # `$(rootpath)` would quote, so find it instead.
-        (wheel,) = Path(os.environ["WHEEL_DIR"]).glob("*.whl")
-        cls.wheel = zipfile.ZipFile(wheel)
-        cls.addClassCleanup(cls.wheel.close)
-        cls.dist_info = next(
-            n.partition("/")[0] for n in cls.wheel.namelist() if ".dist-info/" in n
-        )
-        cls.metadata = email.message_from_bytes(
-            cls.wheel.read(f"{cls.dist_info}/METADATA")
-        )
-        with Path(os.environ["PYPROJECT"]).open("rb") as f:
-            cls.project = tomllib.load(f)["project"]
+@pytest.fixture(scope="module")
+def wheel():
+    # Unstamped wheels are named `pytest_bazel-{BUILD_EMBED_LABEL}-...`, which
+    # `$(rootpath)` would quote, so find it instead.
+    (path,) = Path(os.environ["WHEEL_DIR"]).glob("*.whl")
+    with zipfile.ZipFile(path) as whl:
+        yield whl
 
-    def test_name(self):
-        self.assertEqual(
-            _normalize(self.metadata["Name"]), _normalize(self.project["name"])
-        )
 
-    def test_requires_python(self):
-        self.assertEqual(
-            self.metadata["Requires-Python"], self.project["requires-python"]
-        )
+@pytest.fixture(scope="module")
+def dist_info(wheel):
+    return next(n.partition("/")[0] for n in wheel.namelist() if ".dist-info/" in n)
 
-    def test_dependencies_match_pyproject(self):
-        got = {_requirement(r) for r in self.metadata.get_all("Requires-Dist")}
 
-        want = {_requirement(r) for r in self.project["dependencies"]}
-        for extra, reqs in self.project["optional-dependencies"].items():
-            if extra in _DEV_ONLY_EXTRAS:
-                continue
-            want |= {(_requirement(r)[0], f"extra == '{extra}'") for r in reqs}
+@pytest.fixture(scope="module")
+def metadata(wheel, dist_info):
+    return email.message_from_bytes(wheel.read(f"{dist_info}/METADATA"))
 
-        self.assertEqual(got, want)
 
-    def test_extras_match_pyproject(self):
-        want = set(self.project["optional-dependencies"]) - _DEV_ONLY_EXTRAS
-        self.assertEqual(set(self.metadata.get_all("Provides-Extra")), want)
+@pytest.fixture(scope="module")
+def project():
+    with Path(os.environ["PYPROJECT"]).open("rb") as f:
+        return tomllib.load(f)["project"]
 
-    def test_self_referencing_extras_use_our_name(self):
-        name = _normalize(self.project["name"])
-        for req in self.metadata.get_all("Requires-Dist"):
-            req_name, _ = _requirement(req)
-            if "[" in req_name:
-                self.assertEqual(req_name.partition("[")[0], name, req)
 
-    def test_console_script(self):
-        entry_points = self.wheel.read(f"{self.dist_info}/entry_points.txt").decode()
-        self.assertIn("pytest_bazel = pytest_bazel:main", entry_points)
+def test_name(metadata, project):
+    assert _normalize(metadata["Name"]) == _normalize(project["name"])
 
-    def test_sources_are_included(self):
-        names = set(self.wheel.namelist())
-        for src in ("__init__.py", "__main__.py", "main.py"):
-            self.assertIn(f"pytest_bazel/{src}", names)
+
+def test_requires_python(metadata, project):
+    assert metadata["Requires-Python"] == project["requires-python"]
+
+
+def test_dependencies_match_pyproject(metadata, project):
+    got = {_requirement(r) for r in metadata.get_all("Requires-Dist")}
+
+    want = {_requirement(r) for r in project["dependencies"]}
+    for extra, reqs in project["optional-dependencies"].items():
+        if extra in _DEV_ONLY_EXTRAS:
+            continue
+        for req in reqs:
+            want.add((_requirement(req)[0], f"extra == '{extra}'"))
+
+    assert got == want
+
+
+def test_extras_match_pyproject(metadata, project):
+    want = set(project["optional-dependencies"]) - _DEV_ONLY_EXTRAS
+    assert set(metadata.get_all("Provides-Extra")) == want
+
+
+def test_self_referencing_extras_use_our_name(metadata, project):
+    name = _normalize(project["name"])
+    for req in metadata.get_all("Requires-Dist"):
+        req_name, _ = _requirement(req)
+        if "[" in req_name:
+            assert req_name.partition("[")[0] == name, req
+
+
+def test_console_script(wheel, dist_info):
+    entry_points = wheel.read(f"{dist_info}/entry_points.txt").decode()
+    assert "pytest_bazel = pytest_bazel:main" in entry_points
+
+
+@pytest.mark.parametrize("src", ["__init__.py", "__main__.py", "main.py"])
+def test_sources_are_included(wheel, src):
+    assert f"pytest_bazel/{src}" in wheel.namelist()
 
 
 if __name__ == "__main__":
-    unittest.main()
+    import pytest_bazel
+
+    pytest_bazel.main()

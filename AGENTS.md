@@ -24,6 +24,9 @@ published to PyPI and is built and tested with Bazel.
 
 ## Tests
 
+* Write tests with pytest, not unittest, and run them with our own runner
+  by ending the file with `if __name__ == "__main__": pytest_bazel.main()`
+  and adding `//pytest_bazel` to `deps`.
 * Every change needs tests. Test the args from `_pytest_args` and, if the
   behaviour depends on pytest, run them with `pytester`.
 * If the behaviour depends on Bazel (env vars, runfiles, sandbox), add a test

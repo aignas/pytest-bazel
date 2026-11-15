@@ -73,4 +73,5 @@ py_test(
     },
     # For tomllib
     python_version = "3.12",
+    deps = ["//pytest_bazel"],
 )
