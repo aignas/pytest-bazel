@@ -14,3 +14,5 @@ jobs:
       - name: Test
         run: |
           bazel test //...
+      - name: Build the release wheel
+        run: ./pkg/build.sh 0.0.0 dist

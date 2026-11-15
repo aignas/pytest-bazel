@@ -16,6 +16,7 @@ exports_files(
         "CHANGELOG.md",
         "CONTRIBUTING.md",
         "LICENSE",
+        "pyproject.toml",
     ],
     visibility = ["//:__subpackages__"],
 )
