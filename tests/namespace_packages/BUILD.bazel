@@ -1,0 +1,24 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_library(
+    name = "test_lib",
+    srcs = glob(["numpy/*.py"]),
+    testonly = True,
+)
+
+py_test(
+    name = "test_namespace_packages",
+    main_module = "pytest_bazel",
+    deps = [
+        ":test_lib",
+        "//pytest_bazel",
+        "@pypi//numpy",
+    ],
+)
+
+py_test(
+    name = "test_namespace_packages_args",
+    srcs = ["test_namespace_packages_args.py"],
+    deps = ["//pytest_bazel"],
+)

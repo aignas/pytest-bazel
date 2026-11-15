@@ -164,6 +164,11 @@ def _process_args(args: List[str], env: BazelEnv) -> List[str]:
     return [*args, "-k", f"{env.test_filter}"]
 
 
+def _supports_namespace_packages() -> bool:
+    # https://docs.pytest.org/en/stable/reference/reference.html#confval-consider_namespace_packages
+    return hasattr(pytest, "version_tuple") and pytest.version_tuple >= (8, 1)
+
+
 def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
     """Construct pytest args.
 
@@ -188,6 +193,14 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
         "-p",
         "no:cacheprovider",
     ]
+
+    if _supports_namespace_packages():
+        # Bazel packages usually have no `__init__.py`, so without this pytest
+        # names test modules after the closest regular package only, e.g.
+        # `foo/numpy/bar_test.py` would become `numpy.bar_test` and shadow the
+        # real `numpy`. Users can opt out by passing
+        # `-o consider_namespace_packages=false`.
+        pytest_args.extend(["-o", "consider_namespace_packages=true"])
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
