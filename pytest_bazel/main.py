@@ -559,6 +559,32 @@ def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
         stderr.close()
 
 
+@contextlib.contextmanager
+def _relative_warning_paths(start: Path) -> Iterator[None]:
+    """Print the paths of warnings relative to the runfiles root.
+
+    Python prints the absolute path of the file that issued a warning, which
+    under bazel is deep in the sandbox and does not exist after the test. pytest
+    uses `warnings.formatwarning` for its warnings summary too. The paths
+    relative to `start`, the runfiles root, are the same as the paths in the
+    workspace, so editors can open them.
+    """
+    original = warnings.formatwarning
+    runfiles = start.parent
+
+    def formatwarning(message, category, filename, lineno, line=None):
+        path = Path(filename)
+        if path.is_absolute() and runfiles in path.parents:
+            filename = os.path.relpath(path, start)
+        return original(message, category, filename, lineno, line)
+
+    warnings.formatwarning = formatwarning
+    try:
+        yield
+    finally:
+        warnings.formatwarning = original
+
+
 def main(
     args=None,
     pytest_main=pytest.main,
@@ -587,7 +613,7 @@ def main(
         premature_exit_file.touch()
 
     warnings_file = env.test_warnings_output_file
-    with _interrupt_on_sigterm(env):
+    with _interrupt_on_sigterm(env), _relative_warning_paths(Path.cwd()):
         if warnings_file:
             with warnings_file.open("w") as f:
                 original_showwarning = warnings.showwarning
