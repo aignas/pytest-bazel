@@ -9,6 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.3.0]
+
+### Added
+
+- Set `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES=1` so that test modules in bazel
+  packages without `__init__.py` do not shadow third-party packages. This will
+  be the default in 1.0. [#38](https://github.com/aignas/pytest-bazel/pull/38).
+- Set `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` to only collect tests from
+  the bazel package of the test target when no paths are passed. This will be
+  the default in 1.0. [#39](https://github.com/aignas/pytest-bazel/pull/39).
+- Set `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1` to use a `pytest.ini` or other pytest
+  config file from the bazel package of the test. This will be the default in
+  1.0. [#49](https://github.com/aignas/pytest-bazel/pull/49).
+
+### Changed
+
+- Sharding is built in and `pytest-shard` is no longer needed. Shards are now
+  balanced to within one test of each other. The `shard` extra is kept, but
+  empty. [#36](https://github.com/aignas/pytest-bazel/pull/36).
+
+### Removed
+
+- Python 3.8 is no longer supported. We now support the same Python versions as
+  `rules_python`, currently 3.9 and newer.
+  [#45](https://github.com/aignas/pytest-bazel/pull/45).
+
+### Fixed
+
+- Set `TMPDIR`, `TMP` and `TEMP` to `TEST_TMPDIR` under `bazel test`, so
+  `tempfile` no longer writes to the shared system temp dir.
+  [#34](https://github.com/aignas/pytest-bazel/pull/34).
+- Point `TMPDIR` at a short alias of `TEST_TMPDIR` so that AF_UNIX sockets (e.g.
+  `multiprocessing.Manager`) fit within the `sun_path` length limit.
+  [#35](https://github.com/aignas/pytest-bazel/pull/35).
+- Shards that get no tests, because there are more shards than tests, now pass
+  instead of failing the bazel test.
+  [#48](https://github.com/aignas/pytest-bazel/pull/48).
+
+## [0.2.1]
+
+0.2.0 was not published to PyPI because of a bug in the release
+workflow, this release includes its changes.
+
+### Added
+
+- Name the JUnit XML test suite after the bazel target (`TEST_TARGET`).
+  [#37](https://github.com/aignas/pytest-bazel/pull/37).
+
+### Fixed
+
+- (pkg) The `all` extra now installs `pytest-randomly` and `pytest-shard`, and
+  the wheel declares `Requires-Python: >=3.8`.
+  [#41](https://github.com/aignas/pytest-bazel/pull/41).
+
 ## [0.2.0]
 
 ### Fixed
@@ -151,7 +205,9 @@ Nothing yet.
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.2.0...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.3.0
+[0.2.1]: https://github.com/aignas/pytest-bazel/releases/tag/0.2.1
 [0.2.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.2.0
 [0.1.6]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.6
 [0.1.5]: https://github.com/aignas/pytest-bazel/releases/tag/0.1.5
