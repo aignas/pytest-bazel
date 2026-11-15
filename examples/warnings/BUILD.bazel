@@ -1,0 +1,12 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "warnings_test",
+    srcs = [
+        "helper.py",
+        "test_warnings.py",
+    ],
+    main = "test_warnings.py",
+    tags = ["manual"],
+    deps = ["//pytest_bazel"],
+)

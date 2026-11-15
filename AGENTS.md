@@ -54,6 +54,8 @@ is out of date.
   change the output of `bazel test`: the code of `pytest_bazel`, an example,
   or a bump of pytest or rules_python. Run it after staging other changes, and
   stage the pages again.
+* After rebasing a PR or merging `main` into it, run `dev/update_docs.py`
+  again, as the changes on `main` can change the output.
 * Do not edit the generated blocks by hand, only the text around them.
 * Every feature in the tables of `README.md` needs a page:
   * An example package `examples/<feature>/`. Tag its targets `manual`, as

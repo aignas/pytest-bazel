@@ -1,0 +1,11 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "test_report_paths",
+    srcs = ["test_report_paths.py"],
+    data = [
+        "helper/helper.py",
+        "sample/failing.py",
+    ],
+    deps = ["//pytest_bazel"],
+)
