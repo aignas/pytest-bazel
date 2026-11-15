@@ -31,6 +31,21 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | `TEST_WARNINGS_OUTPUT_FILE` | Python warnings are written to it. | [Initial conditions][te-env] |
 | `XML_OUTPUT_FILE` | Passes `--junitxml`. | [Initial conditions][te-env] |
 
+### Not supported
+
+These parts of the test encyclopedia are out of scope for `pytest_bazel`:
+
+* `TEST_LOGSPLITTER_OUTPUT_FILE`: a Google internal protobuf log format
+  that nothing outside of Google reads.
+* `TEST_SIZE`: bazel already uses the size for the timeout and the resources
+  of a test, there is nothing left for the test runner to do.
+* `TEST_SRCDIR`: deprecated. Tests run in the runfiles root, use the
+  `runfiles` library of your rules to find files.
+* `TEST_WORKSPACE`: it always names the main repository, so it does not help
+  with tests from other repositories.
+* Coverage (`COVERAGE_*`): collected by the Python rules, e.g. the `py_test`
+  of `rules_python`, which wraps the whole test process.
+
 [te]: https://bazel.build/reference/test-encyclopedia
 [te-env]: https://bazel.build/reference/test-encyclopedia#initial-conditions
 [te-fs]: https://bazel.build/reference/test-encyclopedia#test-interaction-filesystem
