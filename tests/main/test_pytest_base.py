@@ -1,10 +1,11 @@
-import pytest
 import warnings
 from pathlib import Path
 
-from pytest_bazel.main import _supports_sharding
-from pytest_bazel.main import BazelEnv
+import pytest
+
+from pytest_bazel.main import BazelEnv, _supports_sharding
 from pytest_bazel.main import main as _main
+
 
 @pytest.fixture
 def mock_supports_sharding():
@@ -19,6 +20,7 @@ def mock_supports_sharding():
     yield
 
     _supports_sharding.__code__ = previous_supports_sharding
+
 
 def mock_pytest_main(args=None, collect_args=None, return_exit=0):
     if args and collect_args is not None:
@@ -69,7 +71,7 @@ def test_return_non_zero_exit():
 def test_no_sharding_by_default(tmpdir):
     shard_status_file = Path(tmpdir) / "mock_file"
     _main(
-        pytest_main=lambda args: mock_pytest_main(args),
+        pytest_main=mock_pytest_main,
         env=BazelEnv(
             {
                 "TEST_SHARD_INDEX": "1",
@@ -80,9 +82,10 @@ def test_no_sharding_by_default(tmpdir):
         ),
     )
 
-    assert (
-        not shard_status_file.exists()
-    ), "Sharding should not be advertised as supported"
+    assert not shard_status_file.exists(), (
+        "Sharding should not be advertised as supported"
+    )
+
 
 @pytest.mark.parametrize(
     ("shard_index", "total_shards"),
@@ -92,12 +95,14 @@ def test_no_sharding_by_default(tmpdir):
         (2, 2),
     ],
 )
-def test_sharding_enabled(tmpdir, mock_supports_sharding, shard_index: int, total_shards: int):
+def test_sharding_enabled(
+    tmpdir, mock_supports_sharding, shard_index: int, total_shards: int
+):
     """Ensure that sharding and working when supported."""
 
     shard_status_file = Path(tmpdir) / f"mock_file_{shard_index}"
     _main(
-        pytest_main=lambda args: mock_pytest_main(args),
+        pytest_main=mock_pytest_main,
         env=BazelEnv(
             {
                 "TEST_SHARD_INDEX": str(shard_index),
@@ -109,6 +114,7 @@ def test_sharding_enabled(tmpdir, mock_supports_sharding, shard_index: int, tota
     )
 
     assert shard_status_file.exists(), "Sharding should be advertised as supported"
+
 
 def test_pytest_showwarning():
     """Ensure that the original warning function is restored after pytest runs."""

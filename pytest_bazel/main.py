@@ -4,14 +4,17 @@ The original template code is based on
 https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35c7c53d9316f6162088dd13
 """
 
+import atexit
+import contextlib
 import importlib.util
 import os
 import random
 import sys
+import tempfile
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, MutableMapping, Optional, Tuple
 
 import pytest
 
@@ -24,12 +27,7 @@ _FLAGS_OUTPUTING_FILES = [
 
 
 def _supports_sharding() -> bool:
-    try:
-        import pytest_shard as _  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
+    return importlib.util.find_spec("pytest_shard") is not None
 
 
 def _write_to_file_factory(out_file):
@@ -38,7 +36,7 @@ def _write_to_file_factory(out_file):
     This is used to write everything to a file that bazel specifies.
     """
 
-    def _fn(  # noqa: PLR0913
+    def _fn(  # noqa: PLR0913, PLR0917
         message, category, filename, lineno, file=sys.stderr, line=None
     ):
         out_file.write(
@@ -63,7 +61,7 @@ class BazelEnv:
     See https://bazel.build/reference/test-encyclopedia#initial-conditions
     """
 
-    env: Dict[str, str]
+    env: MutableMapping[str, str]
 
     @property
     def test_shard_index(self) -> Optional[int]:
@@ -76,7 +74,7 @@ class BazelEnv:
         return _maybe_path(self.env.get("TEST_SHARD_STATUS_FILE"))
 
     @property
-    def test_total_shards(self) -> int:
+    def test_total_shards(self) -> Optional[int]:
         """Return the TEST_TOTAL_SHARDS value."""
         return _maybe_int(self.env.get("TEST_TOTAL_SHARDS"))
 
@@ -150,12 +148,81 @@ class BazelEnv:
         return self.env.get("TESTBRIDGE_TEST_RUNNER_FAIL_FAST") == "1"
 
 
+# AF_UNIX socket paths are limited to 104 bytes on macOS and 108 on Linux.
+# Leave room for the names that e.g. `multiprocessing` creates under TMPDIR.
+_MAX_TMPDIR_LEN = 60
+
+# Where to create short aliases for long TEST_TMPDIR paths.
+_ALIAS_ROOT = "/tmp"
+
+
+def _remove_tmpdir_alias(alias: Path, owner_pid: int) -> None:
+    # Forked children run the parent's atexit handlers too.
+    if os.getpid() != owner_pid:
+        return
+    with contextlib.suppress(OSError):
+        alias.unlink()
+        alias.parent.rmdir()
+
+
+def _tmpdir_alias(test_tmpdir: Path) -> Path:
+    """Return a short path that points to `test_tmpdir`.
+
+    `bind()` checks the length of the path it is given rather than of the
+    resolved path, so a short symlink lets tests bind AF_UNIX sockets under
+    TMPDIR while the files still end up in TEST_TMPDIR.
+
+    Returns `test_tmpdir` itself if it is short enough or if no alias can be
+    created.
+    """
+    if os.name != "posix" or len(str(test_tmpdir)) <= _MAX_TMPDIR_LEN:
+        return test_tmpdir
+
+    try:
+        # A fresh 0700 dir with a random name, so nobody else can swap the link.
+        private_dir = Path(tempfile.mkdtemp(prefix="pytest-bazel-", dir=_ALIAS_ROOT))
+        alias = private_dir / "tmp"
+        alias.symlink_to(test_tmpdir, target_is_directory=True)
+    except OSError:
+        return test_tmpdir
+
+    atexit.register(_remove_tmpdir_alias, alias, os.getpid())
+    return alias
+
+
+def _set_tmpdir(env: BazelEnv) -> None:
+    """Point the temp dir env vars at Bazel's per-test TEST_TMPDIR.
+
+    Bazel does not export TMPDIR for tests, so `tempfile` and anything built on
+    it would use the shared system temp dir instead of the test's private one.
+    That is non-hermetic and breaks on remote execution workers that mount
+    `/tmp` as `noexec`. TMP and TEMP are set for `tempfile` on Windows.
+
+    Long TEST_TMPDIR paths are replaced with a short alias, see `_tmpdir_alias`.
+    """
+    if not env.is_test or not env.test_tmpdir:
+        return
+
+    tmpdir = str(_tmpdir_alias(env.test_tmpdir.absolute()))
+    for var in ("TMPDIR", "TMP", "TEMP"):
+        env.env[var] = tmpdir
+
+    if env.env is os.environ:
+        # `tempfile.gettempdir()` caches its result process-wide.
+        tempfile.tempdir = None
+
+
+def _pytest_version() -> Tuple[int, ...]:
+    """Return the `(major, minor)` version of pytest, `(0, 0)` before pytest 7.0."""
+    # `pytest.version_tuple` is available since pytest 7.0.
+    return tuple(getattr(pytest, "version_tuple", (0, 0))[:2])
+
+
 def _process_args(args: List[str], env: BazelEnv) -> List[str]:
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
     # Remove any __init__.py file to avoid that.
-    # pytest.version_tuple is available since pytest 7.0
     # https://github.com/pytest-dev/pytest/issues/9313
-    if not hasattr(pytest, "version_tuple") or pytest.version_tuple < (8, 0):
+    if _pytest_version() < (8, 0):
         args = [
             arg
             for arg in args
@@ -206,6 +273,10 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
+        if env.test_target:
+            # Name the suite after the target so that merged reports are readable,
+            # users can still override it as their args come later.
+            pytest_args.extend(["-o", f"junit_suite_name={env.test_target}"])
 
     # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
     # cleaned up correctly in case things are not cleaned up correctly.
@@ -259,6 +330,7 @@ def main(
 
     """
     env = env or BazelEnv(os.environ)
+    _set_tmpdir(env)
     pytest_args = _pytest_args(args=args or sys.argv[1:], env=env)
 
     print(f"Running pytest.main with: {pytest_args}", file=sys.stderr)

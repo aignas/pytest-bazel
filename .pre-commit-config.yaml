@@ -1,22 +1,30 @@
----
+# Run with prek (https://prek.j178.dev), see CONTRIBUTING.md.
 repos:
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.5.0
-  hooks:
-    - id: ruff
-      args: [--fix]
-    - id: ruff-format
-- repo: local
-  hooks:
-    - name: bazel mod tidy
-      id: bazel-mod-tidy
-      entry: bazel mod tidy
-      files: ^MODULE.bazel$
-      language: system
-      pass_filenames: false
-    - name: bazel mod lock
-      id: bazel-mod-tidy
-      entry: bazel mod deps --lockfile_mode=refresh
-      files: ^(MODULE.bazel*|requirements.txt)$
-      language: system
-      pass_filenames: false
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.5
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/facebook/pyrefly-pre-commit
+    rev: 1.4.1
+    hooks:
+      - id: pyrefly-check
+        additional_dependencies:
+          - numpy
+          - pytest
+          - pytest-randomly
+  - repo: local
+    hooks:
+      - id: bazel-mod-tidy
+        name: bazel mod tidy
+        entry: bazel mod tidy
+        files: ^MODULE\.bazel$
+        language: system
+        pass_filenames: false
+      - id: bazel-mod-lock
+        name: bazel mod lock
+        entry: bazel mod deps --lockfile_mode=refresh
+        files: ^MODULE\.bazel(\.lock)?$
+        language: system
+        pass_filenames: false
