@@ -82,6 +82,11 @@ EXAMPLES = {
     "test_filter": Example(
         "//examples/test_filter:test_filter_test", ["--test_filter=TestMath.test_add"]
     ),
+    "test_filter_commas": Example(
+        "//examples/test_filter:test_filter_test",
+        ["--test_filter=TestMath.test_add,test_other"],
+        keep=r"collected|passed",
+    ),
     "fail_fast": Example(
         "//examples/fail_fast:fail_fast_test", ["--test_runner_fail_fast"]
     ),

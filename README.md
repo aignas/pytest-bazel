@@ -15,7 +15,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 
 | Bazel | `pytest_bazel` | Docs | Reference |
 | --- | --- | --- | --- |
-| `TESTBRIDGE_TEST_ONLY` (`--test_filter`) | Selects tests with a `-k` expression, e.g. `TestClass.test_fn` or a pytest node id. | [Example][docs-test-filter] | [Initial conditions][te-env] |
+| `TESTBRIDGE_TEST_ONLY` (`--test_filter`) | Selects tests with a `-k` expression, e.g. `TestClass.test_fn`, a pytest node id, or several of them separated by commas. | [Example][docs-test-filter] | [Initial conditions][te-env] |
 | `TESTBRIDGE_TEST_RUNNER_FAIL_FAST` (`--test_runner_fail_fast`) | Passes `--exitfirst`. | [Example][docs-fail-fast] | [Flag][fail-fast] |
 | `TEST_INFRASTRUCTURE_FAILURE_FILE` | Written when pytest itself fails, i.e. on a usage or internal error, so that a broken setup can be told apart from failing tests. | [Example][docs-infrastructure-failure] | [Initial conditions][te-env] |
 | `TEST_LOGSPLITTER_OUTPUT_FILE` | Not supported. | [Not supported][not-supported] | [Initial conditions][te-env] |
