@@ -2,6 +2,8 @@
 
 import os
 
+from sphinx.highlighting import lexer_classes
+
 # -- Project information
 project = "pytest-bazel"
 copyright = "2024, Ignas Anikevicius"
@@ -122,6 +124,4 @@ suppress_warnings = []
 def setup(app):  # noqa: D103
     # Pygments says it supports starlark, but it doesn't seem to actually
     # recognize `starlark` as a name. So just manually map it to python.
-    from sphinx.highlighting import lexer_classes
-
     app.add_lexer("starlark", lexer_classes["python"])

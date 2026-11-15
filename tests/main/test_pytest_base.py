@@ -66,9 +66,9 @@ def test_no_sharding_by_default(tmpdir):
         ),
     )
 
-    assert (
-        not shard_status_file.exists()
-    ), "Sharding should not be advertised as supported"
+    assert not shard_status_file.exists(), (
+        "Sharding should not be advertised as supported"
+    )
     assert "pytest_bazel.shard" not in got_args
 
 

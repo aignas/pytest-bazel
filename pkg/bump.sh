@@ -18,8 +18,6 @@ sed \
     "${CHANGELOG}" > "${CHANGELOG}.new"
 mv "${CHANGELOG}.new" "${CHANGELOG}"
 
-# Update the version in the `pkg/BUILD.bazel`
-echo "VERSION = \"$VERSION\"" > version.bzl
 
 # Git commit, tag and push
 git commit -am "release: $VERSION"

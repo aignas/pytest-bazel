@@ -1,8 +1,6 @@
-# TODO @aignas 2024-06-29: autogenerate this file as all of the info is in pyproject.toml already
+# The metadata duplicates pyproject.toml, :whl_test checks that they match.
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("//:version.bzl", "VERSION")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_python//python:py_test.bzl", "py_test")
 
 licenses(["notice"])  # Apache 2.0
 
@@ -22,6 +20,8 @@ py_wheel(
         "Programming Language :: Python",
     ],
     description_file = "//:README.md",
+    # The wheel with the stamped version is in `bazel-bin/pkg/dist`.
+    dist_folder = "dist",
     distribution = "pytest_bazel",
     entry_points = {
         "console_scripts": ["pytest_bazel = pytest_bazel:main"],
@@ -39,47 +39,40 @@ py_wheel(
         "Homepage": "https://github.com/aignas/pytest-bazel",
         "Repository": "https://github.com/aignas/pytest-bazel.git",
     },
+    python_requires = ">=3.8",
     python_tag = "py3",
     requires = [
         "pytest",
     ],
     extra_requires = {
         "all": [
-            "pytest[random]",
-            "pytest[shard]",
+            "pytest-bazel[random]",
+            "pytest-bazel[shard]",
         ],
         "random": ["pytest-randomly"],
         # Kept for compatibility, sharding is now built-in.
         "shard": [],
     },
     summary = "A pytest runner with bazel support",
-    version = VERSION,
+    # Set from the release tag with `--stamp --embed_label=<version>`, see
+    # .github/workflows/release.yaml. Unstamped builds get `0+build.embed.label`.
+    version = "{BUILD_EMBED_LABEL}",
     visibility = ["//tests:__subpackages__"],
     deps = [":srcs"],
 )
 
-filegroup(
-    name = "dist",
-    srcs = [
-        "whl"
+py_test(
+    name = "whl_test",
+    srcs = ["whl_test.py"],
+    data = [
+        ":whl",
+        "//:pyproject.toml",
     ],
-    visibility = ["//:__subpackages__"],
-)
-
-write_file(
-    name = "prepare_sh",
-    out = "prepare.sh",
-    content = [
-        "#!/bin/bash",
-        "set -euxo pipefail",
-        "rm -rf \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
-        "mkdir -p \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
-        "cp -v pkg/*.whl \"$BUILD_WORKSPACE_DIRECTORY/dist\"",
-    ],
-)
-
-sh_binary(
-    name = "prepare",
-    srcs = [":prepare_sh"],
-    data = ["dist"],
+    env = {
+        "PYPROJECT": "$(rootpath //:pyproject.toml)",
+        "WHEEL_DIR": package_name(),
+    },
+    # For tomllib
+    python_version = "3.12",
+    deps = ["//pytest_bazel"],
 )

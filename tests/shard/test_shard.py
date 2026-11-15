@@ -44,7 +44,7 @@ def test_shards_do_not_depend_on_collection_order():
         assert select_shard(shuffled, i, 3) == select_shard(node_ids, i, 3)
 
 
-@pytest.fixture()
+@pytest.fixture
 def _test_file(pytester):
     pytester.makepyfile("\n".join(f"def test_{i}(): pass" for i in range(_NUM_TESTS)))
 
@@ -109,9 +109,9 @@ def test_plugin_rejects_invalid_shard(pytester, index, total):
 @pytest.mark.usefixtures("_test_file")
 def test_bazel_sharding_without_pytest_shard(pytester, tmp_path):
     """Run pytest with the args that pytest_bazel computes for a sharded test."""
-    assert (
-        importlib.util.find_spec("pytest_shard") is None
-    ), "this test must run without pytest-shard to prove it is not needed"
+    assert importlib.util.find_spec("pytest_shard") is None, (
+        "this test must run without pytest-shard to prove it is not needed"
+    )
 
     def args_for_shard(i):
         env = BazelEnv(
