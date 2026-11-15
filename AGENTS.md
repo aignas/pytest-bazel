@@ -7,6 +7,11 @@ published to PyPI and is built and tested with Bazel.
 ## Building and testing
 
 * `bazel test //...` runs all tests and builds the docs.
+* CI also runs `bazel test //...` on Python 3.9 to 3.15 with
+  `--@rules_python//python/config_settings:python_version=3.X`.
+* rules_python cannot run a `py_test` on Python 3.8, so CI runs the unit
+  tests that do not need Bazel with `dev/test_without_bazel.sh 3.8 <files>`.
+  Add new tests there if they can run without Bazel.
 * `pre-commit run --files <files>` runs ruff, ruff-format and `bazel mod tidy`.
 * `docs/readthedocs_build.sh` is what Read the Docs runs. Use it with
   `READTHEDOCS=True` and the other `READTHEDOCS_*` vars to reproduce RTD
