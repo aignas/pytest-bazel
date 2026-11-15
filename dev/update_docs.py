@@ -139,6 +139,14 @@ EXAMPLES = {
         ["--test_arg=--pdb"],
         keep=r"error:|needs a terminal",
     ),
+    "retries_bazel": Example(
+        "//examples/retries:flaky_in_bazel_test",
+        keep=r"failed in",
+        list_dirs=["test_attempts"],
+    ),
+    "retries_pytest": Example(
+        "//examples/retries:rerun_in_pytest_test", keep=r"passed|rerun"
+    ),
     "keep_failed_tmp_path": Example(
         "//examples/keep_failed_tmp_path:keep_failed_tmp_path_test",
         keep=r"^FAILED|failed",
