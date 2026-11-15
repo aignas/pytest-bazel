@@ -132,6 +132,34 @@ def test_bazel_sharding_without_pytest_shard(pytester, tmp_path):
         assert (tmp_path / f"shard_{i}").exists()
 
 
+def test_empty_shard_passes(pytester):
+    num_tests = 2
+    pytester.makepyfile("def test_one(): pass\ndef test_two(): pass\n")
+
+    results = [
+        pytester.runpytest(
+            "-p",
+            "pytest_bazel.shard",
+            f"--bazel-shard-index={i}",
+            "--bazel-total-shards=4",
+        )
+        for i in range(4)
+    ]
+
+    assert [r.ret for r in results] == [pytest.ExitCode.OK] * 4
+    assert sum(r.parseoutcomes().get("passed", 0) for r in results) == num_tests
+
+
+def test_shards_of_a_target_without_tests_fail(pytester):
+    pytester.makepyfile("")
+
+    result = pytester.runpytest(
+        "-p", "pytest_bazel.shard", "--bazel-shard-index=1", "--bazel-total-shards=4"
+    )
+
+    assert result.ret == pytest.ExitCode.NO_TESTS_COLLECTED
+
+
 if __name__ == "__main__":
     from pytest_bazel import main
 

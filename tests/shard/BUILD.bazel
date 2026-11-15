@@ -13,3 +13,11 @@ py_test(
     shard_count = 3,
     deps = ["//pytest_bazel"],
 )
+
+# Some of the shards get no tests, they must pass.
+py_test(
+    name = "test_more_shards_than_tests",
+    srcs = ["test_more_shards_than_tests.py"],
+    shard_count = 4,
+    deps = ["//pytest_bazel"],
+)

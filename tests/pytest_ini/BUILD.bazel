@@ -1,0 +1,28 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "test_pytest_ini",
+    srcs = ["test_pytest_ini.py"],
+    data = ["pytest.ini"],
+    env = {"PYTEST_BAZEL_CONFIG_FROM_PACKAGE": "1"},
+    deps = ["//pytest_bazel"],
+)
+
+# Both flags together, the config must not break limiting the collection.
+py_test(
+    name = "test_pytest_ini_scoped",
+    srcs = ["test_pytest_ini.py"],
+    data = ["pytest.ini"],
+    env = {
+        "PYTEST_BAZEL_CONFIG_FROM_PACKAGE": "1",
+        "PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE": "1",
+    },
+    main = "test_pytest_ini.py",
+    deps = ["//pytest_bazel"],
+)
+
+py_test(
+    name = "test_pytest_ini_args",
+    srcs = ["test_pytest_ini_args.py"],
+    deps = ["//pytest_bazel"],
+)
