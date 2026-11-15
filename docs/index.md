@@ -26,12 +26,23 @@ Extra features implementing [test_encyclopedia] spec:
 - short circuit if not running under bazel (see `BAZEL_TEST` env var).
 
 Extras that have tests:
-- No passing of files as args is needed. Pytest discovery is limited to the
-  bazel package of the test target (via `-o testpaths=<package>`), so tests of
-  other packages that are in the runfiles via `deps` or `data` are not
-  collected. Passing paths as args overrides this.
+- No passing of files as args is needed. Pytest discovery is working as
+  expected. Set `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` to only collect
+  the tests in the bazel package of the test target, so that tests of other
+  packages that are in the runfiles via `deps` or `data` are not collected.
+  Passing paths as args overrides this.
 
 [test_encyclopedia]: https://bazel.build/reference/test-encyclopedia
+
+## Planned for 1.0
+
+Behaviour changes are added behind opt-in flags first. Their defaults will be
+flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
+`test --test_env=PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` in `.bazelrc`.
+
+| Env var | Default | Default in 1.0 | Description |
+| --- | --- | --- | --- |
+| `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. |
 
 ## Thanks
 

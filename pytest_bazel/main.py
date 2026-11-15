@@ -54,6 +54,15 @@ def _maybe_int(v: Optional[str]) -> Optional[int]:
     return int(v) if v is not None else None
 
 
+def _flag(env: MutableMapping[str, str], name: str) -> bool:
+    """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
+    value = env.get(name, "0")
+    if value not in ("0", "1"):
+        msg = f"{name} must be 0 or 1, got {value!r}"
+        raise ValueError(msg)
+    return value == "1"
+
+
 @dataclass
 class BazelEnv:
     """The initial conditions environment described in the bazel docs.
@@ -102,6 +111,14 @@ class BazelEnv:
                 return target[len(prefix) :].partition(":")[0] or None
 
         return None
+
+    @property
+    def scope_collection_to_package(self) -> bool:
+        """Return PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE")
 
     @property
     def test_tmpdir(self) -> Optional[Path]:
@@ -289,7 +306,7 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
     # `data`. Limit the collection to the bazel package of the target, pytest
     # only uses `testpaths` if no paths are passed as args.
     package = env.test_package
-    if package and Path(package).is_dir():
+    if env.scope_collection_to_package and package and Path(package).is_dir():
         pytest_args.extend(["-o", f"testpaths={package}"])
 
     random_seed = env.test_random_seed or env.test_run_number

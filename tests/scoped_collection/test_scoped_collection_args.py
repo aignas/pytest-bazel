@@ -5,10 +5,12 @@ from pytest_bazel.main import BazelEnv, _pytest_args
 pytest_plugins = ["pytester"]
 
 
-def _env(target=None):
+def _env(target=None, *, opt_in=True):
     env = {"BAZEL_TEST": "1"}
     if target:
         env["TEST_TARGET"] = target
+    if opt_in:
+        env["PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE"] = "1"
     return BazelEnv(env)
 
 
@@ -58,7 +60,7 @@ def test_testpaths_is_not_set(tmp_path, monkeypatch, target):
     assert _testpaths(_pytest_args(args=[], env=_env(target))) == []
 
 
-@pytest.fixture()
+@pytest.fixture
 def _two_packages(pytester):
     for pkg in ("a", "b"):
         (pytester.path / pkg).mkdir()
@@ -117,6 +119,29 @@ def test_collects_everything_without_target(pytester):
     rec = pytester.inline_run(*_pytest_args(args=[], env=_env()))
 
     assert _passed(rec) == ["a/test_a.py::test_ok", "b/test_b.py::test_ok"]
+
+
+@pytest.mark.usefixtures("_two_packages")
+@pytest.mark.parametrize("value", [None, "0"], ids=["unset", "0"])
+def test_off_by_default(pytester, value):
+    env = _env("//a:test", opt_in=False)
+    if value is not None:
+        env.env["PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE"] = value
+
+    args = _pytest_args(args=[], env=env)
+    rec = pytester.inline_run(*args)
+
+    assert _testpaths(args) == []
+    assert _passed(rec) == ["a/test_a.py::test_ok", "b/test_b.py::test_ok"]
+
+
+@pytest.mark.parametrize("value", ["true", "yes", "", "2"])
+def test_flag_must_be_0_or_1(value):
+    env = _env("//a:test", opt_in=False)
+    env.env["PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE"] = value
+
+    with pytest.raises(ValueError, match="must be 0 or 1"):
+        _pytest_args(args=[], env=env)
 
 
 if __name__ == "__main__":

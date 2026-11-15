@@ -11,6 +11,7 @@ py_library(
 # pulled in via `deps` from other packages.
 py_test(
     name = "test_scoped_collection",
+    env = {"PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE": "1"},
     main_module = "pytest_bazel",
     deps = [
         ":test_lib",
