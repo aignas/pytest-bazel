@@ -73,6 +73,13 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 [te-sharding]: https://bazel.build/reference/test-encyclopedia#test-sharding
 [fail-fast]: https://bazel.build/reference/command-line-reference#param-no-test-runner-fail-fast
 
+## Guides
+
+* [Debugging tests][docs-debugging]: `bazel test` gives the tests no terminal,
+  use `bazel run` instead.
+
+[docs-debugging]: https://pytest-bazel.readthedocs.io/latest/features/debugging.html
+
 ## Thanks
 
 Special thanks to [rules_python_pytest] and [rules_py] projects that had some
