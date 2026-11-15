@@ -1,0 +1,20 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "sharding_test",
+    srcs = ["test_sharding.py"],
+    main = "test_sharding.py",
+    shard_count = 3,
+    tags = ["manual"],
+    deps = ["//pytest_bazel"],
+)
+
+# More shards than tests, some shards get no tests.
+py_test(
+    name = "more_shards_than_tests_test",
+    srcs = ["test_sharding.py"],
+    main = "test_sharding.py",
+    shard_count = 8,
+    tags = ["manual"],
+    deps = ["//pytest_bazel"],
+)

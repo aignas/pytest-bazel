@@ -53,6 +53,7 @@ approaches.
 :hidden:
 self
 Usage <usage>
+Features <features/index>
 Changelog <changelog>
 Contributing <contributing>
 ```

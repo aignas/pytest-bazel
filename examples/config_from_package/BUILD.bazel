@@ -1,0 +1,17 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+[
+    py_test(
+        name = name,
+        srcs = ["test_config_from_package.py"],
+        data = ["pytest.ini"],
+        env = env,
+        main = "test_config_from_package.py",
+        tags = ["manual"],
+        deps = ["//pytest_bazel"],
+    )
+    for name, env in {
+        "default_test": {},
+        "config_from_package_test": {"PYTEST_BAZEL_CONFIG_FROM_PACKAGE": "1"},
+    }.items()
+]

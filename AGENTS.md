@@ -15,6 +15,10 @@ published to PyPI and is built and tested with Bazel.
   `READTHEDOCS=True` and the other `READTHEDOCS_*` vars to reproduce RTD
   failures.
 * After changing `pyproject.toml`, run `bazel run //:lock.update`.
+* `docs/features/*.md` show the output of the examples in `examples/`. After
+  changing a feature or its example, run `dev/update_docs.py`. CI runs
+  `dev/update_docs.py --check`. Document a new feature with an example and a
+  page in `docs/features/`.
 
 ## Code
 

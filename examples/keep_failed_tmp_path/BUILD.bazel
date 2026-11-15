@@ -1,0 +1,10 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "keep_failed_tmp_path_test",
+    srcs = ["test_keep_failed_tmp_path.py"],
+    main = "test_keep_failed_tmp_path.py",
+    env = {"PYTEST_BAZEL_KEEP_FAILED_TMP_PATH": "1"},
+    tags = ["manual"],
+    deps = ["//pytest_bazel"],
+)

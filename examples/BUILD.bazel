@@ -1,0 +1,2 @@
+# Examples for docs/features, which dev/update_docs.py runs. They are tagged
+# "manual" because some of them fail on purpose.
