@@ -130,6 +130,11 @@ class BazelEnv:
         return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
 
     @property
+    def test_target(self) -> Optional[str]:
+        """Return the TEST_TARGET value, e.g. `//foo:bar_test`, or None if unset."""
+        return self.env.get("TEST_TARGET") or None
+
+    @property
     def test_runner_fail_fast(self) -> bool:
         """Return the TESTBRIDGE_TEST_RUNNER_FAIL_FAST value as a boolean."""
         return self.env.get("TESTBRIDGE_TEST_RUNNER_FAIL_FAST") == "1"
@@ -191,6 +196,10 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
+        if env.test_target:
+            # Name the suite after the target so that merged reports are readable,
+            # users can still override it as their args come later.
+            pytest_args.extend(["-o", f"junit_suite_name={env.test_target}"])
 
     # Pass the TEST_TMPDIR to pytest to ensure that everything is in the sandbox. This is to ensure that things get
     # cleaned up correctly in case things are not cleaned up correctly.
