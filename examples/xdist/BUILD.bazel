@@ -1,0 +1,33 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "xdist_test",
+    srcs = ["test_xdist.py"],
+    # Start a worker for every CPU that bazel reserved for the test.
+    args = ["--numprocesses=auto"],
+    env = {"PYTEST_XDIST_AUTO_NUM_WORKERS": "2"},
+    main = "test_xdist.py",
+    tags = [
+        "cpu:2",
+        "manual",
+    ],
+    deps = [
+        "//pytest_bazel",
+        "@pypi//pytest_xdist",
+    ],
+)
+
+py_test(
+    name = "xdist_hangs_test",
+    srcs = ["test_xdist_hangs.py"],
+    args = ["--numprocesses=1"],
+    main = "test_xdist_hangs.py",
+    tags = [
+        "cpu:2",
+        "manual",
+    ],
+    deps = [
+        "//pytest_bazel",
+        "@pypi//pytest_xdist",
+    ],
+)

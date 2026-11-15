@@ -437,6 +437,35 @@ def _basetemp_args(env: BazelEnv) -> list[str]:
     return []
 
 
+def _workers_dir(env: BazelEnv) -> Optional[Path]:
+    """Return the directory for the stacks of the pytest-xdist workers or None."""
+    if not env.test_tmpdir or importlib.util.find_spec("xdist") is None:
+        return None
+    return env.test_tmpdir / "pytest_bazel_workers"
+
+
+def _plugin_args(env: BazelEnv) -> list[str]:
+    """Return the args that load the plugins of pytest_bazel."""
+    args = []
+    annotations_dir = env.test_undeclared_outputs_annotations_dir
+    if annotations_dir:
+        args.extend(
+            [
+                "-p",
+                "pytest_bazel.annotations",
+                f"--bazel-annotations-dir={annotations_dir}",
+            ]
+        )
+
+    workers_dir = _workers_dir(env)
+    if workers_dir:
+        args.extend(
+            ["-p", "pytest_bazel.workers", f"--bazel-workers-dir={workers_dir}"]
+        )
+
+    return args
+
+
 def _opt_in_args(env: BazelEnv) -> list[str]:
     """Return the args for the behaviour that is opt-in until 1.0."""
     args: list[str] = []
@@ -523,15 +552,7 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
         else:
             random.seed(random_seed)
 
-    annotations_dir = env.test_undeclared_outputs_annotations_dir
-    if annotations_dir:
-        pytest_args.extend(
-            [
-                "-p",
-                "pytest_bazel.annotations",
-                f"--bazel-annotations-dir={annotations_dir}",
-            ]
-        )
+    pytest_args.extend(_plugin_args(env))
 
     if env.test_shard_index is not None and env.test_total_shards is not None:
         # https://bazel.build/reference/test-encyclopedia#test-sharding
@@ -592,6 +613,8 @@ def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
     stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
 
     def handler(_signum, _frame):
+        # Report the KeyboardInterrupt where the tests were, not here.
+        __tracebackhide__ = True
         timeout = (
             f" after the timeout of {env.test_timeout}s" if env.test_timeout else ""
         )
@@ -601,6 +624,13 @@ def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
             flush=True,
         )
         faulthandler.dump_traceback(file=stderr, all_threads=True)
+        workers_dir = _workers_dir(env)
+        if workers_dir and workers_dir.is_dir():
+            # Not at the top: pytest loads the module as a plugin and warns
+            # that it cannot rewrite its asserts if it was imported before.
+            from pytest_bazel.workers import stop_workers  # noqa: PLC0415
+
+            stop_workers(workers_dir, stderr)
         raise KeyboardInterrupt
 
     previous = signal.signal(signal.SIGTERM, handler)

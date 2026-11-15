@@ -73,6 +73,19 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 [te-sharding]: https://bazel.build/reference/test-encyclopedia#test-sharding
 [fail-fast]: https://bazel.build/reference/command-line-reference#param-no-test-runner-fail-fast
 
+## pytest plugins
+
+| Plugin | `pytest_bazel` | Docs |
+| --- | --- | --- |
+| [pytest-randomly] | Seeded from `TEST_RANDOM_SEED` with `--runs_per_test`. | [Example][docs-runs-per-test] |
+| [pytest-shard] | Not needed, sharding is built in. | [Example][docs-sharding] |
+| [pytest-xdist] | Works with `tags = ["cpu:N"]`, prints the stacks of the workers on timeout. | [Example][docs-xdist] |
+
+[pytest-randomly]: https://pypi.org/project/pytest-randomly/
+[pytest-shard]: https://pypi.org/project/pytest-shard/
+[pytest-xdist]: https://pypi.org/project/pytest-xdist/
+[docs-xdist]: https://pytest-bazel.readthedocs.io/latest/features/xdist.html
+
 ## Guides
 
 * [Debugging tests][docs-debugging]: `bazel test` gives the tests no terminal,

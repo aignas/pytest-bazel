@@ -32,7 +32,7 @@ all = [
 # Kept for compatibility, sharding is now built-in.
 shard = []
 random = ["pytest-randomly"]
-tests = ["numpy", "pytest-rerunfailures"]
+tests = ["numpy", "pytest-rerunfailures", "pytest-xdist"]
 docs = [
     "docutils<0.19",
     "myst-parser",
