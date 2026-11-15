@@ -18,10 +18,6 @@ load("@rules_python//python:pytest_test.bzl", "pytest_test")
 pytest_test(
     name = "my_test",
     srcs = ["my_test.py"],
-    # Point these at your hub repo if it is not called `pypi`.
-    pytest = "@pypi//pytest",
-    pytest_bazel = "@pypi//pytest_bazel",
-    pytest_randomly = "@pypi//pytest_randomly",
 )
 ```
 
