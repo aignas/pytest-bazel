@@ -9,21 +9,21 @@ from pytest_bazel.main import BazelEnv, _set_tmpdir
 _TMP_VARS = ("TMPDIR", "TMP", "TEMP")
 
 
-def test_sets_tmpdir_vars_under_bazel_test():
-    env = BazelEnv({"BAZEL_TEST": "1", "TEST_TMPDIR": "/foo/_tmp/abc"})
+def test_sets_tmpdir_vars_under_bazel_test(tmp_path):
+    env = BazelEnv({"BAZEL_TEST": "1", "TEST_TMPDIR": str(tmp_path)})
 
     _set_tmpdir(env)
 
     for var in _TMP_VARS:
-        assert env.env[var] == "/foo/_tmp/abc", var
+        assert Path(env.env[var]).resolve() == tmp_path.resolve(), var
 
 
-def test_overrides_inherited_tmpdir():
-    env = BazelEnv({"BAZEL_TEST": "1", "TEST_TMPDIR": "/foo", "TMPDIR": "/tmp"})
+def test_overrides_inherited_tmpdir(tmp_path):
+    env = BazelEnv({"BAZEL_TEST": "1", "TEST_TMPDIR": str(tmp_path), "TMPDIR": "/x"})
 
     _set_tmpdir(env)
 
-    assert env.env["TMPDIR"] == "/foo"
+    assert Path(env.env["TMPDIR"]).resolve() == tmp_path.resolve()
 
 
 @pytest.mark.parametrize(
