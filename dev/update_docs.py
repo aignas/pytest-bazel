@@ -122,6 +122,13 @@ EXAMPLES = {
         "//examples/warnings:warnings_test",
         keep=r"warnings summary|::test_|Warning|warnings.warn",
     ),
+    # The workers report in a random order, so only show the summary.
+    "xdist": Example("//examples/xdist:xdist_test", keep=r"workers \[|passed"),
+    "xdist_timeout": Example(
+        "//examples/xdist:xdist_hangs_test",
+        ["--test_timeout=3"],
+        keep=r"SIGTERM|Stacks of the pytest-xdist|test_xdist_hangs.py.* in ",
+    ),
     "keep_failed_tmp_path": Example(
         "//examples/keep_failed_tmp_path:keep_failed_tmp_path_test",
         keep=r"^FAILED|failed",
