@@ -10,11 +10,11 @@ import re
 import subprocess
 import sys
 import warnings
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import pytest
 
-from pytest_bazel.main import _relative_warning_paths
+from pytest_bazel.main import _relative_to_runfiles, _relative_warning_paths
 
 _SAMPLE = "tests/report_paths/sample/failing.py"
 
@@ -39,6 +39,66 @@ def test_warning_paths_relative_to_runfiles_root(tmp_path):
     assert in_other_repo.startswith(str(Path("..", "other+", "mod.py")) + ":7:")
     assert outside.startswith("/usr/lib/python3/mod.py:7:")
     assert relative.startswith("pkg/mod.py:7:")
+
+
+@pytest.mark.parametrize(
+    ("start", "filename", "want"),
+    [
+        pytest.param(
+            PurePosixPath("/r/_main"), "/r/_main/pkg/mod.py", "pkg/mod.py", id="posix"
+        ),
+        pytest.param(
+            PurePosixPath("/r/_main"),
+            "/r/other+/mod.py",
+            "../other+/mod.py",
+            id="posix_other_repo",
+        ),
+        pytest.param(
+            PurePosixPath("/r/_main"),
+            "/usr/lib/mod.py",
+            "/usr/lib/mod.py",
+            id="posix_outside",
+        ),
+        pytest.param(
+            PureWindowsPath("C:/r/_main"),
+            r"C:\r\_main\pkg\mod.py",
+            r"pkg\mod.py",
+            id="windows",
+        ),
+        pytest.param(
+            PureWindowsPath("C:/r/_main"),
+            r"c:\R\_MAIN\pkg\mod.py",
+            r"pkg\mod.py",
+            id="windows_case",
+        ),
+        pytest.param(
+            PureWindowsPath("C:/r/_main"),
+            r"C:\r\other+\mod.py",
+            r"..\other+\mod.py",
+            id="windows_other_repo",
+        ),
+        pytest.param(
+            PureWindowsPath("C:/r/_main"),
+            r"D:\r\_main\mod.py",
+            r"D:\r\_main\mod.py",
+            id="windows_other_drive",
+        ),
+        pytest.param(
+            PureWindowsPath("C:/r/_main"),
+            r"\\server\share\mod.py",
+            r"\\server\share\mod.py",
+            id="windows_unc",
+        ),
+        pytest.param(
+            PurePosixPath("/r/_main"), "<string>", "<string>", id="not_a_file"
+        ),
+        pytest.param(
+            PurePosixPath("/r/_main"), "pkg/mod.py", "pkg/mod.py", id="relative"
+        ),
+    ],
+)
+def test_relative_to_runfiles(start, filename, want):
+    assert _relative_to_runfiles(filename, start) == want
 
 
 def test_formatwarning_is_restored(tmp_path):
