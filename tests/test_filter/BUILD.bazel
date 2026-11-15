@@ -1,0 +1,24 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+# Bazel sets TESTBRIDGE_TEST_ONLY from `--test_filter`.
+[
+    py_test(
+        name = "test_with_filter_" + name,
+        srcs = ["test_with_filter.py"],
+        data = ["conftest.py"],
+        env = {"TESTBRIDGE_TEST_ONLY": test_filter},
+        main = "test_with_filter.py",
+        deps = ["//pytest_bazel"],
+    )
+    for name, test_filter in {
+        "class_colons_method": "TestCase::test_selected",
+        "class_dot_method": "TestCase.test_selected",
+        "node_id": "tests/test_filter/test_with_filter.py::TestCase::test_selected",
+    }.items()
+]
+
+py_test(
+    name = "test_filter_args",
+    srcs = ["test_filter_args.py"],
+    deps = ["//pytest_bazel"],
+)

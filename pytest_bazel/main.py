@@ -14,7 +14,7 @@ import tempfile
 import warnings
 from collections.abc import MutableMapping
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Optional
 
 import pytest
@@ -89,6 +89,30 @@ def _find_package_config(package: str) -> Optional[Path]:
         directory = directory.parent
 
     return None
+
+
+def _keyword_expression(test_filter: str) -> str:
+    """Turn the value of `--test_filter` into a pytest `-k` expression.
+
+    `-k` matches each word against the names of a test and of its parents, so
+    split the filter into those names:
+    * `TestClass.test_fn`, `TestClass::test_fn` -> `TestClass and test_fn`
+    * `test_mod.test_fn` -> `test_mod and test_fn`
+    * `dir/test_mod.py::test_fn` -> `test_mod.py and test_fn`
+
+    A filter with spaces, e.g. `foo or bar`, is already a `-k` expression.
+    """
+    if not test_filter or " " in test_filter:
+        return test_filter
+
+    path, sep, rest = test_filter.partition("::")
+    if sep or "/" in path or path.endswith(".py"):
+        # A file or a pytest node id, the module name is the file name.
+        names = [PurePosixPath(path).name, *rest.split("::")]
+    else:
+        names = test_filter.split(".")
+
+    return " and ".join(name for name in names if name)
 
 
 def _flag(env: MutableMapping[str, str], name: str) -> bool:
@@ -190,17 +214,8 @@ class BazelEnv:
 
     @property
     def test_filter(self) -> str:
-        """Return the TESTBRIDGE_TEST_ONLY value after substituting `.` with `::`."""
-        test_filter = self.env.get("TESTBRIDGE_TEST_ONLY", "")
-        if not test_filter:
-            return ""
-
-        if not test_filter[0].isupper():
-            # --test_filter=test_module.test_fn or --test_filter=test_module/test_file.py
-            return test_filter
-
-        # TestClass.test_fn -> TestClass::test_fn
-        return test_filter.replace(".", "::")
+        """Return TESTBRIDGE_TEST_ONLY as a `-k` expression, see `_keyword_expression`."""
+        return _keyword_expression(self.env.get("TESTBRIDGE_TEST_ONLY", ""))
 
     @property
     def xml_output_file(self) -> Optional[Path]:
