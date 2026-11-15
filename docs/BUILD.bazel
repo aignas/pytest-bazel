@@ -64,3 +64,9 @@ sphinx_build_binary(
         "@pypi//typing_extensions",
     ],
 )
+
+filegroup(
+    name = "features",
+    srcs = glob(["features/*.md"]),
+    visibility = ["//tests:__subpackages__"],
+)

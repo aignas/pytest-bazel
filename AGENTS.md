@@ -69,7 +69,11 @@ is out of date.
   flaky, add a rule to `_SANITIZE` or `_DROP` instead of hiding the
   difference with `keep`.
 * Also update the tables at the bottom of `README.md` when adding, changing
-  or removing a feature or an opt-in flag.
+  or removing a feature or an opt-in flag. Each row links to its page on Read
+  the Docs in the Docs column.
+* `README.md` is also the PyPI description, so use absolute links: files of
+  the repository on GitHub, docs on `https://pytest-bazel.readthedocs.io/latest/`.
+  `//tests/readme:test_readme` checks this.
 
 ## Commits and PRs
 
