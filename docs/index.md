@@ -10,7 +10,8 @@ Features ported from [rules_python_pytest]:
 - Basic ignoring of external directories.
 - Support for pytest 8.0 and pytest 7.0 and handle running of tests when
   passing the filenames to the runner.
-- Test sharding support using [pytest-shard].
+- Test sharding support, which used to need [pytest-shard] and is now built
+  in.
 - Supporting filtering tests via `bazel test --test_filter <target>`.
 
 Features ported from [rules_py]:
