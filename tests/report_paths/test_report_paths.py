@@ -119,7 +119,13 @@ def test_formatwarning_is_restored(tmp_path):
     ("environ", "want_wrapped"),
     [
         pytest.param({"BAZEL_TEST": "1"}, True, id="bazel_test"),
-        pytest.param({}, False, id="bazel_run_or_without_bazel"),
+        # `bazel run` of a test target sets BAZEL_TEST too.
+        pytest.param(
+            {"BAZEL_TEST": "1", "BUILD_WORKSPACE_DIRECTORY": "/ws"},
+            False,
+            id="bazel_run",
+        ),
+        pytest.param({}, False, id="without_bazel"),
     ],
 )
 def test_only_under_bazel_test(environ, want_wrapped):
