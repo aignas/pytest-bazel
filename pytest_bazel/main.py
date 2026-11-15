@@ -55,6 +55,15 @@ def _maybe_int(v: Optional[str]) -> Optional[int]:
     return int(v) if v is not None else None
 
 
+def _flag(env: MutableMapping[str, str], name: str) -> bool:
+    """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
+    value = env.get(name, "0")
+    if value not in ("0", "1"):
+        msg = f"{name} must be 0 or 1, got {value!r}"
+        raise ValueError(msg)
+    return value == "1"
+
+
 @dataclass
 class BazelEnv:
     """The initial conditions environment described in the bazel docs.
@@ -93,6 +102,24 @@ class BazelEnv:
     def is_test(self) -> bool:
         """Return the BAZEL_TEST value as a boolean."""
         return "BAZEL_TEST" in self.env
+
+    @property
+    def test_package(self) -> Optional[str]:
+        """Return the bazel package of TEST_TARGET if it is in the main repository."""
+        target = self.env.get("TEST_TARGET", "")
+        for prefix in ("@@//", "@//", "//"):
+            if target.startswith(prefix):
+                return target[len(prefix) :].partition(":")[0] or None
+
+        return None
+
+    @property
+    def scope_collection_to_package(self) -> bool:
+        """Return PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE")
 
     @property
     def test_tmpdir(self) -> Optional[Path]:
@@ -287,6 +314,14 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     if env.test_tmpdir:
         tmp_dir = env.test_tmpdir / "pytest"
         pytest_args.append(f"--basetemp={tmp_dir}")
+
+    # Without args pytest collects everything under the runfiles root, which
+    # includes tests of other bazel packages that are pulled in via `deps` or
+    # `data`. Limit the collection to the bazel package of the target, pytest
+    # only uses `testpaths` if no paths are passed as args.
+    package = env.test_package
+    if env.scope_collection_to_package and package and Path(package).is_dir():
+        pytest_args.extend(["-o", f"testpaths={package}"])
 
     random_seed = env.test_random_seed or env.test_run_number
     if random_seed:
