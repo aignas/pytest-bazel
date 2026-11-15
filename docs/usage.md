@@ -7,6 +7,29 @@ pytest-bazel[all]
 
 And then you can use it as follows:
 
+## With `pytest_test` from `rules_python`
+
+Since `rules_python` 2.5.0, the `pytest_test` macro creates a `py_test`
+that runs its `srcs` through `pytest_bazel`, so no entrypoint is needed:
+
+```starlark
+load("@rules_python//python:pytest_test.bzl", "pytest_test")
+
+pytest_test(
+    name = "my_test",
+    srcs = ["my_test.py"],
+    # Point these at your hub repo if it is not called `pypi`.
+    pytest = "@pypi//pytest",
+    pytest_bazel = "@pypi//pytest_bazel",
+    pytest_randomly = "@pypi//pytest_randomly",
+)
+```
+
+See the [rules_python docs][pytest_test] for the other arguments, e.g.
+`python_versions` to run the tests with several Python versions.
+
+[pytest_test]: https://rules-python.readthedocs.io/en/latest/api/rules_python/python/pytest_test.html
+
 ## As a python entrypoint
 
 Using it as an alternative to `unittest.main()` in a `py_test` rule.

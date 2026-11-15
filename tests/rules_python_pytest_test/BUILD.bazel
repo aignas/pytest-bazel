@@ -1,0 +1,10 @@
+load("@rules_python//python:pytest_test.bzl", "pytest_test")
+
+# The example from docs/usage.md, using this repo's pytest_bazel.
+pytest_test(
+    name = "test_example",
+    srcs = ["test_example.py"],
+    pytest = "@pypi//pytest",
+    pytest_bazel = "//pytest_bazel",
+    pytest_randomly = "@pypi//pytest_randomly",
+)
