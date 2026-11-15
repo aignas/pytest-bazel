@@ -14,3 +14,28 @@ jobs:
       - name: Test
         run: |
           bazel test //...
+      - name: Build the release wheel
+        run: ./pkg/build.sh 0.0.0 dist
+
+  python-versions:
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.10 is the default and is tested by the `build` job.
+        python: ["3.9", "3.11", "3.12", "3.13", "3.14", "3.15"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test with Python ${{ matrix.python }}
+        env:
+          PYTHON: ${{ matrix.python }}
+        run: bazel test //... "--@rules_python//python/config_settings:python_version=$PYTHON"
+
+  prek:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run the hooks in .pre-commit-config.yaml
+        uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0

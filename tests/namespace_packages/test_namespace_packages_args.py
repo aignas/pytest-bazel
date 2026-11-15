@@ -1,6 +1,6 @@
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args
+from pytest_bazel.main import BazelEnv, _pytest_args, _pytest_version
 
 pytest_plugins = ["pytester"]
 
@@ -36,7 +36,7 @@ def test_not_enabled_without_version_tuple(monkeypatch):
     assert _ARG not in _args()
 
 
-@pytest.fixture()
+@pytest.fixture
 def _bazel_package(pytester, monkeypatch):
     """Create `mypkg/json/test_name.py` where only `json` has an `__init__.py`."""
     pkg = pytester.path / "mypkg" / "json"
@@ -53,7 +53,7 @@ def _bazel_package(pytester, monkeypatch):
 
 
 @pytest.mark.skipif(
-    pytest.version_tuple < (8, 1), reason="consider_namespace_packages needs pytest 8.1"
+    _pytest_version() < (8, 1), reason="consider_namespace_packages needs pytest 8.1"
 )
 @pytest.mark.usefixtures("_bazel_package")
 def test_module_named_after_bazel_package(pytester):
@@ -63,7 +63,7 @@ def test_module_named_after_bazel_package(pytester):
 
 
 @pytest.mark.skipif(
-    pytest.version_tuple < (8, 1), reason="consider_namespace_packages needs pytest 8.1"
+    _pytest_version() < (8, 1), reason="consider_namespace_packages needs pytest 8.1"
 )
 @pytest.mark.usefixtures("_bazel_package")
 def test_user_can_opt_out(pytester):

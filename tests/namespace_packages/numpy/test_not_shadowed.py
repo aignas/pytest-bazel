@@ -8,13 +8,13 @@ real `numpy` for the code under test.
 
 import sys
 
+import numpy as np
+
 
 def test_module_name_includes_the_bazel_package():
     assert __name__ == "tests.namespace_packages.numpy.test_not_shadowed"
 
 
 def test_third_party_package_is_not_shadowed():
-    import numpy as np
-
     assert np.__file__ != sys.modules[__name__.rpartition(".")[0]].__file__
     assert np.array([1, 2]).sum() == 3  # noqa: PLR2004

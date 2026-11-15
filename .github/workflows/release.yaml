@@ -1,31 +1,72 @@
 ---
 name: Release
 
+# Follows https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
+# and the way rules_python builds its `bazel_runfiles` wheel: the version comes
+# from the tag via `--stamp --embed_label`, so it cannot get out of sync.
+
 on:
   push:
     tags:
       - "*.*.*"
 
+permissions:
+  contents: read
+
 jobs:
-  release:
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build the wheel
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: ./pkg/build.sh "$VERSION" dist
+
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: release
       url: https://pypi.org/p/pytest-bazel
     permissions:
+      # Mandatory for trusted publishing.
       id-token: write
-      contents: write
-
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Prepare dist folder
-        run: |
-          bazel run //pkg:prepare
+      - name: Download the distribution packages
+        uses: actions/download-artifact@v8
+        with:
+          name: python-package-distributions
+          path: dist/
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: Create the GitHub release
+    needs: publish-to-pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the distribution packages
+        uses: actions/download-artifact@v8
+        with:
+          name: python-package-distributions
+          path: dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2
