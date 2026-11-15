@@ -17,3 +17,13 @@ approaches.
 [rules_python_pytest]: https://github.com/caseyduquettesc/rules_python_pytest 
 [rules_py]: https://github.com/aspect-build/rules_py/blob/main/py/private/pytest.py.tmpl
 [unify]: https://xkcd.com/927/
+
+## Planned for 1.0
+
+Behaviour changes are added behind opt-in flags first. Their defaults will be
+flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
+`test --test_env=PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` in `.bazelrc`.
+
+| Env var | Default | Default in 1.0 | Description |
+| --- | --- | --- | --- |
+| `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. |

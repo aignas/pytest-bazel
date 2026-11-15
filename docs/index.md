@@ -28,10 +28,14 @@ Extra features implementing [test_encyclopedia] spec:
 
 Extras that have tests:
 - No passing of files as args is needed. Pytest discovery is working as
-  expected. Note that this may not scale well with extremely large sandboxes.
-  Please leave feedback in the repo.
+  expected. Set `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` to only collect
+  the tests in the bazel package of the test target, so that tests of other
+  packages that are in the runfiles via `deps` or `data` are not collected.
+  Passing paths as args overrides this. This will be the default in 1.0,
+  see [Planned for 1.0][planned-1.0].
 
 [test_encyclopedia]: https://bazel.build/reference/test-encyclopedia
+[planned-1.0]: https://github.com/aignas/pytest-bazel#planned-for-10
 
 ## Thanks
 
