@@ -2,15 +2,16 @@
 
 set -eou pipefail
 
-declare -a extra_env
-while IFS='=' read -r -d '' name value; do
-  if [[ "$name" == READTHEDOCS* ]]; then
-    extra_env+=("--@sphinxdocs//sphinxdocs:extra_env=$name=$value")
-  fi
-done < <(env -0)
-
-# In order to get the build number, we extract it from the host name
-extra_env+=("--@sphinxdocs//sphinxdocs:extra_env=HOSTNAME=$HOSTNAME")
+# Only forward the env vars that docs/conf.py reads, so that volatile
+# per-container vars (e.g. HOSTNAME) do not bust the action cache.
+declare -a extra_env=()
+for name in \
+  READTHEDOCS \
+  READTHEDOCS_GIT_COMMIT_HASH \
+  READTHEDOCS_GIT_IDENTIFIER \
+  READTHEDOCS_VERSION; do
+  extra_env+=("--@sphinxdocs//sphinxdocs:extra_env=$name=${!name:-}")
+done
 
 set -x
 bazel run \

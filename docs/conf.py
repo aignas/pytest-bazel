@@ -36,24 +36,6 @@ if os.environ.get("READTHEDOCS") == "True":
     # to the original conf.py template comments
     extensions.insert(0, "readthedocs_ext.readthedocs")
 
-    if os.environ.get("READTHEDOCS_VERSION_TYPE") == "external":
-        # Insert after the main extension
-        extensions.insert(1, "readthedocs_ext.external_version_warning")
-        readthedocs_vcs_url = "http://github.com/aignas/pytest-bazel/pull/{}".format(
-            os.environ.get("READTHEDOCS_VERSION", "")
-        )
-        # The build id isn't directly available, but it appears to be encoded
-        # into the host name, so we can parse it from that. The format appears
-        # to be `build-X-project-Y-Z`, where:
-        # * X is an integer build id
-        # * Y is an integer project id
-        # * Z is the project name
-        _build_id = os.environ.get("HOSTNAME", "build-0-project-0-pytest-bazel")
-        _build_id = _build_id.split("-")[1]
-        readthedocs_build_url = (
-            f"https://readthedocs.org/projects/pytest-bazel/builds/{_build_id}"
-        )
-
 exclude_patterns = ["_includes/*"]
 templates_path = ["_templates"]
 primary_domain = None  # The default is 'py', which we don't make much use of
@@ -105,7 +87,7 @@ html_context = {
     "READTHEDOCS": False,
     "PRODUCTION_DOMAIN": "readthedocs.org",
     # This is the path to a page's source (after the github user/repo/commit)
-    "conf_py_path": "/docs/sphinx/",
+    "conf_py_path": "/docs/",
     "github_user": "aignas",
     "github_repo": "pytest-bazel",
     # The git version that was checked out, e.g. the tag or branch name
@@ -115,8 +97,7 @@ html_context = {
     # is useful for local development.
     "display_github": os.environ.get("READTHEDOCS") == "True",
     "commit": os.environ.get("READTHEDOCS_GIT_COMMIT_HASH", "unknown commit"),
-    # Used by readthedocs_ext.external_version_warning extension
-    # This is the PR number being built
+    # The version being built, e.g. the PR number
     "current_version": os.environ.get("READTHEDOCS_VERSION", ""),
 }
 
