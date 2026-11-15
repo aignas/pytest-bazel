@@ -26,9 +26,10 @@ Extra features implementing [test_encyclopedia] spec:
 - short circuit if not running under bazel (see `BAZEL_TEST` env var).
 
 Extras that have tests:
-- No passing of files as args is needed. Pytest discovery is working as
-  expected. Note that this may not scale well with extremely large sandboxes.
-  Please leave feedback in the repo.
+- No passing of files as args is needed. Pytest discovery is limited to the
+  bazel package of the test target (via `-o testpaths=<package>`), so tests of
+  other packages that are in the runfiles via `deps` or `data` are not
+  collected. Passing paths as args overrides this.
 
 [test_encyclopedia]: https://bazel.build/reference/test-encyclopedia
 

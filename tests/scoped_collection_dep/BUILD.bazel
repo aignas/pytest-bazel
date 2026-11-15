@@ -1,0 +1,10 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+
+# A testonly library that happens to contain tests, e.g. shared test helpers
+# living next to their own tests.
+py_library(
+    name = "test_dep",
+    testonly = True,
+    srcs = ["test_dep.py"],
+    visibility = ["//tests/scoped_collection:__pkg__"],
+)

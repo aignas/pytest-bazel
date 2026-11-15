@@ -1,0 +1,26 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_library(
+    name = "test_lib",
+    testonly = True,
+    srcs = ["test_scoped.py"],
+)
+
+# Only the tests of this bazel package should be collected, not the ones
+# pulled in via `deps` from other packages.
+py_test(
+    name = "test_scoped_collection",
+    main_module = "pytest_bazel",
+    deps = [
+        ":test_lib",
+        "//pytest_bazel",
+        "//tests/scoped_collection_dep:test_dep",
+    ],
+)
+
+py_test(
+    name = "test_scoped_collection_args",
+    srcs = ["test_scoped_collection_args.py"],
+    deps = ["//pytest_bazel"],
+)

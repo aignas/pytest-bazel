@@ -96,6 +96,16 @@ class BazelEnv:
         return "BAZEL_TEST" in self.env
 
     @property
+    def test_package(self) -> Optional[str]:
+        """Return the bazel package of TEST_TARGET if it is in the main repository."""
+        target = self.env.get("TEST_TARGET", "")
+        for prefix in ("@@//", "@//", "//"):
+            if target.startswith(prefix):
+                return target[len(prefix) :].partition(":")[0] or None
+
+        return None
+
+    @property
     def test_tmpdir(self) -> Optional[Path]:
         """Return the TEST_TMPDIR value or None if unset."""
         return _maybe_path(self.env.get("TEST_TMPDIR"))
@@ -128,6 +138,11 @@ class BazelEnv:
     def xml_output_file(self) -> Optional[Path]:
         """Return the XML_OUTPUT_FILE value or None if unset."""
         return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
+
+    @property
+    def test_target(self) -> Optional[str]:
+        """Return the TEST_TARGET value, e.g. `//foo:bar_test`, or None if unset."""
+        return self.env.get("TEST_TARGET") or None
 
     @property
     def test_runner_fail_fast(self) -> bool:
@@ -197,6 +212,14 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
     if env.test_tmpdir:
         tmp_dir = env.test_tmpdir / "pytest"
         pytest_args.append(f"--basetemp={tmp_dir}")
+
+    # Without args pytest collects everything under the runfiles root, which
+    # includes tests of other bazel packages that are pulled in via `deps` or
+    # `data`. Limit the collection to the bazel package of the target, pytest
+    # only uses `testpaths` if no paths are passed as args.
+    package = env.test_package
+    if package and Path(package).is_dir():
+        pytest_args.extend(["-o", f"testpaths={package}"])
 
     random_seed = env.test_random_seed or env.test_run_number
     if random_seed:
