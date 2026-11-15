@@ -1,0 +1,12 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "runs_per_test_test",
+    srcs = ["test_runs_per_test.py"],
+    main = "test_runs_per_test.py",
+    tags = ["manual"],
+    deps = [
+        "//pytest_bazel",
+        "@pypi//pytest_randomly",
+    ],
+)

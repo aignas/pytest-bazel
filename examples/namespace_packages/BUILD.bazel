@@ -1,0 +1,26 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_library(
+    name = "numpy",
+    testonly = True,
+    srcs = glob(["numpy/*.py"]),
+)
+
+[
+    py_test(
+        name = name,
+        args = ["-s"],
+        env = env,
+        main_module = "pytest_bazel",
+        tags = ["manual"],
+        deps = [
+            ":numpy",
+            "//pytest_bazel",
+        ],
+    )
+    for name, env in {
+        "default_test": {},
+        "namespace_packages_test": {"PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES": "1"},
+    }.items()
+]

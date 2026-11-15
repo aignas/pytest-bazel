@@ -1,0 +1,11 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "infrastructure_failure_test",
+    srcs = ["test_infrastructure_failure.py"],
+    # A typo in the args.
+    args = ["--verbos"],
+    main = "test_infrastructure_failure.py",
+    tags = ["manual"],
+    deps = ["//pytest_bazel"],
+)

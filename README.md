@@ -31,6 +31,10 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | `TEST_WARNINGS_OUTPUT_FILE` | Python warnings are written to it. | [Initial conditions][te-env] |
 | `XML_OUTPUT_FILE` | Passes `--junitxml`. | [Initial conditions][te-env] |
 
+See [the features in the docs][features] for each of them in action.
+
+[features]: https://pytest-bazel.readthedocs.io/en/latest/features/index.html
+
 ### Not supported
 
 These parts of the test encyclopedia are out of scope for `pytest_bazel`:

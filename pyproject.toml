@@ -77,6 +77,8 @@ fixable = ["ALL"]
 "__init__.py" = ["E402"]
 "**/{tests}/*" = ["E402", "D"]
 "**/*_test.py" = ["D"]
+# Examples for the docs, kept short and some fail on purpose.
+"examples/**" = ["D", "PLR0133", "PLR2004"]
 
 [tool.pyrefly]
 project-includes = ["pytest_bazel", "pkg", "tests"]
