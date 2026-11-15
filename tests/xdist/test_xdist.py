@@ -28,14 +28,90 @@ def test_n(n):
     (Path(os.environ["WORKERS_LOG"]) / f"{{worker}}-{{n}}").touch()
 """
 
-_HANGING = """
-import time
+# Each hanging worker touches a `started-<pid>` file before it hangs.
+_STARTED = "Path(f'started-{os.getpid()}').touch()"
+
+# name: (test file, workers, the stacks that must be printed)
+_TIMEOUTS = {
+    "one_worker": (
+        f"""
+import os, time
 from pathlib import Path
 
 def test_hangs():
-    Path("started").touch()
+    {_STARTED}
     time.sleep(60)
-"""
+""",
+        1,
+        ["worker gw0:", "in test_hangs"],
+    ),
+    "both_workers": (
+        f"""
+import os, time
+from pathlib import Path
+
+def test_hangs_1():
+    {_STARTED}
+    time.sleep(60)
+
+def test_hangs_2():
+    {_STARTED}
+    time.sleep(60)
+""",
+        2,
+        ["worker gw0:", "worker gw1:", "in test_hangs_1", "in test_hangs_2"],
+    ),
+    "fixture": (
+        f"""
+import os, time
+from pathlib import Path
+import pytest
+
+@pytest.fixture
+def slow_database():
+    {_STARTED}
+    time.sleep(60)
+
+def test_uses_database(slow_database):
+    pass
+""",
+        1,
+        ["worker gw0:", "in slow_database"],
+    ),
+    "collection": (
+        f"""
+import os, time
+from pathlib import Path
+
+{_STARTED}
+time.sleep(60)
+
+def test_never_runs():
+    pass
+""",
+        2,
+        ["worker gw0:", "worker gw1:", "in <module>"],
+    ),
+    # The worker does not stop on SIGTERM, so the main process asks it for its
+    # stacks with SIGUSR1 and kills it, as bazel would only SIGKILL it later.
+    "own_sigterm_handler": (
+        f"""
+import os, signal, time
+from pathlib import Path
+
+def test_ignores_sigterm():
+    signal.signal(signal.SIGTERM, lambda *_: None)
+    {_STARTED}
+    time.sleep(60)
+""",
+        1,
+        ["worker gw0:", "in test_ignores_sigterm"],
+    ),
+}
+
+# Bazel sends SIGKILL 15 seconds after the SIGTERM by default, see
+# --local_termination_grace_seconds. Stop well before, it takes ~2s.
+_MAX_STOP_SECONDS = 5
 
 
 def _env(tmp_path, **extra):
@@ -159,12 +235,20 @@ def test_auto_uses_the_cpu_count(tmp_path):
     assert "2 workers" in output, output
 
 
-@pytest.mark.parametrize("process_group", [True, False], ids=["group", "main_only"])
-def test_timeout_prints_worker_stacks(tmp_path, process_group):
-    """Bazel usually sends SIGTERM to the process group, but not always."""
-    (tmp_path / "test_hang.py").write_text(_HANGING)
+@pytest.mark.parametrize(
+    ("scenario", "process_group"),
+    [
+        *((name, True) for name in _TIMEOUTS),
+        # Bazel usually signals the process group, but not always.
+        ("one_worker", False),
+    ],
+    ids=lambda v: v if isinstance(v, str) else ("group" if v else "main_only"),
+)
+def test_timeout(tmp_path, scenario, process_group):
+    source, workers, want = _TIMEOUTS[scenario]
+    (tmp_path / "test_hang.py").write_text(source)
     proc = subprocess.Popen(
-        _cmd("-n", "1", "test_hang.py"),
+        _cmd("-n", str(workers), "test_hang.py"),
         cwd=tmp_path,
         env=_env(tmp_path, TEST_TIMEOUT="60"),
         stdout=subprocess.PIPE,
@@ -173,18 +257,23 @@ def test_timeout_prints_worker_stacks(tmp_path, process_group):
         start_new_session=True,
     )
     deadline = time.monotonic() + 30
-    while not (tmp_path / "started").exists():
-        assert time.monotonic() < deadline, "the test did not start"
+    while len(list(tmp_path.glob("started-*"))) < workers:
+        assert time.monotonic() < deadline, "the workers did not start"
         time.sleep(0.1)
 
     if process_group:
         os.killpg(proc.pid, signal.SIGTERM)
     else:
         proc.send_signal(signal.SIGTERM)
+    terminated = time.monotonic()
     stdout, stderr = proc.communicate(timeout=30)
+    stopped_after = time.monotonic() - terminated
 
-    assert "Stacks of the pytest-xdist worker gw0:" in stderr, stdout + stderr
-    assert "in test_hangs" in stderr, stderr
+    for line in want:
+        assert line in stderr, stdout + stderr
+    # pytest still writes its reports, well before bazel kills the test.
+    assert (tmp_path / "test.xml").exists(), stdout + stderr
+    assert stopped_after < _MAX_STOP_SECONDS, stopped_after
 
 
 if __name__ == "__main__":

@@ -94,23 +94,33 @@ def _wait_for(paths: list[Path], timeout: float) -> None:
         time.sleep(0.05)
 
 
-def dump_worker_stacks(directory: Path, out: IO[str]) -> None:
-    """Print the stacks of the workers that registered in `directory`."""
+def _pid(path: Path) -> int:
+    pid, _, _ = path.stem.partition("-")
+    return int(pid)
+
+
+def _signal(path: Path, signum: int) -> bool:
+    """Send `signum` to the worker of `path`, return False if it is gone."""
+    try:
+        os.kill(_pid(path), signum)
+    except (OSError, ValueError):
+        # The worker is gone, e.g. pytest-xdist restarted it.
+        return False
+    return True
+
+
+def stop_workers(directory: Path, out: IO[str]) -> None:
+    """Print the stacks of the workers that registered in `directory`, then kill them.
+
+    Bazel kills the test with SIGKILL a few seconds after the SIGTERM, so do not
+    wait for workers that ignore the SIGTERM, e.g. because a test set its own
+    handler, and leave the time to pytest to write its reports.
+    """
     paths = sorted(directory.glob("*-gw*.txt"))
 
     # The workers dump their stacks themselves if they got the SIGTERM too.
     _wait_for(paths, _DUMP_TIMEOUT / 2)
-    asked = []
-    for path in paths:
-        if path.stat().st_size:
-            continue
-        pid, _, _ = path.stem.partition("-")
-        try:
-            os.kill(int(pid), signal.SIGUSR1)
-        except (OSError, ValueError):
-            # The worker is gone, e.g. pytest-xdist restarted it.
-            continue
-        asked.append(path)
+    asked = [p for p in paths if not p.stat().st_size and _signal(p, signal.SIGUSR1)]
     _wait_for(asked, _DUMP_TIMEOUT / 2)
     # Let the workers finish writing.
     time.sleep(0.1)
@@ -123,3 +133,6 @@ def dump_worker_stacks(directory: Path, out: IO[str]) -> None:
         print(f"\nStacks of the pytest-xdist worker {worker_id}:", file=out)
         out.write(text)
     out.flush()
+
+    for path in paths:
+        _signal(path, signal.SIGKILL)

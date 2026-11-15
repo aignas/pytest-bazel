@@ -561,6 +561,8 @@ def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
     stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
 
     def handler(_signum, _frame):
+        # Report the KeyboardInterrupt where the tests were, not here.
+        __tracebackhide__ = True
         timeout = (
             f" after the timeout of {env.test_timeout}s" if env.test_timeout else ""
         )
@@ -574,9 +576,9 @@ def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
         if workers_dir and workers_dir.is_dir():
             # Not at the top: pytest loads the module as a plugin and warns
             # that it cannot rewrite its asserts if it was imported before.
-            from pytest_bazel.workers import dump_worker_stacks  # noqa: PLC0415
+            from pytest_bazel.workers import stop_workers  # noqa: PLC0415
 
-            dump_worker_stacks(workers_dir, stderr)
+            stop_workers(workers_dir, stderr)
         raise KeyboardInterrupt
 
     previous = signal.signal(signal.SIGTERM, handler)
