@@ -208,6 +208,11 @@ class BazelEnv:
         return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
 
     @property
+    def test_premature_exit_file(self) -> Optional[Path]:
+        """Return the TEST_PREMATURE_EXIT_FILE value or None if unset."""
+        return _maybe_path(self.env.get("TEST_PREMATURE_EXIT_FILE"))
+
+    @property
     def test_warnings_output_file(self) -> Optional[Path]:
         """Return the TEST_WARNINGS_OUTPUT_FILE value or None if unset."""
         return _maybe_path(self.env.get("TEST_WARNINGS_OUTPUT_FILE"))
@@ -457,6 +462,13 @@ def main(
 
     print(f"Running pytest.main with: {pytest_args}", file=sys.stderr)
 
+    # Bazel fails the test if this file still exists when the test exits, so
+    # that e.g. an `os._exit(0)` in the middle of the run does not pass.
+    # It is removed only once pytest has returned.
+    premature_exit_file = env.test_premature_exit_file
+    if premature_exit_file:
+        premature_exit_file.touch()
+
     warnings_file = env.test_warnings_output_file
     if warnings_file:
         with warnings_file.open("w") as f:
@@ -468,6 +480,9 @@ def main(
                 warnings.showwarning = original_showwarning
     else:
         exit_code = pytest_main(pytest_args)
+
+    if premature_exit_file:
+        premature_exit_file.unlink(missing_ok=True)
 
     if env.test_filter and exit_code == pytest.ExitCode.NO_TESTS_COLLECTED:
         # If users are filtering out the tests, then exit with a zero if the error code is no-tests collected.
