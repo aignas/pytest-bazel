@@ -39,7 +39,7 @@ py_wheel(
         "Homepage": "https://github.com/aignas/pytest-bazel",
         "Repository": "https://github.com/aignas/pytest-bazel.git",
     },
-    python_requires = ">=3.8",
+    python_requires = ">=3.9",
     python_tag = "py3",
     requires = [
         "pytest",

@@ -5,12 +5,12 @@ sets `TEST_SHARD_INDEX` and `TEST_TOTAL_SHARDS`. See
 https://bazel.build/reference/test-encyclopedia#test-sharding
 """
 
-from typing import List, Sequence, Set
+from collections.abc import Sequence
 
 import pytest
 
 
-def select_shard(node_ids: Sequence[str], index: int, total: int) -> Set[str]:
+def select_shard(node_ids: Sequence[str], index: int, total: int) -> set[str]:
     """Return the node ids that the shard `index` out of `total` should run.
 
     Every shard sorts the node ids in the same way and takes every `total`-th
@@ -49,7 +49,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: List[pytest.Item]
+    config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Deselect the tests that other shards run."""
     selected = select_shard(

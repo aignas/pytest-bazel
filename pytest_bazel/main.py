@@ -12,9 +12,10 @@ import random
 import sys
 import tempfile
 import warnings
+from collections.abc import MutableMapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, MutableMapping, Optional, Tuple
+from typing import Optional
 
 import pytest
 
@@ -198,13 +199,13 @@ def _set_tmpdir(env: BazelEnv) -> None:
         tempfile.tempdir = None
 
 
-def _pytest_version() -> Tuple[int, ...]:
+def _pytest_version() -> tuple[int, ...]:
     """Return the `(major, minor)` version of pytest, `(0, 0)` before pytest 7.0."""
     # `pytest.version_tuple` is available since pytest 7.0.
     return tuple(getattr(pytest, "version_tuple", (0, 0))[:2])
 
 
-def _process_args(args: List[str], env: BazelEnv) -> List[str]:
+def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
     # Remove any __init__.py file to avoid that.
     # https://github.com/pytest-dev/pytest/issues/9313
@@ -232,7 +233,7 @@ def _process_args(args: List[str], env: BazelEnv) -> List[str]:
     return [*args, "-k", f"{env.test_filter}"]
 
 
-def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
+def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     """Construct pytest args.
 
     Args:
