@@ -23,15 +23,6 @@ _FLAGS_OUTPUTING_FILES = [
 ]
 
 
-def _supports_sharding() -> bool:
-    try:
-        import pytest_shard as _  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
-
-
 def _write_to_file_factory(out_file):
     """Return a function that used to replace the warnings.showwarning function.
 
@@ -206,12 +197,17 @@ def _pytest_args(*, args: List[str], env: BazelEnv) -> List[str]:
         else:
             random.seed(random_seed)
 
-    # Handle test sharding - requires pytest-shard plugin.
     if env.test_shard_index is not None and env.test_total_shards is not None:
         # https://bazel.build/reference/test-encyclopedia#test-sharding
-        pytest_args.append(f"--shard-id={env.test_shard_index}")
-        pytest_args.append(f"--num-shards={env.test_total_shards}")
-        if env.test_shard_status_file and _supports_sharding():
+        pytest_args.extend(
+            [
+                "-p",
+                "pytest_bazel.shard",
+                f"--bazel-shard-index={env.test_shard_index}",
+                f"--bazel-total-shards={env.test_total_shards}",
+            ]
+        )
+        if env.test_shard_status_file:
             env.test_shard_status_file.touch(exist_ok=True)
 
     if env.test_runner_fail_fast:

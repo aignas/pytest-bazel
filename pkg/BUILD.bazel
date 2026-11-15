@@ -49,7 +49,8 @@ py_wheel(
             "pytest[shard]",
         ],
         "random": ["pytest-randomly"],
-        "shard": ["pytest-shard"],
+        # Kept for compatibility, sharding is now built-in.
+        "shard": [],
     },
     summary = "A pytest runner with bazel support",
     version = VERSION,

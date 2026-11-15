@@ -1,24 +1,11 @@
-import pytest
 import warnings
 from pathlib import Path
 
-from pytest_bazel.main import _supports_sharding
+import pytest
+
 from pytest_bazel.main import BazelEnv
 from pytest_bazel.main import main as _main
 
-@pytest.fixture
-def mock_supports_sharding():
-    """Mock _supports_sharding to always return True."""
-
-    def mock_supports_sharding_fn():
-        return True
-
-    previous_supports_sharding = _supports_sharding.__code__
-    _supports_sharding.__code__ = mock_supports_sharding_fn.__code__
-
-    yield
-
-    _supports_sharding.__code__ = previous_supports_sharding
 
 def mock_pytest_main(args=None, collect_args=None, return_exit=0):
     if args and collect_args is not None:
@@ -68,12 +55,11 @@ def test_return_non_zero_exit():
 
 def test_no_sharding_by_default(tmpdir):
     shard_status_file = Path(tmpdir) / "mock_file"
+    got_args = []
     _main(
-        pytest_main=lambda args: mock_pytest_main(args),
+        pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
         env=BazelEnv(
             {
-                "TEST_SHARD_INDEX": "1",
-                "TEST_TOTAL_SHARDS": "2",
                 "TEST_SHARD_STATUS_FILE": str(shard_status_file),
                 "BAZEL_TEST": "1",
             }
@@ -83,6 +69,8 @@ def test_no_sharding_by_default(tmpdir):
     assert (
         not shard_status_file.exists()
     ), "Sharding should not be advertised as supported"
+    assert "pytest_bazel.shard" not in got_args
+
 
 @pytest.mark.parametrize(
     ("shard_index", "total_shards"),
@@ -92,12 +80,13 @@ def test_no_sharding_by_default(tmpdir):
         (2, 2),
     ],
 )
-def test_sharding_enabled(tmpdir, mock_supports_sharding, shard_index: int, total_shards: int):
-    """Ensure that sharding and working when supported."""
+def test_sharding_enabled(tmpdir, shard_index: int, total_shards: int):
+    """Ensure that sharding works without any extra plugins installed."""
 
     shard_status_file = Path(tmpdir) / f"mock_file_{shard_index}"
+    got_args = []
     _main(
-        pytest_main=lambda args: mock_pytest_main(args),
+        pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
         env=BazelEnv(
             {
                 "TEST_SHARD_INDEX": str(shard_index),
@@ -109,6 +98,15 @@ def test_sharding_enabled(tmpdir, mock_supports_sharding, shard_index: int, tota
     )
 
     assert shard_status_file.exists(), "Sharding should be advertised as supported"
+    want = [
+        "-p",
+        "pytest_bazel.shard",
+        f"--bazel-shard-index={shard_index}",
+        f"--bazel-total-shards={total_shards}",
+    ]
+    start = got_args.index("pytest_bazel.shard") - 1
+    assert got_args[start : start + len(want)] == want, got_args
+
 
 def test_pytest_showwarning():
     """Ensure that the original warning function is restored after pytest runs."""

@@ -29,7 +29,8 @@ all = [
     "pytest-bazel[random]",
     "pytest-bazel[shard]",
 ]
-shard = ["pytest-shard"]
+# Kept for compatibility, sharding is now built-in.
+shard = []
 random = ["pytest-randomly"]
 tests = ["numpy"]
 docs = [
