@@ -111,10 +111,13 @@ pytest_test(
 
 ## Namespace packages
 
-On pytest 8.1+, `pytest_bazel` passes `-o consider_namespace_packages=true`.
-Bazel packages usually have no `__init__.py`, so without it pytest would name
-`foo/numpy/test_bar.py` (with `foo/numpy/__init__.py`) as `numpy.test_bar`,
-and the first-party `foo/numpy` would then shadow the real `numpy` for the
-code under test. With it, the module is named `foo.numpy.test_bar`.
+With `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES=1`, `pytest_bazel` passes
+`-o consider_namespace_packages=true` on pytest 8.1+. This will be the default
+in 1.0.
 
-Opt out by passing `-o consider_namespace_packages=false` in `args`.
+Bazel packages usually have no `__init__.py`, so without it pytest names
+`foo/numpy/test_bar.py` (with `foo/numpy/__init__.py`) `numpy.test_bar`, and
+the first-party `foo/numpy` then shadows the real `numpy` for the code under
+test. With it, the module is named `foo.numpy.test_bar`.
+
+Passing `-o consider_namespace_packages=false` in `args` turns it off again.

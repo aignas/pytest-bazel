@@ -7,8 +7,24 @@ pytest_plugins = ["pytester"]
 _ARG = "consider_namespace_packages=true"
 
 
-def _args(args=()):
-    return _pytest_args(args=list(args), env=BazelEnv({"BAZEL_TEST": "1"}))
+_FLAG = "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES"
+
+
+def _args(args=(), *, flag="1"):
+    env = {"BAZEL_TEST": "1"}
+    if flag is not None:
+        env[_FLAG] = flag
+    return _pytest_args(args=list(args), env=BazelEnv(env))
+
+
+@pytest.mark.parametrize("flag", [None, "0"], ids=["unset", "0"])
+def test_off_by_default(flag):
+    assert _ARG not in _args(flag=flag)
+
+
+def test_flag_must_be_0_or_1():
+    with pytest.raises(ValueError, match="must be 0 or 1"):
+        _args(flag="true")
 
 
 @pytest.mark.parametrize(

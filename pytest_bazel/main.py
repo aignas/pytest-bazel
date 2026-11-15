@@ -114,6 +114,14 @@ class BazelEnv:
         return None
 
     @property
+    def consider_namespace_packages(self) -> bool:
+        """Return PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES")
+
+    @property
     def scope_collection_to_package(self) -> bool:
         """Return PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE as a boolean.
 
@@ -294,12 +302,11 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
         "no:cacheprovider",
     ]
 
-    if _supports_namespace_packages():
+    if env.consider_namespace_packages and _supports_namespace_packages():
         # Bazel packages usually have no `__init__.py`, so without this pytest
         # names test modules after the closest regular package only, e.g.
         # `foo/numpy/bar_test.py` would become `numpy.bar_test` and shadow the
-        # real `numpy`. Users can opt out by passing
-        # `-o consider_namespace_packages=false`.
+        # real `numpy`. It is ignored on pytest < 8.1, which has no such option.
         pytest_args.extend(["-o", "consider_namespace_packages=true"])
 
     if env.xml_output_file:

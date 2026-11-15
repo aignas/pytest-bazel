@@ -9,6 +9,7 @@ py_library(
 
 py_test(
     name = "test_namespace_packages",
+    env = {"PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES": "1"},
     main_module = "pytest_bazel",
     deps = [
         ":test_lib",
