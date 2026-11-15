@@ -1,3 +1,11 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  junit_output:
+    target: '//examples/junit_output:junit_output_test'
+    files: ['test.xml']
+---
+
 # The output of failed tests in the JUnit XML
 
 Opt-in with `PYTEST_BAZEL_JUNIT_OUTPUT=1`, this will be the default in 1.0.

@@ -1,3 +1,15 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  retries_bazel:
+    target: '//examples/retries:flaky_in_bazel_test'
+    keep: 'failed in'
+    list_dirs: ['test_attempts']
+  retries_pytest:
+    target: '//examples/retries:rerun_in_pytest_test'
+    keep: 'passed|rerun'
+---
+
 # Retrying flaky tests
 
 There are two ways to retry a flaky test, use one of them, not both.

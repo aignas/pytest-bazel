@@ -945,6 +945,7 @@ all = [
 docs = [
     { name = "docutils" },
     { name = "myst-parser" },
+    { name = "pyyaml" },
     { name = "readthedocs-sphinx-ext" },
     { name = "sphinx" },
     { name = "sphinx-autodoc2" },
@@ -976,6 +977,7 @@ requires-dist = [
     { name = "pytest-randomly", marker = "extra == 'random'" },
     { name = "pytest-rerunfailures", marker = "extra == 'tests'" },
     { name = "pytest-xdist", marker = "extra == 'tests'" },
+    { name = "pyyaml", marker = "extra == 'docs'" },
     { name = "readthedocs-sphinx-ext", marker = "extra == 'docs'" },
     { name = "sphinx", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc2", marker = "extra == 'docs'" },

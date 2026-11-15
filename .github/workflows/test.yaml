@@ -47,4 +47,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check that the docs are up to date
-        run: ./dev/update_docs.py --check
+        run: bazel run //dev/update_docs -- --check

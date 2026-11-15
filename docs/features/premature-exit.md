@@ -1,3 +1,10 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  premature_exit:
+    target: '//examples/premature_exit:premature_exit_test'
+---
+
 # Tests that exit early
 
 A test that ends the process with `os._exit(0)` would pass, because bazel

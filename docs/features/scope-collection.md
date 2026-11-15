@@ -1,3 +1,16 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  scope_collection_default:
+    target: '//examples/scope_collection:default_test'
+    flags: ['--test_arg=-v']
+    keep: 'PASSED|FAILED'
+  scope_collection:
+    target: '//examples/scope_collection:scoped_test'
+    flags: ['--test_arg=-v']
+    keep: 'PASSED|FAILED'
+---
+
 # Only collecting the tests of the target
 
 Opt-in with `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1`, this will be the

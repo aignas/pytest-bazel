@@ -1,3 +1,15 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  debugging_breakpoint:
+    target: '//examples/debugging:debugging_test'
+    keep: 'RuntimeError|failed'
+  debugging_pdb:
+    target: '//examples/debugging:debugging_test'
+    flags: ['--test_arg=--pdb']
+    keep: 'error:|needs a terminal'
+---
+
 # Debugging tests
 
 `bazel test` runs a test without a terminal, so a debugger cannot read what

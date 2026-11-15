@@ -1,3 +1,14 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  config_from_package_default:
+    target: '//examples/config_from_package:default_test'
+    keep: 'passed|PASSED'
+  config_from_package:
+    target: '//examples/config_from_package:config_from_package_test'
+    keep: 'passed|PASSED'
+---
+
 # Using the pytest config of the package
 
 Opt-in with `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, this will be the default in

@@ -1,3 +1,12 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  tmpdir:
+    target: '//examples/tmpdir:tmpdir_test'
+    flags: ['--test_arg=-s']
+    keep: ':\s'
+---
+
 # Temporary directories
 
 pytest's `tmp_path` and Python's `tempfile` use the private temporary

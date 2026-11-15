@@ -1,0 +1,14 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "test_update_docs",
+    srcs = ["test_update_docs.py"],
+    data = [
+        "//dev/update_docs:__main__.py",
+        "//docs:features",
+    ],
+    deps = [
+        "//dev/update_docs:lib",
+        "//pytest_bazel",
+    ],
+)

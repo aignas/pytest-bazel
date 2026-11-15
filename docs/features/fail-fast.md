@@ -1,3 +1,11 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  fail_fast:
+    target: '//examples/fail_fast:fail_fast_test'
+    flags: ['--test_runner_fail_fast']
+---
+
 # Stopping at the first failure with `--test_runner_fail_fast`
 
 `bazel test --test_runner_fail_fast` passes `--exitfirst` to pytest.

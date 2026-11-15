@@ -45,28 +45,33 @@ published to PyPI and is built and tested with Bazel.
 ## Docs
 
 `docs/features/*.md` show each feature in action with the output of the
-examples in `examples/`. `dev/update_docs.py` runs the examples and writes
-the blocks between `<!-- source: <file> -->` or `<!-- run: <example> -->` and
-`<!-- end -->`. CI runs `dev/update_docs.py --check`, which fails when a page
-is out of date.
+examples in `examples/`. `bazel run //dev/update_docs` runs the examples and
+writes the blocks between `<!-- source: <file> -->` or `<!-- run: <example> -->`
+and `<!-- end -->`. Each page defines the examples of its `run` blocks in the
+`pytest_bazel_examples` key of its frontmatter, which MyST ignores. CI runs
+`bazel run //dev/update_docs -- --check`, which fails when a page is out of
+date.
 
-* Run `dev/update_docs.py` and commit the pages after any change that can
-  change the output of `bazel test`: the code of `pytest_bazel`, an example,
-  or a bump of pytest or rules_python. Run it after staging other changes, and
-  stage the pages again.
-* After rebasing a PR or merging `main` into it, run `dev/update_docs.py`
-  again, as the changes on `main` can change the output.
+* Run `bazel run //dev/update_docs` and commit the pages after any change that
+  can change the output of `bazel test`: the code of `pytest_bazel`, an
+  example, or a bump of pytest or rules_python. Run it after staging other
+  changes, and stage the pages again.
+* After rebasing a PR or merging `main` into it, run
+  `bazel run //dev/update_docs` again, as the changes on `main` can change the
+  output.
 * Do not edit the generated blocks by hand, only the text around them.
 * Every feature in the tables of `README.md` needs a page:
   * An example package `examples/<feature>/`. Tag its targets `manual`, as
     examples may fail on purpose and `bazel test //...` must stay green.
   * A `docs/features/<feature>.md` page with a short explanation and the
     blocks. Opt-in features say that they will be the default in 1.0.
-  * An entry in `EXAMPLES` in `dev/update_docs.py`. Use `keep` to show only
-    the lines that matter, and leave out lines that change with unrelated
-    changes, e.g. line numbers in `pytest_bazel` or rules_python.
+  * The examples in the frontmatter of the page, with the keys of
+    `Example` in `dev/update_docs/lib.py`. Use `keep` to show only the lines
+    that matter, and leave out lines that change with unrelated changes, e.g.
+    line numbers in `pytest_bazel` or rules_python.
 * The output must be the same on every run and machine. If `--check` is
-  flaky, add a rule to `_SANITIZE` or `_DROP` instead of hiding the
+  flaky, add a rule to `_SANITIZE` or `_DROP` in `dev/update_docs/lib.py`
+  instead of hiding the
   difference with `keep`.
 * Also update the tables at the bottom of `README.md` when adding, changing
   or removing a feature or an opt-in flag. Each row links to its page on Read

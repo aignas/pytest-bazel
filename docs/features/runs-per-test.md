@@ -1,3 +1,13 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  runs_per_test:
+    target: '//examples/runs_per_test:runs_per_test_test'
+    flags: ['--runs_per_test=3', '--test_arg=-s']
+    files: ['run_*_of_3/test.log']
+    keep: 'randomly-seed|random number'
+---
+
 # Random seeds with `--runs_per_test`
 
 With `--runs_per_test`, bazel gives each run its own `TEST_RANDOM_SEED`.

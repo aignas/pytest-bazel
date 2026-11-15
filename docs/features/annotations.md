@@ -1,3 +1,11 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  annotations:
+    target: '//examples/annotations:annotations_test'
+    files: ['test.outputs_manifest/ANNOTATIONS']
+---
+
 # A summary of the results in the test annotations
 
 `pytest_bazel` writes the counts of the outcomes and the failed tests to the

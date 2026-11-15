@@ -1,3 +1,15 @@
+---
+# The examples that dev/update_docs runs for the `run` blocks below.
+pytest_bazel_examples:
+  test_filter:
+    target: '//examples/test_filter:test_filter_test'
+    flags: ['--test_filter=TestMath.test_add']
+  test_filter_commas:
+    target: '//examples/test_filter:test_filter_test'
+    flags: ['--test_filter=TestMath.test_add,test_other']
+    keep: 'collected|passed'
+---
+
 # Selecting tests with `--test_filter`
 
 `bazel test --test_filter=...` is passed to pytest as a `-k` expression.

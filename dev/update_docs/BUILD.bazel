@@ -1,0 +1,25 @@
+load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
+
+py_library(
+    name = "lib",
+    srcs = ["lib.py"],
+    # `from lib import ...`
+    imports = ["."],
+    visibility = ["//tests/update_docs:__pkg__"],
+    deps = ["@pypi//pyyaml"],
+)
+
+# bazel run //dev/update_docs [-- --check]
+py_binary(
+    name = "update_docs",
+    srcs = ["__main__.py"],
+    main = "__main__.py",
+    visibility = ["//tests/update_docs:__pkg__"],
+    deps = [":lib"],
+)
+
+exports_files(
+    ["__main__.py"],
+    visibility = ["//tests/update_docs:__pkg__"],
+)
