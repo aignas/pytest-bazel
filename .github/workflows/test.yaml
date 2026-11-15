@@ -16,3 +16,11 @@ jobs:
           bazel test //...
       - name: Build the release wheel
         run: ./pkg/build.sh 0.0.0 dist
+
+  prek:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run the hooks in .pre-commit-config.yaml
+        uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0

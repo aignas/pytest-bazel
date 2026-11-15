@@ -63,7 +63,6 @@ select = [
     "ICN",  # flake-import-conventions
     "PL",  # pylint
     "PT",  # flake8-pytest-style
-    "PT",  # flake8-pytest-style
     "PTH",  # flake-use-pathlib
     "RUF",  # ruff specific rules
     "SIM",  # flake8-simplify
@@ -77,6 +76,13 @@ fixable = ["ALL"]
 "__init__.py" = ["E402"]
 "**/{tests}/*" = ["E402", "D"]
 "**/*_test.py" = ["D"]
+
+[tool.pyrefly]
+project-includes = ["pytest_bazel", "pkg", "tests"]
+# A separate bazel workspace with its own dependencies.
+project-excludes = ["tests/integration"]
+# Keep in sync with `requires-python`.
+python-version = "3.8"
 
 [tool.ruff.format]
 quote-style = "double"

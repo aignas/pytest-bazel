@@ -7,7 +7,8 @@ published to PyPI and is built and tested with Bazel.
 ## Building and testing
 
 * `bazel test //...` runs all tests and builds the docs.
-* `pre-commit run --files <files>` runs ruff, ruff-format and `bazel mod tidy`.
+* `prek run --files <files>` runs ruff (lint and format), pyrefly (types)
+  and `bazel mod tidy`. CI runs `prek run --all-files`.
 * `docs/readthedocs_build.sh` is what Read the Docs runs. Use it with
   `READTHEDOCS=True` and the other `READTHEDOCS_*` vars to reproduce RTD
   failures.
@@ -16,7 +17,8 @@ published to PyPI and is built and tested with Bazel.
 ## Code
 
 * The minimum Python version is 3.8. Use `typing.Optional`/`List` rather
-  than `X | None`/`list[X]`.
+  than `X | None`/`list[X]`, and no stdlib APIs newer than 3.8. pyrefly
+  checks against 3.8.
 * Use `pathlib` over `os.path`.
 * Read Bazel env vars through `BazelEnv` in `pytest_bazel/main.py`, so that
   tests can pass a plain dict.
