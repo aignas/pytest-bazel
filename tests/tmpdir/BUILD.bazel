@@ -5,3 +5,9 @@ py_test(
     srcs = ["test_tmpdir.py"],
     deps = ["//pytest_bazel"],
 )
+
+py_test(
+    name = "test_short_tmpdir",
+    srcs = ["test_short_tmpdir.py"],
+    deps = ["//pytest_bazel"],
+)

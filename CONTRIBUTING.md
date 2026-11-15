@@ -2,6 +2,20 @@
 
 This project is very early in terms of maturity level and contributions and feedback are welcome.
 
+## Linting and type checking
+
+The hooks in `.pre-commit-config.yaml` run ruff for linting and formatting,
+[pyrefly] for type checking and `bazel mod tidy`. Run them with [prek]:
+
+```shell
+uv tool install prek
+prek install
+prek run --all-files
+```
+
+[prek]: https://prek.j178.dev
+[pyrefly]: https://pyrefly.org
+
 ## Updating dependencies
 
 Helper scripts for bumping pinned versions live in the `dev` directory. They

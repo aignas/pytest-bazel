@@ -32,18 +32,10 @@ jobs:
           PYTHON: ${{ matrix.python }}
         run: bazel test //... "--@rules_python//python/config_settings:python_version=$PYTHON"
 
-  # rules_python needs Python 3.9+ to run a py_test, so test 3.8 without Bazel.
-  python-3_8:
+  prek:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v10.3.3
-      - name: Test with Python 3.8
-        run: >-
-          ./dev/test_without_bazel.sh 3.8
-          tests/main/test_filter.py
-          tests/main/test_pytest_base.py
-          tests/junit/test_junit.py
-          tests/tmpdir/test_tmpdir.py
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run the hooks in .pre-commit-config.yaml
+        uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0

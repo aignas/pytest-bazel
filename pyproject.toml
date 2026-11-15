@@ -8,7 +8,7 @@ version = "0.0.1"
 dependencies = [
   "pytest",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
   {name = "Ignas Anikevicius", email = "pypi@anikevicius.lt"},
 ]
@@ -51,7 +51,7 @@ Repository = "https://github.com/aignas/pytest-bazel.git"
 Changelog = "https://github.com/aignas/pytest-bazel/blob/main/CHANGELOG.md"
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [
@@ -62,7 +62,6 @@ select = [
     "I",  # isort
     "ICN",  # flake-import-conventions
     "PL",  # pylint
-    "PT",  # flake8-pytest-style
     "PT",  # flake8-pytest-style
     "PTH",  # flake-use-pathlib
     "RUF",  # ruff specific rules
@@ -77,6 +76,13 @@ fixable = ["ALL"]
 "__init__.py" = ["E402"]
 "**/{tests}/*" = ["E402", "D"]
 "**/*_test.py" = ["D"]
+
+[tool.pyrefly]
+project-includes = ["pytest_bazel", "pkg", "tests"]
+# A separate bazel workspace with its own dependencies.
+project-excludes = ["tests/integration"]
+# Keep in sync with `requires-python`.
+python-version = "3.9"
 
 [tool.ruff.format]
 quote-style = "double"

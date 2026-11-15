@@ -9,10 +9,8 @@ published to PyPI and is built and tested with Bazel.
 * `bazel test //...` runs all tests and builds the docs.
 * CI also runs `bazel test //...` on Python 3.9 to 3.15 with
   `--@rules_python//python/config_settings:python_version=3.X`.
-* rules_python cannot run a `py_test` on Python 3.8, so CI runs the unit
-  tests that do not need Bazel with `dev/test_without_bazel.sh 3.8 <files>`.
-  Add new tests there if they can run without Bazel.
-* `pre-commit run --files <files>` runs ruff, ruff-format and `bazel mod tidy`.
+* `prek run --files <files>` runs ruff (lint and format), pyrefly (types)
+  and `bazel mod tidy`. CI runs `prek run --all-files`.
 * `docs/readthedocs_build.sh` is what Read the Docs runs. Use it with
   `READTHEDOCS=True` and the other `READTHEDOCS_*` vars to reproduce RTD
   failures.
@@ -20,8 +18,9 @@ published to PyPI and is built and tested with Bazel.
 
 ## Code
 
-* The minimum Python version is 3.8. Use `typing.Optional`/`List` rather
-  than `X | None`/`list[X]`.
+* Support the Python versions that rules_python supports, currently 3.9+.
+  Use `typing.Optional` rather than `X | None` and no stdlib APIs newer
+  than 3.9. pyrefly checks against 3.9.
 * Use `pathlib` over `os.path`.
 * Read Bazel env vars through `BazelEnv` in `pytest_bazel/main.py`, so that
   tests can pass a plain dict.
