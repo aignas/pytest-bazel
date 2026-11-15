@@ -51,6 +51,46 @@ def _maybe_int(v: Optional[str]) -> Optional[int]:
     return int(v) if v is not None else None
 
 
+# The files pytest reads its config from, in the order it looks for them in a
+# directory, and the sections they need to have to count.
+# https://docs.pytest.org/en/stable/reference/customize.html#configuration-file-formats
+_CONFIG_FILES = {
+    "pytest.ini": None,
+    ".pytest.ini": None,
+    "pyproject.toml": ("[tool.pytest.ini_options]", "[tool.pytest]"),
+    "tox.ini": ("[pytest]",),
+    "setup.cfg": ("[tool:pytest]",),
+}
+
+
+def _is_pytest_config(path: Path) -> bool:
+    sections = _CONFIG_FILES[path.name]
+    if sections is None:
+        return True
+
+    lines = {line.strip() for line in path.read_text().splitlines()}
+    return any(section in lines for section in sections)
+
+
+def _find_package_config(package: str) -> Optional[Path]:
+    """Return the pytest config file for a bazel package or None.
+
+    Look in `package` and its parents like pytest would if it was started in
+    `package`. Both are relative to the runfiles root, which is the current
+    directory. The runfiles root itself is skipped, pytest finds config files
+    there on its own.
+    """
+    directory = Path(package)
+    while directory != Path():
+        for name in _CONFIG_FILES:
+            candidate = directory / name
+            if candidate.is_file() and _is_pytest_config(candidate):
+                return candidate
+        directory = directory.parent
+
+    return None
+
+
 def _flag(env: MutableMapping[str, str], name: str) -> bool:
     """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
     value = env.get(name, "0")
@@ -108,6 +148,14 @@ class BazelEnv:
                 return target[len(prefix) :].partition(":")[0] or None
 
         return None
+
+    @property
+    def config_from_package(self) -> bool:
+        """Return PYTEST_BAZEL_CONFIG_FROM_PACKAGE as a boolean.
+
+        Off by default, it will be on by default in 1.0.
+        """
+        return _flag(self.env, "PYTEST_BAZEL_CONFIG_FROM_PACKAGE")
 
     @property
     def scope_collection_to_package(self) -> bool:
@@ -298,11 +346,22 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
         tmp_dir = env.test_tmpdir / "pytest"
         pytest_args.append(f"--basetemp={tmp_dir}")
 
+    package = env.test_package
+
+    # pytest looks for config files in the current directory, which is the
+    # runfiles root, so it misses e.g. a pytest.ini next to the tests. Pass it
+    # explicitly and keep the rootdir, so that test ids and `testpaths` stay
+    # relative to the runfiles root. A `-c` in the user args wins.
+    config = (
+        _find_package_config(package) if env.config_from_package and package else None
+    )
+    if config:
+        pytest_args.extend(["-c", str(config), "--rootdir=."])
+
     # Without args pytest collects everything under the runfiles root, which
     # includes tests of other bazel packages that are pulled in via `deps` or
     # `data`. Limit the collection to the bazel package of the target, pytest
     # only uses `testpaths` if no paths are passed as args.
-    package = env.test_package
     if env.scope_collection_to_package and package and Path(package).is_dir():
         pytest_args.extend(["-o", f"testpaths={package}"])
 
