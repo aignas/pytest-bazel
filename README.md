@@ -4,9 +4,9 @@
 
 [Documentation] [Changelog] [Contributing]
 
-[documentation]: http://pytest-bazel.readthedocs.io/
-[changelog]: ./CHANGELOG.md
-[contributing]: ./CONTRIBUTING.md
+[documentation]: https://pytest-bazel.readthedocs.io/
+[changelog]: https://github.com/aignas/pytest-bazel/blob/main/CHANGELOG.md
+[contributing]: https://github.com/aignas/pytest-bazel/blob/main/CONTRIBUTING.md
 
 ## Thanks
 
