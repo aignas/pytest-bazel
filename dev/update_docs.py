@@ -109,6 +109,15 @@ EXAMPLES = {
     ),
     "tmpdir": Example("//examples/tmpdir:tmpdir_test", ["--test_arg=-s"], keep=r":\s"),
     "premature_exit": Example("//examples/premature_exit:premature_exit_test"),
+    "infrastructure_failure": Example(
+        "//examples/infrastructure_failure:infrastructure_failure_test",
+        files=["test.log", "test.infrastructure_failure"],
+        keep=r"error:|infrastructure|could not run",
+    ),
+    "annotations": Example(
+        "//examples/annotations:annotations_test",
+        files=["test.outputs_manifest/ANNOTATIONS"],
+    ),
     "keep_failed_tmp_path": Example(
         "//examples/keep_failed_tmp_path:keep_failed_tmp_path_test",
         keep=r"^FAILED|failed",
