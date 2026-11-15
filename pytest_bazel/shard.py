@@ -9,6 +9,9 @@ from collections.abc import Sequence
 
 import pytest
 
+# Set when this shard got no tests, but other shards did.
+_EMPTY_SHARD = pytest.StashKey[bool]()
+
 
 def select_shard(node_ids: Sequence[str], index: int, total: int) -> set[str]:
     """Return the node ids that the shard `index` out of `total` should run.
@@ -69,3 +72,18 @@ def pytest_collection_modifyitems(
     if other_shards:
         config.hook.pytest_deselected(items=other_shards)
         items[:] = keep
+
+    config.stash[_EMPTY_SHARD] = bool(other_shards) and not keep
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    """Pass a shard that got no tests because there are more shards than tests.
+
+    pytest exits with NO_TESTS_COLLECTED otherwise, which fails the whole
+    bazel test. A target without any tests still fails in every shard.
+    """
+    if exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED and session.config.stash.get(
+        _EMPTY_SHARD, False
+    ):
+        session.exitstatus = pytest.ExitCode.OK
