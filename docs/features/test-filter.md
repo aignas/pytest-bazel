@@ -44,5 +44,17 @@ examples/test_filter/test_filter.py .                                    [100%]
 ```
 <!-- end -->
 
+Separate several tests with commas:
+
+<!-- run: test_filter_commas -->
+```console
+$ bazel test //examples/test_filter:test_filter_test --test_filter=TestMath.test_add,test_other
+//examples/test_filter:test_filter_test PASSED in <time>
+$ cat bazel-testlogs/examples/test_filter/test_filter_test/test.log
+collected 3 items / 1 deselected / 2 selected
+======================= 2 passed, 1 deselected in <time> ========================
+```
+<!-- end -->
+
 When a filter selects no tests in a target, the target passes, so that
 `bazel test //... --test_filter=...` works.

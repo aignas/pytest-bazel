@@ -14,6 +14,7 @@ load("@rules_python//python:py_test.bzl", "py_test")
         "class_colons_method": "TestCase::test_selected",
         "class_dot_method": "TestCase.test_selected",
         "node_id": "tests/test_filter/test_with_filter.py::TestCase::test_selected",
+        "comma_separated": "TestCase.test_selected,test_second",
     }.items()
 ]
 
