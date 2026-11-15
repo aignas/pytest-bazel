@@ -23,6 +23,12 @@ jobs:
         with:
           persist-credentials: false
 
+      # Fail before publishing anything if the release notes are missing.
+      - name: Check the changelog
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: ./pkg/check_changelog.py "$VERSION"
+
       - name: Build the wheel
         env:
           VERSION: ${{ github.ref_name }}

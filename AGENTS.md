@@ -112,3 +112,8 @@ User-visible changes need a `news/<PR number>.<category>.md` file, where
 `<category>` is one of `added`, `changed`, `fixed` or `removed`. Write one or
 two sentences about the behaviour, without implementation details or a
 leading bullet. They are collected into `CHANGELOG.md` on release.
+
+Before tagging a release, move the news entries into a `## [<version>]`
+section of `CHANGELOG.md`, add its `releases/tag` link and update the
+`[unreleased]` link. The release workflow runs `pkg/check_changelog.py
+<version>` and fails without publishing if any of that is missing.

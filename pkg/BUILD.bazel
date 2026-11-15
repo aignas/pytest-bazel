@@ -76,3 +76,13 @@ py_test(
     python_version = "3.12",
     deps = ["//pytest_bazel"],
 )
+
+py_test(
+    name = "check_changelog_test",
+    srcs = [
+        "check_changelog.py",
+        "check_changelog_test.py",
+    ],
+    main = "check_changelog_test.py",
+    deps = ["//pytest_bazel"],
+)
