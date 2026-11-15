@@ -9,6 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.4.0]
+
+### Added
+
+- Tests that exit before pytest is done, e.g. with `os._exit(0)`, now fail
+  instead of passing, using `TEST_PREMATURE_EXIT_FILE`.
+  [#51](https://github.com/aignas/pytest-bazel/pull/51).
+- When bazel times out a test, the stacks of all threads are printed and the
+  JUnit XML is still written, so it is clear where the tests hung.
+  [#53](https://github.com/aignas/pytest-bazel/pull/53).
+- Set `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=1` to keep the `tmp_path` of failed
+  tests in the bazel test outputs. This will be the default in 1.0.
+  [#55](https://github.com/aignas/pytest-bazel/pull/55).
+- pytest usage and internal errors are reported to bazel as infrastructure
+  failures with `TEST_INFRASTRUCTURE_FAILURE_FILE`.
+  [#56](https://github.com/aignas/pytest-bazel/pull/56).
+- A summary of the test results and the failed tests is written to the bazel
+  test annotations in
+  `bazel-testlogs/<target>/test.outputs_manifest/ANNOTATIONS`.
+  [#57](https://github.com/aignas/pytest-bazel/pull/57).
+- With pytest-xdist, the stacks of the workers are printed when bazel times out
+  a test, and `-n auto` warns unless `PYTEST_XDIST_AUTO_NUM_WORKERS` matches the
+  `cpu:N` tag of the test.
+  [#63](https://github.com/aignas/pytest-bazel/pull/63).
+- Set `PYTEST_BAZEL_JUNIT_OUTPUT=1` to add the stdout, stderr and logs of failed
+  tests to the JUnit XML, which CI shows. This will be the default in 1.0.
+  [#64](https://github.com/aignas/pytest-bazel/pull/64).
+- Under `bazel test`, `--pdb`, `--trace` and `breakpoint()` fail with a message
+  that says to debug with `bazel run` instead of quitting the debugger right
+  away. [#65](https://github.com/aignas/pytest-bazel/pull/65).
+- `--test_filter=test_a,TestClass.test_b` selects several tests.
+  [#67](https://github.com/aignas/pytest-bazel/pull/67).
+
+### Fixed
+
+- `--test_filter=TestClass.test_fn` and pytest node ids now select the test,
+  instead of selecting nothing and passing.
+  [#50](https://github.com/aignas/pytest-bazel/pull/50).
+- Under `bazel test`, warnings show paths relative to the workspace root instead
+  of absolute paths into the bazel sandbox, so editors can open them.
+  [#58](https://github.com/aignas/pytest-bazel/pull/58).
+- `bazel run` of a test target keeps the absolute paths in warnings, as
+  documented, instead of making them relative like `bazel test`.
+  [#66](https://github.com/aignas/pytest-bazel/pull/66).
+
 ## [0.3.0]
 
 ### Added
@@ -205,7 +250,8 @@ Nothing yet.
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.3.0...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.4.0
 [0.3.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.3.0
 [0.2.1]: https://github.com/aignas/pytest-bazel/releases/tag/0.2.1
 [0.2.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.2.0
