@@ -31,8 +31,9 @@ published to PyPI and is built and tested with Bazel.
   not import.
 * Do not change existing behaviour unless the change needs it. Put
   behaviour changes behind an opt-in `PYTEST_BAZEL_*` env var (`0` or `1`,
-  read with `_flag`) and add it to the "Planned for 1.0" table at the
-  bottom of `README.md`.
+  an `_OptIn()` attribute of `BazelEnv`) and add it to the "Planned for
+  1.0" table at the bottom of `README.md`. `//tests/readme:test_readme`
+  checks that the table lists every flag.
 
 ## Tests
 
