@@ -1,3 +1,4 @@
+import os
 import warnings
 from pathlib import Path
 
@@ -27,8 +28,8 @@ def test_pytest_default_args():
         "no:cacheprovider",
     ], f"unexpected args: {got_args}"
 
-    got_junitxml = next(arg for arg in got_args if arg.startswith("--junitxml"))
-    assert got_junitxml.endswith("test_pytest_base/test.xml")
+    # Not a fixed path, bazel adds e.g. `run_1_of_10/` with --runs_per_test.
+    assert f"--junitxml={os.environ['XML_OUTPUT_FILE']}" in got_args
     got_tmpdir = next(arg for arg in got_args if arg.startswith("--basetemp"))
     assert got_tmpdir.endswith("/pytest")
 
