@@ -14,10 +14,22 @@ pytest_bazel_examples:
 Opt-in with `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, this will be the default in
 1.0. pytest looks for its config file in the runfiles root only, so a
 `pytest.ini` next to the tests is not used. With the flag, the config file in
-the package of the target, or in its parents, is used. Test ids stay
-relative to the runfiles root, while `testpaths` are relative to the config
-file, as when pytest runs next to it. The `conftest.py` files above the config
-file, e.g. in the workspace root, are still loaded.
+the package of the target, or in its parents, is used. The `conftest.py` files
+above the config file, e.g. in the workspace root, are still loaded.
+
+pytest runs in the runfiles root, so the test ids and the paths in the options
+of the config file, e.g. `--ignore` or `--deselect` in `addopts`, are relative
+to it, as in the workspace root. Only `testpaths` and `pythonpath` are relative
+to the config file, as when pytest runs next to it:
+
+```ini
+# pkg/pytest.ini
+[pytest]
+# pkg/tests
+testpaths = tests
+# pkg/tests/slow, relative to the runfiles root
+addopts = --ignore=pkg/tests/slow
+```
 
 <!-- source: examples/config_from_package/pytest.ini -->
 ```{code-block} ini
