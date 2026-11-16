@@ -96,6 +96,26 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 [docs-debugging]: https://pytest-bazel.readthedocs.io/latest/features/debugging.html
 [docs-retries]: https://pytest-bazel.readthedocs.io/latest/features/retries.html
 
+## Performance
+
+What `pytest_bazel` adds to a test, measured with `bazel run //dev/benchmark`
+on the machine below. [`tests/performance`][perf-tests] checks what keeps it
+fast on every `bazel test //...`.
+
+<!-- benchmark -->
+| What | Time |
+| --- | --- |
+| Importing `pytest_bazel` on top of pytest | 2.4 ms |
+| A run of 200 tests with `pytest --junitxml` / with `pytest_bazel` | 430 ms / 440 ms |
+| `PYTEST_BAZEL_EXACT_TEST_FILTER=1` with a name, 20000 tests | 25.6 ms |
+| `PYTEST_BAZEL_EXACT_TEST_FILTER=1` with 4 filters, 20000 tests | 73.2 ms |
+| Splitting 20000 tests into shards | 5.7 ms |
+
+Medians on Python 3.10.22, pytest 9.1.1, Linux x86_64, 8 CPUs.
+<!-- end benchmark -->
+
+[perf-tests]: https://github.com/aignas/pytest-bazel/blob/main/tests/performance/test_performance.py
+
 ## Thanks
 
 Special thanks to [rules_python_pytest] and [rules_py] projects that had some

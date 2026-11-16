@@ -1,0 +1,22 @@
+load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
+
+py_library(
+    name = "lib",
+    srcs = ["lib.py"],
+    # `from lib import ...`
+    imports = ["."],
+    visibility = ["//tests/benchmark:__pkg__"],
+)
+
+# bazel run //dev/benchmark [-- --update]
+py_binary(
+    name = "benchmark",
+    srcs = ["__main__.py"],
+    main = "__main__.py",
+    deps = [
+        ":lib",
+        "//pytest_bazel",
+        "@pypi//pytest",
+    ],
+)
