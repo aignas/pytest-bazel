@@ -39,7 +39,8 @@ def pytest_configure(config: pytest.Config) -> None:
             msg = f"{name} needs a terminal. {_how()}"
             raise pytest.UsageError(msg)
 
-    if os.environ.get("PYTHONBREAKPOINT"):
+    # `python -E` and `-I` ignore PYTHONBREAKPOINT.
+    if os.environ.get("PYTHONBREAKPOINT") and not sys.flags.ignore_environment:
         # Like pytest, keep the debugger that the user chose, e.g. `0` to
         # ignore breakpoint() or a remote debugger that needs no terminal.
         return
