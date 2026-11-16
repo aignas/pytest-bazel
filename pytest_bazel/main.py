@@ -162,6 +162,33 @@ def _opt_in_args(env: BazelEnv) -> list[str]:
     return args
 
 
+def _random_seed(env: BazelEnv) -> int:
+    """Return the seed for the random order and data of the tests, 0 for none."""
+    return env.test_random_seed or env.test_run_number
+
+
+def _has_pytest_randomly() -> bool:
+    return importlib.util.find_spec("pytest_randomly") is not None
+
+
+def _prepare(env: BazelEnv) -> None:
+    """Set up the process for the args of `_pytest_args`, which has no side effects."""
+    _set_tmpdir(env)
+    if not env.is_test:
+        return
+
+    random_seed = _random_seed(env)
+    if random_seed and not _has_pytest_randomly():
+        # pytest-randomly seeds `random` itself, see `_pytest_args`.
+        random.seed(random_seed)
+
+    if env.test_shard_index is not None and env.test_total_shards is not None:
+        status_file = env.test_shard_status_file
+        if status_file:
+            # Tell bazel that the test supports sharding, see `_pytest_args`.
+            status_file.touch(exist_ok=True)
+
+
 def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     """Construct pytest args.
 
@@ -202,13 +229,9 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
 
     pytest_args.extend(_opt_in_args(env))
 
-    random_seed = env.test_random_seed or env.test_run_number
-    if random_seed:
-        if importlib.util.find_spec("pytest_randomly"):
-            # using pytest-randomly
-            pytest_args.append(f"--randomly-seed={random_seed}")
-        else:
-            random.seed(random_seed)
+    random_seed = _random_seed(env)
+    if random_seed and _has_pytest_randomly():
+        pytest_args.append(f"--randomly-seed={random_seed}")
 
     pytest_args.extend(_plugin_args(env))
 
@@ -222,8 +245,6 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
                 f"--bazel-total-shards={env.test_total_shards}",
             ]
         )
-        if env.test_shard_status_file:
-            env.test_shard_status_file.touch(exist_ok=True)
 
     if env.test_runner_fail_fast:
         pytest_args.append("--exitfirst")
@@ -265,7 +286,7 @@ def main(
 
     """
     env = env or BazelEnv(os.environ)
-    _set_tmpdir(env)
+    _prepare(env)
     pytest_args = _pytest_args(args=args or sys.argv[1:], env=env)
 
     print(f"Running pytest.main with: {pytest_args}", file=sys.stderr)

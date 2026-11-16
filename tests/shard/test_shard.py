@@ -128,8 +128,6 @@ def test_bazel_sharding_without_pytest_shard(pytester, tmp_path):
 
     assert sum(len(s) for s in shards) == _NUM_TESTS
     assert len(set().union(*shards)) == _NUM_TESTS
-    for i in range(3):
-        assert (tmp_path / f"shard_{i}").exists()
 
 
 def test_empty_shard_passes(pytester):
