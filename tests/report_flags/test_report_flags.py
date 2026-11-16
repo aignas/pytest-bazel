@@ -19,6 +19,17 @@ def test_relative_path_goes_to_outputs(flag):
     assert f"{flag}={_OUTPUTS / 'sub' / 'report'}" in _args(f"{flag}=sub/report")
 
 
+@pytest.mark.parametrize("flag", ["--html", "--json-report-file", "--report-log"])
+def test_relative_path_as_separate_arg_goes_to_outputs(flag):
+    assert _args(flag, "sub/report")[-2:] == [flag, str(_OUTPUTS / "sub" / "report")]
+
+
+def test_absolute_path_as_separate_arg_is_kept():
+    report = str(Path("/abs/report.html").absolute())
+
+    assert _args("--html", report)[-2:] == ["--html", report]
+
+
 def test_absolute_path_is_kept():
     report = str(Path("/abs/report.html").absolute())
 
