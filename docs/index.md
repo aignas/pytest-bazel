@@ -54,6 +54,7 @@ approaches.
 self
 Usage <usage>
 Features <features/index>
+Performance <performance>
 Changelog <changelog>
 Contributing <contributing>
 ```
