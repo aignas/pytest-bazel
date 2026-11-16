@@ -1,0 +1,7 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+py_test(
+    name = "test_hermetic_config",
+    srcs = ["test_hermetic_config.py"],
+    deps = ["//pytest_bazel"],
+)
