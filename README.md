@@ -118,6 +118,7 @@ pytest config file sets them.
 | --- | --- | --- | --- | --- |
 | `PYTEST_BAZEL_CONFIG_FROM_PACKAGE` | `0` | `1` | Use the pytest config file (e.g. `pytest.ini`) in the bazel package of the target or its parents. pytest only looks in the runfiles root. | [Example][docs-config-from-package] |
 | `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES` | `0` | `1` | Pass `-o consider_namespace_packages=true` on pytest 8.1+, so that test modules in packages without `__init__.py` do not shadow third-party packages. | [Example][docs-namespace-packages] |
+| `PYTEST_BAZEL_EXACT_TEST_FILTER` | `0` | `1` | Select the tests of `--test_filter` by their exact names rather than with `-k`, which matches substrings, e.g. `test_add` would also run `test_add_many`. | [Example][docs-test-filter] |
 | `PYTEST_BAZEL_JUNIT_OUTPUT` | `0` | `1` | Add the stdout, stderr and logs of failed tests to the JUnit XML, which CI shows. | [Example][docs-junit-output] |
 | `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH` | `0` | `1` | Keep the `tmp_path` of failed tests in `TEST_UNDECLARED_OUTPUTS_DIR`, i.e. in `bazel-testlogs/<target>/test.outputs`. Needs pytest 7.3+. | [Example][docs-keep-failed-tmp-path] |
 | `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` | `0` | `1` | Only collect tests from the bazel package of the target when no paths are passed. | [Example][docs-scope-collection] |

@@ -100,6 +100,7 @@ class BazelEnv:
     junit_output = _OptIn()
     keep_failed_tmp_path = _OptIn()
     scope_collection_to_package = _OptIn()
+    exact_test_filter = _OptIn()
 
     @property
     def is_test(self) -> bool:
@@ -123,6 +124,23 @@ class BazelEnv:
                 return target[len(prefix) :].partition(":")[0] or None
 
         return None
+
+    @property
+    def test_only(self) -> str:
+        """Return TESTBRIDGE_TEST_ONLY, the value of `--test_filter`, or ""."""
+        return self.env.get("TESTBRIDGE_TEST_ONLY", "")
+
+    @property
+    def uses_exact_test_filter(self) -> bool:
+        """Return True if `--test_filter` selects tests by exact names, not `-k`.
+
+        A filter with spaces is a `-k` expression either way.
+        """
+        return (
+            self.exact_test_filter
+            and bool(self.test_only)
+            and " " not in self.test_only
+        )
 
     @property
     def test_filter(self) -> str:

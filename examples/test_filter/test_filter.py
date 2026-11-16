@@ -2,6 +2,9 @@ class TestMath:
     def test_add(self):
         assert 1 + 1 == 2
 
+    def test_add_many(self):
+        assert 1 + 1 + 1 == 3
+
     def test_sub(self):
         assert 2 - 1 == 1
 
