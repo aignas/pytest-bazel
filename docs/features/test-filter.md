@@ -16,7 +16,11 @@ pytest_bazel_examples:
 `TestClass.test_fn`, `TestClass::test_fn` and pytest node ids such as
 `path/to/test_file.py::TestClass::test_fn` select a single test. A filter
 with spaces, e.g. `--test_filter="add or sub"`, is used as a `-k` expression
-as it is.
+as it is. A `-k` in the `args` of the target still applies, the filter is
+combined with it.
+
+A target where the filter selects no tests passes, so that
+`bazel test //... --test_filter=...` works, but says so in its log.
 
 <!-- source: examples/test_filter/test_filter.py -->
 ```{code-block} python

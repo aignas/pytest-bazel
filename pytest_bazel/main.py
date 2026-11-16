@@ -14,6 +14,7 @@ import pytest
 
 from pytest_bazel.config import _find_package_config
 from pytest_bazel.env import BazelEnv, _workers_dir
+from pytest_bazel.filters import _with_keyword_expression
 from pytest_bazel.sigterm import _interrupt_on_sigterm
 from pytest_bazel.tmpdir import _set_tmpdir
 from pytest_bazel.warning_paths import _relative_warning_paths, _warnings_to_file
@@ -72,7 +73,7 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     if not env.test_filter:
         return args
 
-    return [*args, "-k", f"{env.test_filter}"]
+    return _with_keyword_expression(args, env.test_filter)
 
 
 def _supports_namespace_packages() -> bool:
@@ -314,7 +315,12 @@ def main(
     _report_infrastructure_failure(env, exit_code)
 
     if env.test_filter and exit_code == pytest.ExitCode.NO_TESTS_COLLECTED:
-        # If users are filtering out the tests, then exit with a zero if the error code is no-tests collected.
+        # Pass, as `bazel test //... --test_filter=x` filters every target,
+        # but say so, as a typo in the filter would pass too.
+        print(
+            f"pytest_bazel: --test_filter selected no tests (-k {env.test_filter!r})",
+            file=sys.stderr,
+        )
         return 0
     elif exit_code != 0:
         sys.stdout.flush()
