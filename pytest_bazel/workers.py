@@ -107,10 +107,21 @@ def pytest_xdist_auto_num_workers(config: pytest.Config) -> None:
     )
 
 
+def _size(path: Path) -> Optional[int]:
+    """Return the size of the stack file `path`, None if the worker removed it.
+
+    Workers remove their file when they stop, see `pytest_unconfigure`.
+    """
+    try:
+        return path.stat().st_size
+    except FileNotFoundError:
+        return None
+
+
 def _wait_for(paths: list[Path], timeout: float) -> None:
-    """Wait until all `paths` have content, or `timeout` seconds pass."""
+    """Wait until all `paths` have content or are gone, or `timeout` seconds pass."""
     deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline and not all(p.stat().st_size for p in paths):
+    while time.monotonic() < deadline and 0 in (_size(p) for p in paths):
         time.sleep(0.05)
 
 
@@ -140,13 +151,16 @@ def stop_workers(directory: Path, out: IO[str]) -> None:
 
     # The workers dump their stacks themselves if they got the SIGTERM too.
     _wait_for(paths, _DUMP_TIMEOUT / 2)
-    asked = [p for p in paths if not p.stat().st_size and _signal(p, signal.SIGUSR1)]
+    asked = [p for p in paths if _size(p) == 0 and _signal(p, signal.SIGUSR1)]
     _wait_for(asked, _DUMP_TIMEOUT / 2)
     # Let the workers finish writing.
     time.sleep(0.1)
 
     for path in paths:
-        text = path.read_text()
+        try:
+            text = path.read_text()
+        except FileNotFoundError:
+            continue
         if not text:
             continue
         _, _, worker_id = path.stem.partition("-")
@@ -155,4 +169,6 @@ def stop_workers(directory: Path, out: IO[str]) -> None:
     out.flush()
 
     for path in paths:
-        _signal(path, signal.SIGKILL)
+        # A worker without its file has stopped, and its PID may be reused.
+        if path.exists():
+            _signal(path, signal.SIGKILL)
