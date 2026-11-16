@@ -44,6 +44,28 @@ def test_keeps_the_warnings_of_the_tests_with_later_warnings(pytester, tmp_path)
     assert "UserWarning: late" in text, text
 
 
+def test_writes_warnings_the_locale_cannot_encode(pytester, tmp_path, monkeypatch):
+    """E.g. on Windows, where the locale encoding is often cp1252."""
+    for var, value in {
+        "LC_ALL": "C",
+        "PYTHONUTF8": "0",
+        "PYTHONCOERCECLOCALE": "0",
+    }.items():
+        monkeypatch.setenv(var, value)
+    out = tmp_path / "test.warnings"
+    pytester.makepyfile(
+        "import warnings\n"
+        "def test_warns():\n"
+        "    warnings.warn('caf\\u00e9 \\u2603', UserWarning)\n"
+    )
+    env = BazelEnv({"BAZEL_TEST": "1", "TEST_WARNINGS_OUTPUT_FILE": str(out)})
+
+    result = pytester.runpytest_subprocess(*_pytest_args(args=[], env=env))
+
+    assert result.ret == pytest.ExitCode.OK, result.stdout.str()
+    assert "caf\u00e9 \u2603" in out.read_text(encoding="utf-8")
+
+
 def test_not_loaded_without_the_file():
     args = _pytest_args(args=[], env=BazelEnv({"BAZEL_TEST": "1"}))
 

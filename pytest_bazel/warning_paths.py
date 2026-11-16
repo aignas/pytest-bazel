@@ -19,7 +19,8 @@ def _warnings_to_file(path: Optional[Path]) -> Iterator[None]:
 
     # Append, as pytest_bazel.warnings_output appends to the same file.
     path.write_text("")
-    with path.open("a") as out:
+    # The same encoding as pytest_bazel.warnings_output.
+    with path.open("a", encoding="utf-8", errors="backslashreplace") as out:
 
         def showwarning(  # noqa: PLR0913, PLR0917
             message, category, filename, lineno, file=None, line=None

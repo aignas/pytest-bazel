@@ -47,7 +47,11 @@ def pytest_configure(config: pytest.Config) -> None:
     path = config.getoption("bazel_warnings_file")
     # pytest-xdist passes the warnings of the workers on to the main process.
     if path and not hasattr(config, "workerinput"):
-        out = Path(path).open("a")  # noqa: SIM115, closed in pytest_unconfigure
+        # Not the locale encoding, which cannot encode every warning, e.g. on
+        # Windows.
+        out = Path(path).open(  # noqa: SIM115, closed in pytest_unconfigure
+            "a", encoding="utf-8", errors="backslashreplace"
+        )
         config.pluginmanager.register(_Writer(out), _NAME)
 
 
