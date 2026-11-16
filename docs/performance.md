@@ -23,14 +23,17 @@ common --@rules_python//python/config_settings:precompile=force_enabled
 ```
 
 In this repository, that made short test targets ~0.6 s faster, e.g. 2.2 s
-instead of 2.8 s on average.
+instead of 2.8 s on average, and cut the sum of the test times of
+`bazel test //...` from 167 s to 123 s.
 
 :::{warning}
 With rules_python 2.5.1, `force_enabled` fails the analysis of a `py_test`
 that uses `main_module` without a main file, e.g.
-`main_module = "pytest_bazel"`, with `key None not found in dictionary`. Use a
-test file that calls `pytest_bazel.main()` or the `pytest_bazel` console
-script for those targets.
+`main_module = "pytest_bazel"`, with `key None not found in dictionary`.
+[bazel-contrib/rules_python#4403](https://github.com/bazel-contrib/rules_python/pull/4403)
+fixes it, until it is released, apply it as a patch with
+`single_version_override` like this repository does in `MODULE.bazel`, or use
+a test file that calls `pytest_bazel.main()` for those targets.
 :::
 
 ## What was made faster
