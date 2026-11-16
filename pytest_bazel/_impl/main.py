@@ -304,6 +304,12 @@ def _prepare(env: BazelEnv) -> None:
     if not env.is_test:
         return
 
+    if not env.is_bazel_run:
+        # Tests may only write to TEST_TMPDIR and the outputs, but Python and
+        # the assertion rewriting of pytest write .pyc files next to the
+        # sources in the runfiles. They still read the precompiled ones.
+        sys.dont_write_bytecode = True
+
     empty = _empty_config(env)
     if empty:
         empty.parent.mkdir(parents=True, exist_ok=True)
