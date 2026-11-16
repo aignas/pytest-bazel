@@ -3,6 +3,7 @@
 `bazel run //dev/benchmark` measures the timings, see README.md.
 """
 
+import dataclasses
 import os
 import subprocess
 import sys
@@ -10,6 +11,7 @@ from types import SimpleNamespace
 from typing import Any
 
 from pytest_bazel import exact_filter
+from pytest_bazel.env import BazelEnv
 
 # Imported only when a pytest config file is read, as most tests have none.
 _LAZY_MODULES = ("configparser", "tomllib", "tomli")
@@ -33,6 +35,11 @@ def test_import_does_not_load_the_config_parsers():
     loaded = set(result.stdout.split())
     assert loaded, "nothing was imported, the check is broken"
     assert not loaded & set(_LAZY_MODULES), sorted(loaded)
+
+
+def test_bazel_env_is_a_plain_class():
+    """A dataclass takes ~0.4 ms to create, which every test would pay."""
+    assert not dataclasses.is_dataclass(BazelEnv)
 
 
 class _Counter:
