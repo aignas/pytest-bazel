@@ -214,6 +214,25 @@ def test_sharding_with_workers(tmp_path):
     assert len(shards[0] | shards[1]) == _NUM_TESTS
 
 
+def test_empty_shard_with_workers_passes(tmp_path):
+    (tmp_path / "test_one.py").write_text("def test_one(): pass\n")
+
+    codes = [
+        _run(
+            tmp_path,
+            "-n",
+            "2",
+            "test_one.py",
+            TEST_SHARD_INDEX=str(index),
+            TEST_TOTAL_SHARDS="2",
+            TEST_SHARD_STATUS_FILE=str(tmp_path / "shard"),
+        )
+        for index in range(2)
+    ]
+
+    assert [code for code, _ in codes] == [pytest.ExitCode.OK] * 2, codes
+
+
 def test_auto_warns_without_cpu_count(tmp_path):
     (tmp_path / "test_ok.py").write_text("def test_ok(): pass\n")
 

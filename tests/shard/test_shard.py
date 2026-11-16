@@ -130,6 +130,26 @@ def test_bazel_sharding_without_pytest_shard(pytester, tmp_path):
     assert len(set().union(*shards)) == _NUM_TESTS
 
 
+def test_shards_split_what_is_left_after_deselection(pytester):
+    pytester.makepyfile("def test_0(): pass\ndef test_1(): pass\ndef test_2(): pass\n")
+
+    results = [
+        pytester.runpytest(
+            "-p",
+            "pytest_bazel.shard",
+            f"--bazel-shard-index={i}",
+            "--bazel-total-shards=3",
+            "-k",
+            "not test_1",
+        )
+        for i in range(3)
+    ]
+
+    assert [r.ret for r in results] == [pytest.ExitCode.OK] * 3
+    passed = sum(r.parseoutcomes().get("passed", 0) for r in results)
+    assert passed == len(["test_0", "test_2"])
+
+
 def test_empty_shard_passes(pytester):
     num_tests = 2
     pytester.makepyfile("def test_one(): pass\ndef test_two(): pass\n")
