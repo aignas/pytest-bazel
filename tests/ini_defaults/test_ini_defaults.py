@@ -104,7 +104,7 @@ def test_reads_utf8_config_files(pytester, tmp_path, monkeypatch):
 
 def test_config_from_package(pytester, tmp_path):
     (pytester.path / "pkg").mkdir()
-    (pytester.path / "pkg" / "pytest.ini").write_text("[pytest]\ntestpaths = pkg\n")
+    (pytester.path / "pkg" / "pytest.ini").write_text("[pytest]\ntestpaths = tests\n")
     env = _env(
         tmp_path,
         PYTEST_BAZEL_CONFIG_FROM_PACKAGE="1",
@@ -113,8 +113,80 @@ def test_config_from_package(pytester, tmp_path):
 
     args = _pytest_args(args=[], env=env)
 
+    # Relative to the config file, as pytest runs in the runfiles root.
+    assert "testpaths=pkg/tests" in args
     assert "testpaths=pkg" not in args
     assert _SUITE in args
+
+
+def _two_packages(pytester, config_dir, config):
+    for package in ("pkg/sub", "other"):
+        (pytester.path / package / "tests").mkdir(parents=True)
+        name = package.replace("/", "_")
+        (pytester.path / package / "tests" / f"test_{name}.py").write_text(
+            f"def test_{name}(): pass\n"
+        )
+    (pytester.path / config_dir / config[0]).write_text(config[1])
+
+
+def _collected(pytester, tmp_path, **flags):
+    env = _env(tmp_path, TEST_TARGET="//pkg/sub:test", **flags)
+    rec = pytester.inline_run("-p", "no:randomly", *_pytest_args(args=[], env=env))
+    passed, _, failed = rec.listoutcomes()
+    assert not failed
+    return sorted(r.nodeid for r in passed)
+
+
+_SUB = ["pkg/sub/tests/test_pkg_sub.py::test_pkg_sub"]
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        ("pytest.ini", "[pytest]\ntestpaths = tests\n"),
+        ("pyproject.toml", '[tool.pytest.ini_options]\ntestpaths = ["tests"]\n'),
+    ],
+    ids=["ini", "toml_list"],
+)
+@pytest.mark.parametrize(
+    "flags",
+    [
+        {"PYTEST_BAZEL_CONFIG_FROM_PACKAGE": "1"},
+        {
+            "PYTEST_BAZEL_CONFIG_FROM_PACKAGE": "1",
+            "PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE": "1",
+        },
+    ],
+    ids=["config", "config_and_scope"],
+)
+def test_package_testpaths_are_relative_to_the_package(
+    pytester, tmp_path, config, flags
+):
+    _two_packages(pytester, "pkg/sub", config)
+
+    assert _collected(pytester, tmp_path, **flags) == _SUB
+
+
+def test_testpaths_of_a_parent_config_do_not_unscope_the_collection(pytester, tmp_path):
+    """A config in a parent package is shared by its packages."""
+    _two_packages(pytester, "pkg", ("pytest.ini", "[pytest]\ntestpaths = .\n"))
+
+    collected = _collected(
+        pytester,
+        tmp_path,
+        PYTEST_BAZEL_CONFIG_FROM_PACKAGE="1",
+        PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE="1",
+    )
+
+    assert collected == _SUB
+
+
+def test_testpaths_of_a_parent_config_are_relative_to_it(pytester, tmp_path):
+    _two_packages(pytester, "pkg", ("pytest.ini", "[pytest]\ntestpaths = sub\n"))
+
+    collected = _collected(pytester, tmp_path, PYTEST_BAZEL_CONFIG_FROM_PACKAGE="1")
+
+    assert collected == _SUB
 
 
 def test_shared_testpaths_do_not_unscope_the_collection(pytester, tmp_path):

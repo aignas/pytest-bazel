@@ -15,6 +15,8 @@ import pytest
 from pytest_bazel.config import (
     _find_package_config,
     _ini_keys,
+    _ini_paths,
+    _ini_values,
     _pytest_config_file,
     _pytest_version,
 )
@@ -150,18 +152,33 @@ def _plugin_args(env: BazelEnv) -> list[str]:
     return args
 
 
-def _opt_in_args(env: BazelEnv) -> list[str]:
-    """Return the args for the behaviour that is opt-in until 1.0."""
-    package = env.test_package
+def _package_config(env: BazelEnv) -> Optional[Path]:
+    """Return the config file of the package of the target to pass, or None.
 
-    # pytest looks for config files in the current directory, which is the
-    # runfiles root, so it misses e.g. a pytest.ini next to the tests. Pass it
-    # explicitly and keep the rootdir, so that test ids and `testpaths` stay
-    # relative to the runfiles root. A `-c` in the user args wins.
-    config = (
-        _find_package_config(package) if env.config_from_package and package else None
-    )
-    return ["-c", str(config), "--rootdir=."] if config else []
+    pytest looks for config files in the current directory, which is the
+    runfiles root, so it misses e.g. a pytest.ini next to the tests. It is
+    passed explicitly with `--rootdir=.`, so that test ids stay relative to the
+    runfiles root, see `_package_testpaths` for its `testpaths`.
+    """
+    package = env.test_package
+    if not env.config_from_package or not package:
+        return None
+    return _find_package_config(package)
+
+
+def _package_testpaths(config: Path) -> Optional[str]:
+    """Return the `testpaths` of the package `config`, relative to its directory.
+
+    With `--rootdir=.`, pytest would look for them in the runfiles root, but
+    they are written for running pytest next to the config file.
+    """
+    paths = _ini_paths(_ini_values(config).get("testpaths"))
+    if not paths:
+        return None
+    # Imported here, as only tests with a package config need it.
+    import shlex  # noqa: PLC0415
+
+    return shlex.join(str(config.parent / path) for path in paths)
 
 
 def _ini_defaults(env: BazelEnv) -> dict[str, str]:
@@ -197,22 +214,39 @@ def _ini_defaults(env: BazelEnv) -> dict[str, str]:
     return defaults
 
 
-def _ini_default_args(args: list[str], env: BazelEnv) -> list[str]:
+def _ini_default_args(
+    args: list[str], env: BazelEnv, package_config: Optional[Path]
+) -> list[str]:
     """Return `-o` args for the ini defaults that the user did not configure.
 
     `-o` wins over the config file, so leave out the options that the config
     file that pytest uses for `args` sets. A `-o` in `args` comes later and
-    wins anyway.
+    wins anyway. `package_config` is the config file passed with
+    `--rootdir=.`, see `_package_config`.
     """
     config = _pytest_config_file(args)
     configured = _ini_keys(config) if config else set()
+    defaults = _ini_defaults(env)
     package = env.test_package
-    if package and config and not config.parent.is_relative_to(package):
-        # A config file outside of the package, e.g. in the runfiles root, is
-        # shared by many targets, its `testpaths` are not for this one.
+    # A config file outside of the package, e.g. in the runfiles root, is
+    # shared by many targets, its `testpaths` are not for this one.
+    shared = bool(package and config and not config.parent.is_relative_to(package))
+
+    if (
+        config is not None
+        and config == package_config
+        and "testpaths" in configured
+        and not (shared and "testpaths" in defaults)
+    ):
+        testpaths = _package_testpaths(config)
+        if testpaths:
+            defaults["testpaths"] = testpaths
+            configured.discard("testpaths")
+    if shared:
         configured.discard("testpaths")
+
     result = []
-    for name, value in _ini_defaults(env).items():
+    for name, value in defaults.items():
         if name not in configured:
             result.extend(["-o", f"{name}={value}"])
     return result
@@ -270,10 +304,11 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
 
     pytest_args.extend(_basetemp_args(env))
 
-    opt_in_args = _opt_in_args(env)
+    package_config = _package_config(env)
+    opt_in_args = ["-c", str(package_config), "--rootdir=."] if package_config else []
     pytest_args.extend(opt_in_args)
     # The `-c` of the opt-in args, if any, comes before the one of the user.
-    pytest_args.extend(_ini_default_args([*opt_in_args, *args], env))
+    pytest_args.extend(_ini_default_args([*opt_in_args, *args], env, package_config))
 
     random_seed = _random_seed(env)
     if random_seed:

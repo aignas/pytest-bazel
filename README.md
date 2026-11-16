@@ -138,7 +138,8 @@ flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
 `test --test_env=PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` in `.bazelrc`.
 The options that a flag sets, e.g. `junit_logging`, are left as they are when
 the pytest config file sets them. `testpaths` is only left as it is when the
-config file is in the package of the target.
+config file is in the package of the target, and with
+`PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1` it is relative to that config file.
 
 | Env var | Default | Default in 1.0 | Description | Docs |
 | --- | --- | --- | --- | --- |

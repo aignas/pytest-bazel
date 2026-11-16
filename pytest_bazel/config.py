@@ -120,7 +120,7 @@ def _pytest_config_file(args: Sequence[str]) -> Optional[Path]:
     return _first_config((directory, *directory.parents))
 
 
-def _toml_keys(path: Path) -> set[str]:
+def _toml_values(path: Path) -> dict[str, object]:
     # Imported here, as most tests have no config file and it takes ~4 ms.
     if sys.version_info >= (3, 11):
         import tomllib  # noqa: PLC0415
@@ -130,20 +130,20 @@ def _toml_keys(path: Path) -> set[str]:
     try:
         data = tomllib.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return set()
+        return {}
     # Like pytest, which reads `[pytest]` from pytest.toml, and `[tool.pytest]`
     # or `[tool.pytest.ini_options]` from pyproject.toml and other toml files.
     # pytest 9.2 also reads `[pytest]` from a toml file passed with `-c`.
     if path.name in ("pytest.toml", ".pytest.toml"):
-        return set(data.get("pytest", {}))
+        return dict(data.get("pytest", {}))
     pytest_config = data.get("tool", {}).get("pytest", {})
-    keys = set(pytest_config.get("ini_options", pytest_config))
+    values = dict(pytest_config.get("ini_options", pytest_config))
     if path.name != "pyproject.toml":
-        keys |= set(data.get("pytest", {}))
-    return keys
+        values = {**data.get("pytest", {}), **values}
+    return values
 
 
-def _ini_file_keys(path: Path) -> set[str]:
+def _ini_file_values(path: Path) -> dict[str, object]:
     # Imported here, as most tests have no config file.
     import configparser  # noqa: PLC0415
 
@@ -151,15 +151,32 @@ def _ini_file_keys(path: Path) -> set[str]:
     try:
         parser.read_string(path.read_text(encoding="utf-8"))
     except (OSError, ValueError, configparser.Error):
-        return set()
+        return {}
     # Like pytest, which reads `[tool:pytest]` from any `.cfg` file.
     section = "tool:pytest" if path.suffix == ".cfg" else "pytest"
-    return set(parser[section]) if parser.has_section(section) else set()
+    return dict(parser[section]) if parser.has_section(section) else {}
 
 
-def _ini_keys(path: Path) -> set[str]:
-    """Return the names of the options that the pytest config file `path` sets.
+def _ini_values(path: Path) -> dict[str, object]:
+    """Return the options that the pytest config file `path` sets.
 
     An unreadable file sets nothing, pytest reports the error itself.
     """
-    return _toml_keys(path) if path.suffix == ".toml" else _ini_file_keys(path)
+    return _toml_values(path) if path.suffix == ".toml" else _ini_file_values(path)
+
+
+def _ini_keys(path: Path) -> set[str]:
+    """Return the names of the options that the pytest config file `path` sets."""
+    return set(_ini_values(path))
+
+
+def _ini_paths(value: object) -> list[str]:
+    """Return the paths of an option like `testpaths`, a list in toml files."""
+    if isinstance(value, str):
+        # Like pytest, which splits the values of `args` options like a shell.
+        import shlex  # noqa: PLC0415
+
+        return shlex.split(value)
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    return []
