@@ -18,6 +18,19 @@ Nothing yet.
   runs `test_add_many`. It will be the default in 1.0.
   [#92](https://github.com/aignas/pytest-bazel/pull/92).
 
+### Changed
+
+- Importing `pytest_bazel` takes ~1.5 ms on top of pytest instead of ~7 ms, as
+  the config file parsers are only imported when a config file is read.
+  [#100](https://github.com/aignas/pytest-bazel/pull/100),
+  [#107](https://github.com/aignas/pytest-bazel/pull/107).
+- The new [Performance][docs-performance] page explains how to precompile
+  Python with rules_python, which makes short tests ~0.6 s faster, as without it
+  every test compiles pytest again.
+  [#108](https://github.com/aignas/pytest-bazel/pull/108).
+
+[docs-performance]: https://pytest-bazel.readthedocs.io/latest/performance.html
+
 ### Fixed
 
 - Absolute report paths of `--html`, `--json-report-file` and `--report-log` are
