@@ -27,6 +27,9 @@ import sys
 
 from ._impl.main import main as _main
 
+# The public API, everything else, e.g. in `pytest_bazel._impl`, is private.
+__all__ = ["main"]
+
 
 def main(args=None):
     """Run pytest.

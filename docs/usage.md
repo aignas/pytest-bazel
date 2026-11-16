@@ -124,7 +124,8 @@ Passing `-o consider_namespace_packages=false` in `args` turns it off again.
 
 ## Public API
 
-`pytest_bazel.main()`, `python -m pytest_bazel` and the `pytest_bazel` console
-script are the public API, and the `PYTEST_BAZEL_*` env vars configure it. The
-rest, e.g. the modules in `pytest_bazel._impl` and the `--bazel-*` options of
-its pytest plugins, is private and may change in any release.
+The public API is what the `pytest_bazel` package exports, i.e.
+`pytest_bazel.main()`, together with `python -m pytest_bazel`, the
+`pytest_bazel` console script and the `PYTEST_BAZEL_*` env vars. Everything
+else, e.g. the `--bazel-*` options of its pytest plugins, is private and may
+change in any release.
