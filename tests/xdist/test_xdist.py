@@ -190,6 +190,27 @@ def test_runs_in_parallel(tmp_path):
     assert "PytestAssertRewriteWarning" not in output, output
 
 
+def test_workers_remove_their_files(tmp_path):
+    (tmp_path / "test_ok.py").write_text("def test_ok(): pass\n")
+
+    code, output = _run(tmp_path, "-n", "2", "test_ok.py")
+
+    assert code == pytest.ExitCode.OK, output
+    assert list((tmp_path / "tmp" / "pytest_bazel_workers").iterdir()) == []
+
+
+def test_files_of_crashed_workers_are_removed(tmp_path):
+    (tmp_path / "test_crash.py").write_text(
+        "import os\ndef test_crash(): os._exit(1)\ndef test_ok(): pass\n"
+    )
+
+    code, output = _run(tmp_path, "-n", "1", "-p", "no:randomly", "test_crash.py")
+
+    assert code == pytest.ExitCode.TESTS_FAILED, output
+    assert "crashed" in output, output
+    assert list((tmp_path / "tmp" / "pytest_bazel_workers").iterdir()) == [], output
+
+
 def test_sharding_with_workers(tmp_path):
     (tmp_path / "test_parallel.py").write_text(_PARALLEL)
     log = tmp_path / "workers"
