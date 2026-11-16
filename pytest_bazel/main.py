@@ -112,6 +112,16 @@ def _plugin_args(env: BazelEnv) -> list[str]:
             ]
         )
 
+    warnings_file = env.test_warnings_output_file
+    if warnings_file:
+        args.extend(
+            [
+                "-p",
+                "pytest_bazel.warnings_output",
+                f"--bazel-warnings-file={warnings_file}",
+            ]
+        )
+
     workers_dir = _workers_dir(env)
     if workers_dir:
         args.extend(

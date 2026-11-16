@@ -17,12 +17,15 @@ def _warnings_to_file(path: Optional[Path]) -> Iterator[None]:
         yield
         return
 
-    with path.open("w") as out:
+    # Append, as pytest_bazel.warnings_output appends to the same file.
+    path.write_text("")
+    with path.open("a") as out:
 
         def showwarning(  # noqa: PLR0913, PLR0917
             message, category, filename, lineno, file=None, line=None
         ):
             out.write(warnings.formatwarning(message, category, filename, lineno, line))
+            out.flush()
 
         original = warnings.showwarning
         warnings.showwarning = showwarning
