@@ -12,7 +12,7 @@ from typing import Optional
 
 import pytest
 
-from pytest_bazel.config import _find_package_config
+from pytest_bazel.config import _find_package_config, _ini_keys, _pytest_config_file
 from pytest_bazel.env import BazelEnv, _workers_dir
 from pytest_bazel.filters import _with_keyword_expression
 from pytest_bazel.sigterm import _interrupt_on_sigterm
@@ -152,18 +152,6 @@ def _opt_in_args(env: BazelEnv) -> list[str]:
     """Return the args for the behaviour that is opt-in until 1.0."""
     args: list[str] = []
 
-    if env.junit_output and env.xml_output_file:
-        # CI shows the JUnit XML, which only has the output of the tests with
-        # `junit_logging`. Leave it out for passing tests to keep it small.
-        args.extend(["-o", "junit_logging=all", "-o", "junit_log_passing_tests=false"])
-
-    if env.consider_namespace_packages and _supports_namespace_packages():
-        # Bazel packages usually have no `__init__.py`, so without this pytest
-        # names test modules after the closest regular package only, e.g.
-        # `foo/numpy/bar_test.py` would become `numpy.bar_test` and shadow the
-        # real `numpy`. It is ignored on pytest < 8.1, which has no such option.
-        args.extend(["-o", "consider_namespace_packages=true"])
-
     package = env.test_package
 
     # pytest looks for config files in the current directory, which is the
@@ -176,14 +164,55 @@ def _opt_in_args(env: BazelEnv) -> list[str]:
     if config:
         args.extend(["-c", str(config), "--rootdir=."])
 
+    return args
+
+
+def _ini_defaults(env: BazelEnv) -> dict[str, str]:
+    """Return the ini options that pytest_bazel sets unless the config file does."""
+    defaults = {}
+
+    if env.xml_output_file and env.test_target:
+        # Name the suite after the target so that merged reports are readable.
+        defaults["junit_suite_name"] = env.test_target
+
+    if env.junit_output and env.xml_output_file:
+        # CI shows the JUnit XML, which only has the output of the tests with
+        # `junit_logging`. Leave it out for passing tests to keep it small.
+        defaults["junit_logging"] = "all"
+        defaults["junit_log_passing_tests"] = "false"
+
+    if env.consider_namespace_packages and _supports_namespace_packages():
+        # Bazel packages usually have no `__init__.py`, so without this pytest
+        # names test modules after the closest regular package only, e.g.
+        # `foo/numpy/bar_test.py` would become `numpy.bar_test` and shadow the
+        # real `numpy`. It is ignored on pytest < 8.1, which has no such option.
+        defaults["consider_namespace_packages"] = "true"
+
     # Without args pytest collects everything under the runfiles root, which
     # includes tests of other bazel packages that are pulled in via `deps` or
     # `data`. Limit the collection to the bazel package of the target, pytest
     # only uses `testpaths` if no paths are passed as args.
+    package = env.test_package
     if env.scope_collection_to_package and package and Path(package).is_dir():
-        args.extend(["-o", f"testpaths={package}"])
+        defaults["testpaths"] = package
 
-    return args
+    return defaults
+
+
+def _ini_default_args(args: list[str], env: BazelEnv) -> list[str]:
+    """Return `-o` args for the ini defaults that the user did not configure.
+
+    `-o` wins over the config file, so leave out the options that the config
+    file that pytest uses for `args` sets. A `-o` in `args` comes later and
+    wins anyway.
+    """
+    config = _pytest_config_file(args)
+    configured = _ini_keys(config) if config else set()
+    result = []
+    for name, value in _ini_defaults(env).items():
+        if name not in configured:
+            result.extend(["-o", f"{name}={value}"])
+    return result
 
 
 def _random_seed(env: BazelEnv) -> int:
@@ -235,14 +264,13 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
-        if env.test_target:
-            # Name the suite after the target so that merged reports are readable,
-            # users can still override it as their args come later.
-            pytest_args.extend(["-o", f"junit_suite_name={env.test_target}"])
 
     pytest_args.extend(_basetemp_args(env))
 
-    pytest_args.extend(_opt_in_args(env))
+    opt_in_args = _opt_in_args(env)
+    pytest_args.extend(opt_in_args)
+    # The `-c` of the opt-in args, if any, comes before the one of the user.
+    pytest_args.extend(_ini_default_args([*opt_in_args, *args], env))
 
     random_seed = _random_seed(env)
     if random_seed:

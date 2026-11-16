@@ -111,6 +111,8 @@ approaches.
 Behaviour changes are added behind opt-in flags first. Their defaults will be
 flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
 `test --test_env=PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` in `.bazelrc`.
+The options that a flag sets, e.g. `testpaths`, are left as they are when the
+pytest config file sets them.
 
 | Env var | Default | Default in 1.0 | Description | Docs |
 | --- | --- | --- | --- | --- |

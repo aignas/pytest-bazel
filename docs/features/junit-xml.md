@@ -11,7 +11,7 @@ pytest_bazel_examples:
 `pytest_bazel` writes the JUnit XML report to the file bazel asks for, which
 bazel shows in `bazel-testlogs` and in the build event protocol. The test
 suite is named after the target, so that reports of many targets can be told
-apart.
+apart, unless the pytest config file sets `junit_suite_name`.
 
 <!-- source: examples/junit_xml/test_junit_xml.py -->
 ```{code-block} python

@@ -14,7 +14,8 @@ pytest only adds the output of the tests to it with `junit_logging`, so a
 failure shows up without what the test printed or logged. With the flag, the
 captured stdout, stderr and log records of failed tests are in the XML.
 Passing tests are left out to keep it small, pass
-`-o junit_log_passing_tests=true` to add them.
+`-o junit_log_passing_tests=true` to add them. A `junit_logging` or
+`junit_log_passing_tests` in the pytest config file wins.
 
 <!-- source: examples/junit_output/test_junit_output.py -->
 ```{code-block} python
