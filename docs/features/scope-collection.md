@@ -19,6 +19,9 @@ runfiles, including the tests of other packages that are there through `deps`
 or `data`. With the flag, only the tests in the package of the target are
 collected. A `testpaths` in a pytest config file in the package wins, one in
 a config file shared by many packages, e.g. in the workspace root, does not.
+With `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, the `testpaths` of the config file
+of the package are relative to it, e.g. `testpaths = tests` collects
+`<package>/tests`.
 
 <!-- source: examples/scope_collection/BUILD.bazel -->
 ```{code-block} starlark
