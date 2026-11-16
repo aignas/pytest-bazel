@@ -43,7 +43,7 @@ py_wheel(
     python_requires = ">=3.9",
     python_tag = "py3",
     requires = [
-        "pytest",
+        "pytest>=7",
         "tomli>=1; python_version < '3.11'",
     ],
     extra_requires = {
