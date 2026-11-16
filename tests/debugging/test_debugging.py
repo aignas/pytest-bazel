@@ -72,6 +72,16 @@ def test_breakpoint_fails(pytester):
     assert "debugging.py" not in result.stdout.str()
 
 
+def test_pythonbreakpoint_is_respected(pytester, monkeypatch):
+    monkeypatch.setenv("PYTHONBREAKPOINT", "0")
+    pytester.makepyfile("def test_debug():\n    breakpoint()\n")
+
+    # In a subprocess, as this test runs with the hook of this plugin.
+    result = pytester.runpytest_subprocess(*_args())
+
+    result.assert_outcomes(passed=1)
+
+
 def test_breakpointhook_is_restored(pytester):
     hook = sys.breakpointhook
     pytester.makepyfile("def test_ok(): pass")
