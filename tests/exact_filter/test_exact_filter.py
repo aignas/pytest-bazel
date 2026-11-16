@@ -30,6 +30,9 @@ _ID = "pkg/test_mod.py::TestCase::test_add[1.5]"
         ("test_mod.py::TestCase::test_add", True),
         ("test_mod.py::TestCase::test_ad", False),
         ("other,test_add", True),
+        ("pkg/", True),
+        ("other/pkg", False),
+        ("pk/", False),
     ],
 )
 def test_matches(test_filter, want):
@@ -80,6 +83,11 @@ def _selected(pytester, test_filter, flag="1"):
 )
 def test_selects(pytester, test_filter, want):
     assert _selected(pytester, test_filter) == want
+
+
+@pytest.mark.parametrize("test_filter", ["pkg/sub", "pkg/sub/", "sub"])
+def test_matches_a_directory(test_filter):
+    assert matches(test_filter, "pkg/sub/test_x.py::test_a")
 
 
 def test_k_matches_substrings_without_the_flag(pytester):
