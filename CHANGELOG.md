@@ -9,6 +9,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.5.0]
+
+### Added
+
+- Set `PYTEST_BAZEL_EXACT_TEST_FILTER=1` to select the tests of `--test_filter`
+  by their exact names, so that e.g. `test_add` no longer also runs
+  `test_add_many`. Paths select the tests of a file or a directory, and it
+  takes ~16 ms for 20000 tests. This will be the default in 1.0.
+  [#92](https://github.com/aignas/pytest-bazel/pull/92),
+  [#98](https://github.com/aignas/pytest-bazel/pull/98),
+  [#99](https://github.com/aignas/pytest-bazel/pull/99),
+  [#102](https://github.com/aignas/pytest-bazel/pull/102).
+
+### Changed
+
+- Importing `pytest_bazel` takes ~1.5 ms on top of pytest instead of ~7 ms, as
+  the config file parsers are only imported when a config file is read.
+  [#100](https://github.com/aignas/pytest-bazel/pull/100),
+  [#107](https://github.com/aignas/pytest-bazel/pull/107).
+- The new [Performance][docs-performance] page explains how to precompile
+  Python with rules_python, which makes short tests ~0.6 s faster, as without it
+  every test compiles pytest again.
+  [#108](https://github.com/aignas/pytest-bazel/pull/108).
+
+[docs-performance]: https://pytest-bazel.readthedocs.io/latest/performance.html
+
+### Fixed
+
+- Absolute report paths of `--html`, `--json-report-file` and `--report-log` are
+  no longer moved into `TEST_UNDECLARED_OUTPUTS_DIR`, and relative ones given as
+  a separate argument, e.g. `--html report.html`, are now moved there too.
+  [#72](https://github.com/aignas/pytest-bazel/pull/72),
+  [#87](https://github.com/aignas/pytest-bazel/pull/87).
+- Sharded tests no longer fail when `-k` or `-m` deselect all the tests of a
+  shard, or when a shard gets no tests with pytest-xdist.
+  [#82](https://github.com/aignas/pytest-bazel/pull/82).
+- With pytest-randomly installed but disabled, e.g. with `-p no:randomly`,
+  `--runs_per_test` and `--test_env=TEST_RANDOM_SEED` no longer fail with a
+  usage error, and seed `random` instead.
+  [#83](https://github.com/aignas/pytest-bazel/pull/83).
+- The warnings of the tests are now written to `TEST_WARNINGS_OUTPUT_FILE`, i.e.
+  `bazel-testlogs/<target>/test.warnings`, which was empty, as UTF-8.
+  [#84](https://github.com/aignas/pytest-bazel/pull/84),
+  [#94](https://github.com/aignas/pytest-bazel/pull/94).
+- A `-k` in the `args` of a target, also in combined flags such as `-vk`, is now
+  combined with `--test_filter` instead of replaced by it, a filter with a `.`
+  in the parameters of a test, e.g. `test_x[0.5]`, now selects only that test,
+  and a target where the filter selects no tests says so in its log.
+  [#85](https://github.com/aignas/pytest-bazel/pull/85),
+  [#91](https://github.com/aignas/pytest-bazel/pull/91).
+- `breakpoint()` under `bazel test` now respects `PYTHONBREAKPOINT`, e.g. `0` to
+  ignore it, unless Python ignores it too with `-E` or `-I`.
+  [#86](https://github.com/aignas/pytest-bazel/pull/86),
+  [#95](https://github.com/aignas/pytest-bazel/pull/95).
+- `pytest_bazel.main(args=[])` now runs pytest without args instead of with the
+  args of the process.
+  [#88](https://github.com/aignas/pytest-bazel/pull/88).
+- pytest-xdist workers now remove their stack file when they stop, so that a
+  timeout later in the test cannot kill an unrelated process that got the PID of
+  a replaced worker.
+  [#89](https://github.com/aignas/pytest-bazel/pull/89),
+  [#96](https://github.com/aignas/pytest-bazel/pull/96).
+- The options that pytest_bazel sets, e.g. `junit_suite_name`, and the ones of
+  the opt-in flags, e.g. `junit_logging`, no longer override the same options in
+  the pytest config file, including `pytest.toml` and a file passed with `-c`.
+  A `testpaths` only does so in a config file in the package of the target.
+  [#90](https://github.com/aignas/pytest-bazel/pull/90),
+  [#97](https://github.com/aignas/pytest-bazel/pull/97),
+  [#101](https://github.com/aignas/pytest-bazel/pull/101).
+
 ## [0.4.0]
 
 ### Added
@@ -250,7 +320,8 @@ Nothing yet.
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.4.0...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.5.0...HEAD
+[0.5.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.5.0
 [0.4.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.4.0
 [0.3.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.3.0
 [0.2.1]: https://github.com/aignas/pytest-bazel/releases/tag/0.2.1
