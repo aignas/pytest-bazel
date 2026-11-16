@@ -22,7 +22,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 keywords = ["pytest", "bazel"]
 classifiers = [
-  "Development Status :: 4 - Alpha",
+  "Development Status :: 4 - Beta",
   "Programming Language :: Python"
 ]
 

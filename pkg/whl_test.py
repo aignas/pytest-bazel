@@ -58,6 +58,10 @@ def test_requires_python(metadata, project):
     assert metadata["Requires-Python"] == project["requires-python"]
 
 
+def test_classifiers_match_pyproject(metadata, project):
+    assert metadata.get_all("Classifier") == project["classifiers"]
+
+
 def test_dependencies_match_pyproject(metadata, project):
     got = {_requirement(r) for r in metadata.get_all("Requires-Dist")}
 
