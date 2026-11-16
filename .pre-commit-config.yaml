@@ -14,6 +14,8 @@ repos:
           - numpy
           - pytest
           - pytest-randomly
+          # pytest_bazel imports it on Python < 3.11, which pyrefly checks.
+          - tomli
   - repo: local
     hooks:
       - id: bazel-mod-tidy
