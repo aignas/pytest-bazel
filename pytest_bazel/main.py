@@ -12,7 +12,12 @@ from typing import Optional
 
 import pytest
 
-from pytest_bazel.config import _find_package_config, _ini_keys, _pytest_config_file
+from pytest_bazel.config import (
+    _find_package_config,
+    _ini_keys,
+    _pytest_config_file,
+    _pytest_version,
+)
 from pytest_bazel.env import BazelEnv, _workers_dir
 from pytest_bazel.filters import _with_keyword_expression
 from pytest_bazel.sigterm import _interrupt_on_sigterm
@@ -35,12 +40,6 @@ _INFRASTRUCTURE_FAILURES = {
     pytest.ExitCode.INTERNAL_ERROR: "e.g. because a plugin or a conftest.py failed",
     pytest.ExitCode.USAGE_ERROR: "e.g. because of an unknown flag or a missing plugin",
 }
-
-
-def _pytest_version() -> tuple[int, ...]:
-    """Return the `(major, minor)` version of pytest, `(0, 0)` before pytest 7.0."""
-    # `pytest.version_tuple` is available since pytest 7.0.
-    return tuple(getattr(pytest, "version_tuple", (0, 0))[:2])
 
 
 def _in_outputs_dir(path: str, outputs_dir: Path) -> str:
@@ -100,11 +99,6 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     return _with_keyword_expression(args, env.test_filter)
 
 
-def _supports_namespace_packages() -> bool:
-    # https://docs.pytest.org/en/stable/reference/reference.html#confval-consider_namespace_packages
-    return _pytest_version() >= (8, 1)
-
-
 def _basetemp_args(env: BazelEnv) -> list[str]:
     """Return the args for where pytest creates `tmp_path` and friends."""
     outputs_dir = env.test_undeclared_outputs_dir
@@ -158,8 +152,6 @@ def _plugin_args(env: BazelEnv) -> list[str]:
 
 def _opt_in_args(env: BazelEnv) -> list[str]:
     """Return the args for the behaviour that is opt-in until 1.0."""
-    args: list[str] = []
-
     package = env.test_package
 
     # pytest looks for config files in the current directory, which is the
@@ -169,10 +161,7 @@ def _opt_in_args(env: BazelEnv) -> list[str]:
     config = (
         _find_package_config(package) if env.config_from_package and package else None
     )
-    if config:
-        args.extend(["-c", str(config), "--rootdir=."])
-
-    return args
+    return ["-c", str(config), "--rootdir=."] if config else []
 
 
 def _ini_defaults(env: BazelEnv) -> dict[str, str]:
@@ -189,7 +178,8 @@ def _ini_defaults(env: BazelEnv) -> dict[str, str]:
         defaults["junit_logging"] = "all"
         defaults["junit_log_passing_tests"] = "false"
 
-    if env.consider_namespace_packages and _supports_namespace_packages():
+    # https://docs.pytest.org/en/stable/reference/reference.html#confval-consider_namespace_packages
+    if env.consider_namespace_packages and _pytest_version() >= (8, 1):
         # Bazel packages usually have no `__init__.py`, so without this pytest
         # names test modules after the closest regular package only, e.g.
         # `foo/numpy/bar_test.py` would become `numpy.bar_test` and shadow the
@@ -239,7 +229,7 @@ def _prepare(env: BazelEnv) -> None:
     if not env.is_test:
         return
 
-    if env.test_shard_index is not None and env.test_total_shards is not None:
+    if env.is_sharded:
         status_file = env.test_shard_status_file
         if status_file:
             # Tell bazel that the test supports sharding, see `_pytest_args`.
@@ -293,7 +283,7 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
 
     pytest_args.extend(_plugin_args(env))
 
-    if env.test_shard_index is not None and env.test_total_shards is not None:
+    if env.is_sharded:
         # https://bazel.build/reference/test-encyclopedia#test-sharding
         pytest_args.extend(
             [

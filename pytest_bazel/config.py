@@ -1,11 +1,18 @@
 """Find the pytest config file of a bazel package, and what it sets."""
 
 import sys
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Optional
 
 import pytest
+
+
+def _pytest_version() -> tuple[int, ...]:
+    """Return the `(major, minor)` version of pytest, `(0, 0)` before pytest 7.0."""
+    # `pytest.version_tuple` is available since pytest 7.0.
+    return tuple(getattr(pytest, "version_tuple", (0, 0))[:2])
+
 
 # The files pytest reads its config from, in the order it looks for them in a
 # directory, and the sections they need to have to count.
@@ -14,7 +21,7 @@ _CONFIG_FILES = {
     # Since pytest 9.0.
     **(
         {"pytest.toml": None, ".pytest.toml": None}
-        if getattr(pytest, "version_tuple", (0,)) >= (9,)
+        if _pytest_version() >= (9, 0)
         else {}
     ),
     "pytest.ini": None,
@@ -36,6 +43,16 @@ def _is_pytest_config(path: Path) -> bool:
     return any(section in lines for section in sections)
 
 
+def _first_config(directories: Iterable[Path]) -> Optional[Path]:
+    """Return the first pytest config file in `directories`, see `_CONFIG_FILES`."""
+    for directory in directories:
+        for name in _CONFIG_FILES:
+            candidate = directory / name
+            if candidate.is_file() and _is_pytest_config(candidate):
+                return candidate
+    return None
+
+
 def _find_package_config(package: str) -> Optional[Path]:
     """Return the pytest config file for a bazel package or None.
 
@@ -45,14 +62,7 @@ def _find_package_config(package: str) -> Optional[Path]:
     there on its own.
     """
     directory = Path(package)
-    while directory != Path():
-        for name in _CONFIG_FILES:
-            candidate = directory / name
-            if candidate.is_file() and _is_pytest_config(candidate):
-                return candidate
-        directory = directory.parent
-
-    return None
+    return _first_config(d for d in (directory, *directory.parents) if d != Path())
 
 
 def _user_config_arg(args: Sequence[str]) -> Optional[Path]:
@@ -107,14 +117,7 @@ def _pytest_config_file(args: Sequence[str]) -> Optional[Path]:
     directory = _common_dir(args)
     if directory.is_absolute():
         return None
-    while True:
-        for name in _CONFIG_FILES:
-            candidate = directory / name
-            if candidate.is_file() and _is_pytest_config(candidate):
-                return candidate
-        if directory == Path():
-            return None
-        directory = directory.parent
+    return _first_config((directory, *directory.parents))
 
 
 def _toml_keys(path: Path) -> set[str]:

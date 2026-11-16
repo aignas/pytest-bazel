@@ -60,7 +60,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_unconfigure(config: pytest.Config) -> None:
-    """Stop dumping the stacks on SIGUSR1, and remove the file of this worker.
+    """Stop dumping the stacks on signals, and remove the file of this worker.
 
     `stop_workers` kills the process of every file, so a file left behind
     could name the PID of an unrelated process later.

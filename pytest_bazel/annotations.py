@@ -34,12 +34,14 @@ def summary(stats: Mapping[str, Sequence[object]]) -> str:
     counts = [f"{len(stats[o])} {o}" for o in _OUTCOMES if stats.get(o)]
     lines = ["pytest: " + (", ".join(counts) or "no tests ran")]
 
-    failures = []
-    for outcome in ("failed", "error"):
-        for report in stats.get(outcome, []):
-            line = f"{outcome.upper()} {getattr(report, 'nodeid', report)}"
-            if line not in failures:
-                failures.append(line)
+    # Without duplicates, in order.
+    failures = list(
+        dict.fromkeys(
+            f"{outcome.upper()} {getattr(report, 'nodeid', report)}"
+            for outcome in ("failed", "error")
+            for report in stats.get(outcome, [])
+        )
+    )
 
     lines.extend(failures[:_MAX_FAILURES])
     if len(failures) > _MAX_FAILURES:

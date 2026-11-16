@@ -33,7 +33,8 @@ def main(args=None):
 
     Args:
     ----
-        args: args to pytest.main
+        args: extra args for pytest, added after the ones of pytest_bazel.
+            Defaults to `sys.argv[1:]`.
 
     """
     sys.exit(_main(args=args))
