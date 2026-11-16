@@ -60,13 +60,33 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_unconfigure(config: pytest.Config) -> None:
-    """Stop dumping the stacks on SIGUSR1."""
+    """Stop dumping the stacks on SIGUSR1, and remove the file of this worker.
+
+    `stop_workers` kills the process of every file, so a file left behind
+    could name the PID of an unrelated process later.
+    """
     stacks = config.stash.get(_STACKS_FILE, None)
     if stacks is None:
         return
     faulthandler.unregister(signal.SIGUSR1)
     faulthandler.unregister(signal.SIGTERM)
     stacks.close()
+    Path(stacks.name).unlink(missing_ok=True)
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_testnodedown(node, error) -> None:
+    """Remove the file of a worker that crashed.
+
+    A crashed worker does not get to `pytest_unconfigure`. Other workers
+    remove their file themselves, as they may still hang after the session,
+    e.g. on a thread, and a timeout should print their stacks then.
+    """
+    directory = node.config.getoption("bazel_workers_dir")
+    if error is None or not directory:
+        return
+    for path in Path(directory).glob(f"*-{node.gateway.id}.txt"):
+        path.unlink(missing_ok=True)
 
 
 # tryfirst: the hook stops at the first result, and the one of xdist returns one.
