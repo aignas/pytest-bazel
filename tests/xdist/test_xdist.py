@@ -233,6 +233,24 @@ def test_empty_shard_with_workers_passes(tmp_path):
     assert [code for code, _ in codes] == [pytest.ExitCode.OK] * 2, codes
 
 
+def test_warnings_of_workers_are_written_once(tmp_path):
+    (tmp_path / "test_warns.py").write_text(
+        "import warnings\n"
+        "def test_warns():\n"
+        "    warnings.warn('from a worker', DeprecationWarning)\n"
+    )
+    out = tmp_path / "test.warnings"
+
+    code, output = _run(
+        tmp_path, "-n", "2", "test_warns.py", TEST_WARNINGS_OUTPUT_FILE=str(out)
+    )
+
+    assert code == pytest.ExitCode.OK, output
+    assert out.read_text().count("DeprecationWarning: from a worker") == 1, (
+        out.read_text()
+    )
+
+
 def test_auto_warns_without_cpu_count(tmp_path):
     (tmp_path / "test_ok.py").write_text("def test_ok(): pass\n")
 
