@@ -1,5 +1,6 @@
 # The metadata duplicates pyproject.toml, :whl_test checks that they match.
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
+load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_test.bzl", "py_test")
 
 licenses(["notice"])  # Apache 2.0
@@ -85,5 +86,26 @@ py_test(
         "check_changelog_test.py",
     ],
     main = "check_changelog_test.py",
+    deps = ["//pytest_bazel"],
+)
+
+# bazel run //pkg:bump [-- --dry-run]
+py_binary(
+    name = "bump",
+    srcs = [
+        "bump.py",
+        "check_changelog.py",
+    ],
+    main = "bump.py",
+)
+
+py_test(
+    name = "bump_test",
+    srcs = [
+        "bump.py",
+        "bump_test.py",
+        "check_changelog.py",
+    ],
+    main = "bump_test.py",
     deps = ["//pytest_bazel"],
 )

@@ -131,7 +131,10 @@ User-visible changes need a `news/<PR number>.<category>.md` file, where
 two sentences about the behaviour, without implementation details or a
 leading bullet. They are collected into `CHANGELOG.md` on release.
 
-Before tagging a release, move the news entries into a `## [<version>]`
-section of `CHANGELOG.md`, add its `releases/tag` link and update the
-`[unreleased]` link. The release workflow runs `pkg/check_changelog.py
+Before tagging a release, run `bazel run //pkg:bump`. It picks the next
+version, a patch release if all news entries are `fixed` and a minor release
+otherwise, moves the entries into a `## [<version>]` section of `CHANGELOG.md`
+and updates the release links. Commit that as
+`docs: prepare the changelog for the <version> release`, and tag `<version>`
+once it is merged. The release workflow runs `pkg/check_changelog.py
 <version>` and fails without publishing if any of that is missing.
