@@ -86,6 +86,14 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     if undeclared_output_dir:
         args = _report_path_args(args, undeclared_output_dir)
 
+    if env.uses_exact_test_filter:
+        return [
+            *args,
+            "-p",
+            "pytest_bazel.exact_filter",
+            f"--bazel-test-filter={env.test_only}",
+        ]
+
     if not env.test_filter:
         return args
 
@@ -361,10 +369,15 @@ def main(
     _report_infrastructure_failure(env, exit_code)
 
     if env.test_filter and exit_code == pytest.ExitCode.NO_TESTS_COLLECTED:
+        how = (
+            f"{env.test_only!r} by exact names"
+            if env.uses_exact_test_filter
+            else f"-k {env.test_filter!r}"
+        )
         # Pass, as `bazel test //... --test_filter=x` filters every target,
         # but say so, as a typo in the filter would pass too.
         print(
-            f"pytest_bazel: --test_filter selected no tests (-k {env.test_filter!r})",
+            f"pytest_bazel: --test_filter selected no tests ({how})",
             file=sys.stderr,
         )
         return 0
