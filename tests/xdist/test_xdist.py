@@ -1,16 +1,19 @@
 """pytest-xdist through pytest_bazel, run like bazel test runs a test."""
 
 import importlib
+import io
 import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 import xml.etree.ElementTree as ET
 
 import pytest
 
 from pytest_bazel.main import BazelEnv, _plugin_args
+from pytest_bazel.workers import stop_workers
 
 pytestmark = pytest.mark.skipif(os.name != "posix", reason="posix only")
 
@@ -209,6 +212,23 @@ def test_files_of_crashed_workers_are_removed(tmp_path):
     assert code == pytest.ExitCode.TESTS_FAILED, output
     assert "crashed" in output, output
     assert list((tmp_path / "tmp" / "pytest_bazel_workers").iterdir()) == [], output
+
+
+def test_stop_workers_when_a_worker_stops_meanwhile(tmp_path):
+    """A worker removes its file when it stops, also while it is being stopped."""
+    proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+    stacks = tmp_path / f"{proc.pid}-gw0.txt"
+    stacks.write_text("")
+    timer = threading.Timer(0.3, stacks.unlink)
+    timer.start()
+    try:
+        stop_workers(tmp_path, io.StringIO())
+        # It is gone from the files, so its PID may belong to another process.
+        assert proc.poll() is None
+    finally:
+        timer.cancel()
+        proc.kill()
+        proc.wait()
 
 
 def test_sharding_with_workers(tmp_path):
