@@ -14,12 +14,9 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import pytest
 
-from pytest_bazel.main import (
-    BazelEnv,
-    _relative_to_runfiles,
-    _relative_warning_paths,
-)
+from pytest_bazel.main import BazelEnv
 from pytest_bazel.main import main as _main
+from pytest_bazel.warning_paths import _relative_to_runfiles, _relative_warning_paths
 
 _SAMPLE = "tests/report_paths/sample/failing.py"
 

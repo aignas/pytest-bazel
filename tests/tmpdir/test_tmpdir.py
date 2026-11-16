@@ -4,7 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _set_tmpdir
+from pytest_bazel.env import BazelEnv
+from pytest_bazel.tmpdir import _set_tmpdir
 
 _TMP_VARS = ("TMPDIR", "TMP", "TEMP")
 

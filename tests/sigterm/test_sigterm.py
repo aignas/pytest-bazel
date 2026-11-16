@@ -7,7 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _interrupt_on_sigterm
+from pytest_bazel.env import BazelEnv
+from pytest_bazel.sigterm import _interrupt_on_sigterm
 
 pytestmark = pytest.mark.skipif(os.name != "posix", reason="posix only")
 
