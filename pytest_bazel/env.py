@@ -2,7 +2,6 @@
 
 import importlib.util
 from collections.abc import MutableMapping
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -64,14 +63,27 @@ class _OptIn:
         return _flag(obj.env, self.name)
 
 
-@dataclass
 class BazelEnv:
     """The initial conditions environment described in the bazel docs.
 
     See https://bazel.build/reference/test-encyclopedia#initial-conditions
+
+    Not a dataclass, which takes ~0.4 ms to create when every test imports it.
     """
 
-    env: MutableMapping[str, str]
+    def __init__(self, env: MutableMapping[str, str]) -> None:
+        """Read the bazel env vars from `env`, e.g. `os.environ`."""
+        self.env = env
+
+    def __repr__(self) -> str:
+        """Return the repr of a dataclass, as BazelEnv was one."""
+        return f"BazelEnv(env={self.env!r})"
+
+    def __eq__(self, other: object) -> bool:
+        """Compare the env vars, as a dataclass would."""
+        return isinstance(other, BazelEnv) and self.env == other.env
+
+    __hash__ = None  # type: ignore[assignment]  # Like a dataclass, as env changes.
 
     # Sharding, https://bazel.build/reference/test-encyclopedia#test-sharding
     test_shard_index = _IntVar("TEST_SHARD_INDEX")
