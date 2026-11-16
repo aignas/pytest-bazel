@@ -23,7 +23,7 @@ How `pytest_bazel` follows the [test encyclopedia][te] when running under
 | `TEST_RANDOM_SEED`, `TEST_RUN_NUMBER` (`--runs_per_test`) | Seeds `pytest-randomly` with `--randomly-seed`, or `random.seed` without it. | [Example][docs-runs-per-test] | [Initial conditions][te-env] |
 | `TEST_SHARD_INDEX`, `TEST_TOTAL_SHARDS`, `TEST_SHARD_STATUS_FILE` (`shard_count`) | Built-in sharding: balanced shards, empty shards pass. | [Example][docs-sharding] | [Test sharding][te-sharding] |
 | `TEST_SIZE` | Not supported. | [Not supported][not-supported] | [Initial conditions][te-env] |
-| `TEST_TARGET` | Names the JUnit test suite, and selects the package for the opt-in flags below. | [Example][docs-junit-xml] | [Initial conditions][te-env] |
+| `TEST_TARGET` | Names the JUnit test suite, unless the pytest config sets `junit_suite_name`, and selects the package for the opt-in flags below. | [Example][docs-junit-xml] | [Initial conditions][te-env] |
 | `TEST_TIMEOUT` (`timeout`, `--test_timeout`) | On timeout bazel sends SIGTERM: the stacks of all threads are printed and pytest is interrupted, so it still reports where the tests hung and writes the JUnit XML. | [Example][docs-timeout] | [Initial conditions][te-env] |
 | `TEST_TMPDIR` | Used for `--basetemp` and for `TMPDIR`, `TMP` and `TEMP`, through a short alias when the path is too long for AF_UNIX sockets. | [Example][docs-tmpdir] | [Filesystem][te-fs] |
 | `TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR` | A summary of the results and the failed tests is written as an annotation, which bazel adds to `bazel-testlogs/<target>/test.outputs_manifest/ANNOTATIONS`. | [Example][docs-annotations] | [Filesystem][te-fs] |
@@ -111,8 +111,9 @@ approaches.
 Behaviour changes are added behind opt-in flags first. Their defaults will be
 flipped in 1.0. Set them in the `env` of a test, or for all tests with e.g.
 `test --test_env=PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` in `.bazelrc`.
-The options that a flag sets, e.g. `testpaths`, are left as they are when the
-pytest config file sets them.
+The options that a flag sets, e.g. `junit_logging`, are left as they are when
+the pytest config file sets them. `testpaths` is only left as it is when the
+config file is in the package of the target.
 
 | Env var | Default | Default in 1.0 | Description | Docs |
 | --- | --- | --- | --- | --- |

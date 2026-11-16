@@ -17,7 +17,8 @@ Opt-in with `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1`, this will be the
 default in 1.0. Without paths in the args pytest collects all tests in the
 runfiles, including the tests of other packages that are there through `deps`
 or `data`. With the flag, only the tests in the package of the target are
-collected.
+collected. A `testpaths` in a pytest config file in the package wins, one in
+a config file shared by many packages, e.g. in the workspace root, does not.
 
 <!-- source: examples/scope_collection/BUILD.bazel -->
 ```{code-block} starlark
