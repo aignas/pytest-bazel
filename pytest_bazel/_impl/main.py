@@ -23,7 +23,7 @@ from pytest_bazel._impl.config import (
     _pytest_version,
     _user_config_arg,
 )
-from pytest_bazel._impl.env import BazelEnv, _workers_dir
+from pytest_bazel._impl.env import BazelEnv, _workers_dir, flag_errors
 from pytest_bazel._impl.filters import _with_keyword_expression
 from pytest_bazel._impl.sigterm import _interrupt_on_sigterm
 from pytest_bazel._impl.tmpdir import _clean_kept_basetemp, _set_tmpdir
@@ -411,6 +411,16 @@ def _report_infrastructure_failure(env: BazelEnv, exit_code: int) -> None:
     )
 
 
+def _usage_error(env: BazelEnv, errors: list[str]) -> int:
+    """Report `errors` in the setup of pytest_bazel, like pytest reports its own."""
+    text = "".join(f"pytest_bazel: {error}\n" for error in errors)
+    sys.stderr.write(text)
+    failure_file = env.test_infrastructure_failure_file
+    if failure_file:
+        failure_file.write_text(text)
+    return pytest.ExitCode.USAGE_ERROR
+
+
 def main(
     args=None,
     pytest_main=pytest.main,
@@ -426,6 +436,10 @@ def main(
 
     """
     env = env or BazelEnv(os.environ)
+    errors = flag_errors(env)
+    if errors:
+        # Before reading them, which would fail with a traceback.
+        return _usage_error(env, errors)
     _prepare(env)
     if args is None:
         args = sys.argv[1:]
