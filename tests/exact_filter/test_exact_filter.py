@@ -97,6 +97,10 @@ def test_k_matches_substrings_without_the_flag(pytester):
     ]
 
 
+def test_filter_without_tests_selects_all(pytester):
+    assert len(_selected(pytester, ",")) == len(_selected(pytester, ",", flag="0"))
+
+
 def test_not_loaded_without_the_flag():
     env = BazelEnv({"BAZEL_TEST": "1", "TESTBRIDGE_TEST_ONLY": "test_a"})
 

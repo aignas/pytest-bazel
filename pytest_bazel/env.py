@@ -134,11 +134,12 @@ class BazelEnv:
     def uses_exact_test_filter(self) -> bool:
         """Return True if `--test_filter` selects tests by exact names, not `-k`.
 
-        A filter with spaces is a `-k` expression either way.
+        A filter with spaces is a `-k` expression either way, and one without
+        any test, e.g. `,`, selects all tests either way.
         """
         return (
             self.exact_test_filter
-            and bool(self.test_only)
+            and bool(self.test_filter)
             and " " not in self.test_only
         )
 
