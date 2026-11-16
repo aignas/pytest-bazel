@@ -12,6 +12,10 @@ import pytest
 # Set when this shard got no tests, but other shards did.
 _EMPTY_SHARD = pytest.StashKey[bool]()
 
+# The key in the `workeroutput` of pytest-xdist, as the workers collect the
+# tests, but the main process sets the exit code.
+_WORKER_EMPTY_SHARD = "pytest_bazel_empty_shard"
+
 
 def select_shard(node_ids: Sequence[str], index: int, total: int) -> set[str]:
     """Return the node ids that the shard `index` out of `total` should run.
@@ -51,6 +55,9 @@ def pytest_configure(config: pytest.Config) -> None:
         raise pytest.UsageError(msg)
 
 
+# trylast: split what is left after e.g. `-k` and `-m` deselected tests, so
+# that no shard gets only deselected tests.
+@pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
@@ -73,7 +80,18 @@ def pytest_collection_modifyitems(
         config.hook.pytest_deselected(items=other_shards)
         items[:] = keep
 
-    config.stash[_EMPTY_SHARD] = bool(other_shards) and not keep
+    empty = bool(other_shards) and not keep
+    config.stash[_EMPTY_SHARD] = empty
+    workeroutput = getattr(config, "workeroutput", None)
+    if workeroutput is not None:
+        workeroutput[_WORKER_EMPTY_SHARD] = empty
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_testnodedown(node, error) -> None:
+    """Pass the empty shard of a pytest-xdist worker on to the main process."""
+    if getattr(node, "workeroutput", {}).get(_WORKER_EMPTY_SHARD):
+        node.config.stash[_EMPTY_SHARD] = True
 
 
 @pytest.hookimpl(trylast=True)
