@@ -9,7 +9,6 @@ import importlib.util
 import os
 import random
 import sys
-import warnings
 from pathlib import Path
 from typing import Optional
 
@@ -19,7 +18,7 @@ from pytest_bazel.config import _find_package_config
 from pytest_bazel.env import BazelEnv, _workers_dir
 from pytest_bazel.sigterm import _interrupt_on_sigterm
 from pytest_bazel.tmpdir import _set_tmpdir
-from pytest_bazel.warning_paths import _relative_warning_paths, _write_to_file_factory
+from pytest_bazel.warning_paths import _relative_warning_paths, _warnings_to_file
 
 __all__ = ["BazelEnv", "main"]
 
@@ -298,26 +297,15 @@ def main(
     if premature_exit_file:
         premature_exit_file.touch()
 
-    warnings_file = env.test_warnings_output_file
-    # Only under `bazel test`, where the sandbox is gone after the test. With
-    # `bazel run`, which also sets BAZEL_TEST for test targets, or without bazel
-    # the absolute paths exist and work from any directory.
-    relative_warning_paths = (
-        _relative_warning_paths(Path.cwd())
-        if env.is_test and not env.is_bazel_run
-        else contextlib.nullcontext()
-    )
-    with _interrupt_on_sigterm(env), relative_warning_paths:
-        if warnings_file:
-            with warnings_file.open("w") as f:
-                original_showwarning = warnings.showwarning
-                warnings.showwarning = _write_to_file_factory(f)
-                try:
-                    exit_code = pytest_main(pytest_args)
-                finally:
-                    warnings.showwarning = original_showwarning
-        else:
-            exit_code = pytest_main(pytest_args)
+    with contextlib.ExitStack() as stack:
+        stack.enter_context(_interrupt_on_sigterm(env))
+        if env.is_test and not env.is_bazel_run:
+            # Only under `bazel test`, where the sandbox is gone after the test.
+            # With `bazel run`, which also sets BAZEL_TEST for test targets, or
+            # without bazel the absolute paths exist and work from any directory.
+            stack.enter_context(_relative_warning_paths(Path.cwd()))
+        stack.enter_context(_warnings_to_file(env.test_warnings_output_file))
+        exit_code = pytest_main(pytest_args)
 
     if premature_exit_file:
         premature_exit_file.unlink(missing_ok=True)

@@ -1,26 +1,35 @@
 """Make the warnings of the tests useful outside of the bazel sandbox."""
 
 import contextlib
-import sys
 import warnings
 from collections.abc import Iterator
 from pathlib import Path, PurePath
+from typing import Optional
 
 
-def _write_to_file_factory(out_file):
-    """Return a function that used to replace the warnings.showwarning function.
+@contextlib.contextmanager
+def _warnings_to_file(path: Optional[Path]) -> Iterator[None]:
+    """Write the warnings that reach `warnings.showwarning` to `path`, if set.
 
-    This is used to write everything to a file that bazel specifies.
+    Bazel copies TEST_WARNINGS_OUTPUT_FILE to the test results.
     """
+    if not path:
+        yield
+        return
 
-    def _fn(  # noqa: PLR0913, PLR0917
-        message, category, filename, lineno, file=sys.stderr, line=None
-    ):
-        out_file.write(
-            warnings.formatwarning(message, category, filename, lineno, line)
-        )
+    with path.open("w") as out:
 
-    return _fn
+        def showwarning(  # noqa: PLR0913, PLR0917
+            message, category, filename, lineno, file=None, line=None
+        ):
+            out.write(warnings.formatwarning(message, category, filename, lineno, line))
+
+        original = warnings.showwarning
+        warnings.showwarning = showwarning
+        try:
+            yield
+        finally:
+            warnings.showwarning = original
 
 
 def _relative_to_runfiles(filename: str, start: PurePath) -> str:
