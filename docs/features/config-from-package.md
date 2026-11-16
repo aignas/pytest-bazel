@@ -16,7 +16,8 @@ Opt-in with `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, this will be the default in
 `pytest.ini` next to the tests is not used. With the flag, the config file in
 the package of the target, or in its parents, is used. Test ids stay
 relative to the runfiles root, while `testpaths` are relative to the config
-file, as when pytest runs next to it.
+file, as when pytest runs next to it. The `conftest.py` files above the config
+file, e.g. in the workspace root, are still loaded.
 
 <!-- source: examples/config_from_package/pytest.ini -->
 ```{code-block} ini
