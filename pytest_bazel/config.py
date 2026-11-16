@@ -1,15 +1,9 @@
 """Find the pytest config file of a bazel package, and what it sets."""
 
-import configparser
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Optional
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # pytest depends on tomli before Python 3.11.
-    import tomli as tomllib
 
 import pytest
 
@@ -119,23 +113,40 @@ def _pytest_config_file(args: Sequence[str]) -> Optional[Path]:
         directory = directory.parent
 
 
+def _toml_keys(path: Path) -> set[str]:
+    # Imported here, as most tests have no config file and it takes ~4 ms.
+    if sys.version_info >= (3, 11):
+        import tomllib  # noqa: PLC0415
+    else:  # pytest depends on tomli before Python 3.11.
+        import tomli as tomllib  # noqa: PLC0415
+
+    try:
+        data = tomllib.loads(path.read_text())
+    except (OSError, ValueError):
+        return set()
+    if path.name != "pyproject.toml":
+        # pytest.toml, or a toml file passed with `-c`.
+        return set(data.get("pytest", {}))
+    pytest_config = data.get("tool", {}).get("pytest", {})
+    return set(pytest_config.get("ini_options", pytest_config))
+
+
+def _ini_file_keys(path: Path) -> set[str]:
+    # Imported here, as most tests have no config file.
+    import configparser  # noqa: PLC0415
+
+    parser = configparser.ConfigParser(interpolation=None, strict=False)
+    try:
+        parser.read_string(path.read_text())
+    except (OSError, ValueError, configparser.Error):
+        return set()
+    section = "tool:pytest" if path.name == "setup.cfg" else "pytest"
+    return set(parser[section]) if parser.has_section(section) else set()
+
+
 def _ini_keys(path: Path) -> set[str]:
     """Return the names of the options that the pytest config file `path` sets.
 
     An unreadable file sets nothing, pytest reports the error itself.
     """
-    try:
-        if path.suffix == ".toml":
-            data = tomllib.loads(path.read_text())
-            if path.name != "pyproject.toml":
-                # pytest.toml, or a toml file passed with `-c`.
-                return set(data.get("pytest", {}))
-            pytest_config = data.get("tool", {}).get("pytest", {})
-            return set(pytest_config.get("ini_options", pytest_config))
-
-        parser = configparser.ConfigParser(interpolation=None, strict=False)
-        parser.read_string(path.read_text())
-        section = "tool:pytest" if path.name == "setup.cfg" else "pytest"
-        return set(parser[section]) if parser.has_section(section) else set()
-    except (OSError, ValueError, configparser.Error):
-        return set()
+    return _toml_keys(path) if path.suffix == ".toml" else _ini_file_keys(path)
