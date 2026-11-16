@@ -5,9 +5,7 @@ https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35
 """
 
 import contextlib
-import importlib.util
 import os
-import random
 import sys
 from pathlib import Path
 from typing import Optional
@@ -166,20 +164,11 @@ def _random_seed(env: BazelEnv) -> int:
     return env.test_random_seed or env.test_run_number
 
 
-def _has_pytest_randomly() -> bool:
-    return importlib.util.find_spec("pytest_randomly") is not None
-
-
 def _prepare(env: BazelEnv) -> None:
     """Set up the process for the args of `_pytest_args`, which has no side effects."""
     _set_tmpdir(env)
     if not env.is_test:
         return
-
-    random_seed = _random_seed(env)
-    if random_seed and not _has_pytest_randomly():
-        # pytest-randomly seeds `random` itself, see `_pytest_args`.
-        random.seed(random_seed)
 
     if env.test_shard_index is not None and env.test_total_shards is not None:
         status_file = env.test_shard_status_file
@@ -229,8 +218,10 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     pytest_args.extend(_opt_in_args(env))
 
     random_seed = _random_seed(env)
-    if random_seed and _has_pytest_randomly():
-        pytest_args.append(f"--randomly-seed={random_seed}")
+    if random_seed:
+        pytest_args.extend(
+            ["-p", "pytest_bazel.random_seed", f"--bazel-random-seed={random_seed}"]
+        )
 
     pytest_args.extend(_plugin_args(env))
 
