@@ -9,14 +9,6 @@ from typing import Optional
 from pytest_bazel.filters import _keyword_expression
 
 
-def _maybe_path(p) -> Optional[Path]:
-    return Path(p) if p else None
-
-
-def _maybe_int(v: Optional[str]) -> Optional[int]:
-    return int(v) if v is not None else None
-
-
 def _flag(env: MutableMapping[str, str], name: str) -> bool:
     """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
     value = env.get(name, "0")
@@ -24,6 +16,52 @@ def _flag(env: MutableMapping[str, str], name: str) -> bool:
         msg = f"{name} must be 0 or 1, got {value!r}"
         raise ValueError(msg)
     return value == "1"
+
+
+class _Var:
+    """An env var of `BazelEnv`, read when it is accessed."""
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def _get(self, obj: "BazelEnv") -> Optional[str]:
+        return obj.env.get(self.name)
+
+
+class _PathVar(_Var):
+    """A path, None if unset or empty."""
+
+    def __get__(self, obj: "BazelEnv", objtype: object = None) -> Optional[Path]:
+        value = self._get(obj)
+        return Path(value) if value else None
+
+
+class _IntVar(_Var):
+    """An int, None if unset."""
+
+    def __get__(self, obj: "BazelEnv", objtype: object = None) -> Optional[int]:
+        value = self._get(obj)
+        return int(value) if value is not None else None
+
+
+class _CountVar(_Var):
+    """An int, 0 if unset."""
+
+    def __get__(self, obj: "BazelEnv", objtype: object = None) -> int:
+        return int(self._get(obj) or 0)
+
+
+class _OptIn:
+    """An opt-in flag `PYTEST_BAZEL_<NAME>`, off by default and on in 1.0.
+
+    See the "Planned for 1.0" table in README.md.
+    """
+
+    def __set_name__(self, owner: type, name: str) -> None:
+        self.name = f"PYTEST_BAZEL_{name.upper()}"
+
+    def __get__(self, obj: "BazelEnv", objtype: object = None) -> bool:
+        return _flag(obj.env, self.name)
 
 
 @dataclass
@@ -35,30 +73,33 @@ class BazelEnv:
 
     env: MutableMapping[str, str]
 
-    @property
-    def test_shard_index(self) -> Optional[int]:
-        """Return the TEST_SHARD_INDEX value."""
-        return _maybe_int(self.env.get("TEST_SHARD_INDEX"))
+    # Sharding, https://bazel.build/reference/test-encyclopedia#test-sharding
+    test_shard_index = _IntVar("TEST_SHARD_INDEX")
+    test_shard_status_file = _PathVar("TEST_SHARD_STATUS_FILE")
+    test_total_shards = _IntVar("TEST_TOTAL_SHARDS")
+    # 0 means unset.
+    test_random_seed = _CountVar("TEST_RANDOM_SEED")
+    # 0 means unset, i.e. no `--runs_per_test`.
+    test_run_number = _CountVar("TEST_RUN_NUMBER")
+    test_timeout = _IntVar("TEST_TIMEOUT")
 
-    @property
-    def test_shard_status_file(self) -> Optional[Path]:
-        """Return the TEST_SHARD_STATUS_FILE value or None."""
-        return _maybe_path(self.env.get("TEST_SHARD_STATUS_FILE"))
+    # Files and directories.
+    test_tmpdir = _PathVar("TEST_TMPDIR")
+    test_undeclared_outputs_annotations_dir = _PathVar(
+        "TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR"
+    )
+    test_undeclared_outputs_dir = _PathVar("TEST_UNDECLARED_OUTPUTS_DIR")
+    test_infrastructure_failure_file = _PathVar("TEST_INFRASTRUCTURE_FAILURE_FILE")
+    test_premature_exit_file = _PathVar("TEST_PREMATURE_EXIT_FILE")
+    test_warnings_output_file = _PathVar("TEST_WARNINGS_OUTPUT_FILE")
+    xml_output_file = _PathVar("XML_OUTPUT_FILE")
 
-    @property
-    def test_total_shards(self) -> Optional[int]:
-        """Return the TEST_TOTAL_SHARDS value."""
-        return _maybe_int(self.env.get("TEST_TOTAL_SHARDS"))
-
-    @property
-    def test_random_seed(self) -> int:
-        """Return the TEST_RANDOM_SEED value. If zero, it should be interpreted as no value."""
-        return int(self.env.get("TEST_RANDOM_SEED", 0))
-
-    @property
-    def test_run_number(self) -> int:
-        """Return the TEST_RUN_NUMBER value. If zero, then --runs_per_test is likely not used."""
-        return int(self.env.get("TEST_RUN_NUMBER", 0))
+    # Opt-in flags of pytest_bazel.
+    config_from_package = _OptIn()
+    consider_namespace_packages = _OptIn()
+    junit_output = _OptIn()
+    keep_failed_tmp_path = _OptIn()
+    scope_collection_to_package = _OptIn()
 
     @property
     def is_test(self) -> bool:
@@ -84,89 +125,9 @@ class BazelEnv:
         return None
 
     @property
-    def config_from_package(self) -> bool:
-        """Return PYTEST_BAZEL_CONFIG_FROM_PACKAGE as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_CONFIG_FROM_PACKAGE")
-
-    @property
-    def consider_namespace_packages(self) -> bool:
-        """Return PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES")
-
-    @property
-    def junit_output(self) -> bool:
-        """Return PYTEST_BAZEL_JUNIT_OUTPUT as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_JUNIT_OUTPUT")
-
-    @property
-    def keep_failed_tmp_path(self) -> bool:
-        """Return PYTEST_BAZEL_KEEP_FAILED_TMP_PATH as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_KEEP_FAILED_TMP_PATH")
-
-    @property
-    def scope_collection_to_package(self) -> bool:
-        """Return PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE")
-
-    @property
-    def test_tmpdir(self) -> Optional[Path]:
-        """Return the TEST_TMPDIR value or None if unset."""
-        return _maybe_path(self.env.get("TEST_TMPDIR"))
-
-    @property
-    def test_undeclared_outputs_annotations_dir(self) -> Optional[Path]:
-        """Return the TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR value or None if unset."""
-        return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR"))
-
-    @property
-    def test_undeclared_outputs_dir(self) -> Optional[Path]:
-        """Return the TEST_UNDECLARED_OUTPUTS_DIR value or None if unset."""
-        return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
-
-    @property
-    def test_infrastructure_failure_file(self) -> Optional[Path]:
-        """Return the TEST_INFRASTRUCTURE_FAILURE_FILE value or None if unset."""
-        return _maybe_path(self.env.get("TEST_INFRASTRUCTURE_FAILURE_FILE"))
-
-    @property
-    def test_timeout(self) -> Optional[int]:
-        """Return the TEST_TIMEOUT value in seconds or None if unset."""
-        return _maybe_int(self.env.get("TEST_TIMEOUT"))
-
-    @property
-    def test_premature_exit_file(self) -> Optional[Path]:
-        """Return the TEST_PREMATURE_EXIT_FILE value or None if unset."""
-        return _maybe_path(self.env.get("TEST_PREMATURE_EXIT_FILE"))
-
-    @property
-    def test_warnings_output_file(self) -> Optional[Path]:
-        """Return the TEST_WARNINGS_OUTPUT_FILE value or None if unset."""
-        return _maybe_path(self.env.get("TEST_WARNINGS_OUTPUT_FILE"))
-
-    @property
     def test_filter(self) -> str:
         """Return TESTBRIDGE_TEST_ONLY as a `-k` expression, see `_keyword_expression`."""
         return _keyword_expression(self.env.get("TESTBRIDGE_TEST_ONLY", ""))
-
-    @property
-    def xml_output_file(self) -> Optional[Path]:
-        """Return the XML_OUTPUT_FILE value or None if unset."""
-        return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
 
     @property
     def test_target(self) -> Optional[str]:
@@ -177,6 +138,11 @@ class BazelEnv:
     def test_runner_fail_fast(self) -> bool:
         """Return the TESTBRIDGE_TEST_RUNNER_FAIL_FAST value as a boolean."""
         return self.env.get("TESTBRIDGE_TEST_RUNNER_FAIL_FAST") == "1"
+
+
+def opt_in_flags() -> list[str]:
+    """Return the names of the opt-in env vars, e.g. `PYTEST_BAZEL_JUNIT_OUTPUT`."""
+    return [v.name for v in vars(BazelEnv).values() if isinstance(v, _OptIn)]
 
 
 def _workers_dir(env: BazelEnv) -> Optional[Path]:
