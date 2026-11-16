@@ -5,6 +5,11 @@ build --incompatible_default_to_explicit_init_py
 
 build --nolegacy_external_runfiles
 
+# Compile the Python sources at build time, so that tests do not compile
+# pytest and its deps every time. `force_enabled`, as rules_python does not
+# precompile pip packages otherwise. See docs/performance.md.
+common --@rules_python//python/config_settings:precompile=force_enabled
+
 common --lockfile_mode=update
 common:ci --lockfile_mode=error
 
