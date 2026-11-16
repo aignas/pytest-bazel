@@ -163,6 +163,19 @@ def test_render_and_update(tmp_path):
     assert lib.update([page], outputs, check=True) == []
 
 
+@pytest.mark.parametrize(
+    ("line", "want"),
+    [
+        ("ERROR: /ws/examples/a/BUILD.bazel:3:8: error while validating output", True),
+        ("ERROR: /ws/a/BUILD:1:2: Testing //a:b failed", True),
+        ("ERROR: --pdb needs a terminal.", False),
+        ("ERROR: Build did NOT complete successfully", False),
+    ],
+)
+def test_bazel_errors_are_told_apart_from_test_output(line, want):
+    assert bool(lib._BAZEL_ERROR.match(line)) is want
+
+
 if __name__ == "__main__":
     import pytest_bazel
 

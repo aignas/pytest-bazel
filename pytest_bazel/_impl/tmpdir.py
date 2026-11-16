@@ -3,6 +3,7 @@
 import atexit
 import contextlib
 import os
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -70,3 +71,25 @@ def _set_tmpdir(env: BazelEnv) -> None:
     if env.env is os.environ:
         # `tempfile.gettempdir()` caches its result process-wide.
         tempfile.tempdir = None
+
+
+def _clean_kept_basetemp(basetemp: Path, *, passed: bool) -> None:
+    """Make the `tmp_path` dirs kept in the bazel outputs valid outputs.
+
+    pytest links `<name>current` to the newest dir of each name with an
+    absolute path, which dangles once bazel removes the sandbox, and bazel
+    then fails the test with "not all outputs were created or valid". pytest
+    also never removes a `--basetemp` that it was given, so remove it if all
+    tests passed, as there is nothing to debug then.
+    """
+    if not basetemp.is_dir():
+        return
+    if passed:
+        shutil.rmtree(basetemp, ignore_errors=True)
+        return
+    # Not Path.rglob, which follows the links on older Pythons.
+    for root, dirs, files in os.walk(basetemp):
+        for name in [*dirs, *files]:
+            path = Path(root, name)
+            if path.is_symlink():
+                path.unlink()

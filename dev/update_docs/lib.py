@@ -164,6 +164,10 @@ def _read(path: Path) -> str:
     return ET.tostring(tree.getroot(), encoding="unicode")
 
 
+# An error of bazel itself, e.g. `ERROR: /ws/pkg/BUILD.bazel:3:8: ...`.
+_BAZEL_ERROR = re.compile(r"^ERROR: \S*BUILD(\.bazel)?:\d+:\d+: ")
+
+
 def _testlogs(target: str) -> Path:
     package, _, name = target.removeprefix("//").partition(":")
     return TESTLOGS / package / name
@@ -187,6 +191,12 @@ def run(example: Example) -> str:
     status = [line for line in output.splitlines() if line.startswith("//")]
     if not status:
         sys.exit(f"ERROR: no test result for {example.target}:\n{output}")
+    # A failing test is no error of bazel, but e.g. invalid test outputs are,
+    # and `keep` would hide them in the docs. Bazel names the BUILD file, unlike
+    # the errors that the tests print to their log.
+    errors = [line for line in output.splitlines() if _BAZEL_ERROR.match(line)]
+    if errors:
+        sys.exit(f"ERROR: bazel failed for {example.target}:\n" + "\n".join(errors))
 
     out = ["$ " + " ".join(cmd), sanitize("\n".join(status))]
     testlogs = _testlogs(example.target)

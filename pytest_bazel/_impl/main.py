@@ -23,7 +23,7 @@ from pytest_bazel._impl.config import (
 from pytest_bazel._impl.env import BazelEnv, _workers_dir
 from pytest_bazel._impl.filters import _with_keyword_expression
 from pytest_bazel._impl.sigterm import _interrupt_on_sigterm
-from pytest_bazel._impl.tmpdir import _set_tmpdir
+from pytest_bazel._impl.tmpdir import _clean_kept_basetemp, _set_tmpdir
 from pytest_bazel._impl.warning_paths import _relative_warning_paths, _warnings_to_file
 
 __all__ = ["BazelEnv", "main"]
@@ -101,17 +101,22 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     return _with_keyword_expression(args, env.test_filter)
 
 
-def _basetemp_args(env: BazelEnv) -> list[str]:
-    """Return the args for where pytest creates `tmp_path` and friends."""
+def _kept_basetemp(env: BazelEnv) -> Optional[Path]:
+    """Return the basetemp in the bazel outputs to keep failed tmp_paths in."""
     outputs_dir = env.test_undeclared_outputs_dir
     if env.keep_failed_tmp_path and outputs_dir and _pytest_version() >= (7, 3):
+        return outputs_dir / "pytest"
+    return None
+
+
+def _basetemp_args(env: BazelEnv) -> list[str]:
+    """Return the args for where pytest creates `tmp_path` and friends."""
+    kept = _kept_basetemp(env)
+    if kept:
         # Bazel copies the undeclared outputs to bazel-testlogs, so keep the
-        # `tmp_path` of failed tests there to help debugging them.
-        return [
-            f"--basetemp={outputs_dir / 'pytest'}",
-            "-o",
-            "tmp_path_retention_policy=failed",
-        ]
+        # `tmp_path` of failed tests there to help debugging them, see
+        # `tmp_path_retention_policy` in `_ini_defaults`.
+        return [f"--basetemp={kept}"]
 
     # Keep everything in the sandbox, bazel cleans TEST_TMPDIR up.
     if env.test_tmpdir:
@@ -188,6 +193,10 @@ def _ini_defaults(env: BazelEnv) -> dict[str, str]:
     if env.xml_output_file and env.test_target:
         # Name the suite after the target so that merged reports are readable.
         defaults["junit_suite_name"] = env.test_target
+
+    if _kept_basetemp(env):
+        # Only the `tmp_path` of failed tests, the others are not needed.
+        defaults["tmp_path_retention_policy"] = "failed"
 
     if env.junit_output and env.xml_output_file:
         # CI shows the JUnit XML, which only has the output of the tests with
@@ -396,6 +405,10 @@ def main(
             stack.enter_context(_relative_warning_paths(Path.cwd()))
         stack.enter_context(_warnings_to_file(env.test_warnings_output_file))
         exit_code = pytest_main(pytest_args)
+
+    kept_basetemp = _kept_basetemp(env)
+    if kept_basetemp:
+        _clean_kept_basetemp(kept_basetemp, passed=exit_code == pytest.ExitCode.OK)
 
     if premature_exit_file:
         premature_exit_file.unlink(missing_ok=True)
