@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel._impl.env import opt_in_flags
+from pytest_bazel._impl.env import flags
 
 _README = Path("README.md")
 _FEATURES = Path("docs/features")
@@ -67,22 +67,22 @@ def _table_rows(readme, header):
     return rows
 
 
-_OPT_IN_HEADER = "| Env var | Default | Default in 1.0 | Description | Docs |"
+_FLAGS_HEADER = "| Env var | Default | Description | Docs |"
 
 
-def test_every_opt_in_flag_is_planned_for_1_0(readme):
-    rows = _table_rows(readme, _OPT_IN_HEADER)
+def test_every_flag_is_in_the_table(readme):
+    rows = _table_rows(readme, _FLAGS_HEADER)
     documented = {_cells(row)[0].strip("`") for row in rows}
 
     assert documented
-    assert documented == set(opt_in_flags())
+    assert documented == set(flags())
 
 
 @pytest.mark.parametrize(
     "header",
     [
         "| Bazel | `pytest_bazel` | Docs | Reference |",
-        _OPT_IN_HEADER,
+        _FLAGS_HEADER,
     ],
 )
 def test_every_row_links_to_the_docs(readme, header):

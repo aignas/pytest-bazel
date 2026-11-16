@@ -189,11 +189,11 @@ def results() -> str:
             f"{plain:.0f} ms / {bazel:.0f} ms",
         ),
         (
-            f"`PYTEST_BAZEL_EXACT_TEST_FILTER=1` with a name, {_TESTS} tests",
+            f"`--test_filter` with a name, {_TESTS} tests",
             f"{filter_ms('TestThing4.test_function_5', ids):.1f} ms",
         ),
         (
-            f"`PYTEST_BAZEL_EXACT_TEST_FILTER=1` with 4 filters, {_TESTS} tests",
+            f"`--test_filter` with 4 filters, {_TESTS} tests",
             f"{filter_ms('test_function_1,test_function_2,TestThing1.test_function_3,service2/tests', ids):.1f} ms",
         ),
         (f"Splitting {_TESTS} tests into shards", f"{shard_ms(ids):.1f} ms"),

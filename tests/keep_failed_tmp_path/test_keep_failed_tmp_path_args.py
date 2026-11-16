@@ -39,12 +39,29 @@ def test_args(tmp_path):
     assert args[i - 1] == "-o"
 
 
-@pytest.mark.parametrize("flag", [None, "0"], ids=["unset", "0"])
-def test_off_by_default(tmp_path, flag):
-    args = _pytest_args(args=[], env=_env(tmp_path, flag=flag))
+def test_on_by_default(tmp_path):
+    args = _pytest_args(args=[], env=_env(tmp_path, flag=None))
+
+    assert _basetemp(args) == f"--basetemp={tmp_path / 'outputs' / 'pytest'}"
+    assert "tmp_path_retention_policy=failed" in args
+
+
+def test_can_be_turned_off(tmp_path):
+    args = _pytest_args(args=[], env=_env(tmp_path, flag="0"))
 
     assert _basetemp(args) == f"--basetemp={tmp_path / 'tmp' / 'pytest'}"
     assert "tmp_path_retention_policy=failed" not in args
+
+
+def test_no_basetemp_above_the_current_directory(tmp_path, monkeypatch):
+    """E.g. a test that runs pytest_bazel from its own `tmp_path`."""
+    cwd = tmp_path / "outputs" / "pytest" / "test_x0"
+    cwd.mkdir(parents=True)
+    monkeypatch.chdir(cwd)
+
+    args = _pytest_args(args=[], env=_env(tmp_path))
+
+    assert _basetemp(args) == f"--basetemp={tmp_path / 'tmp' / 'pytest'}"
 
 
 def test_needs_pytest_7_3(tmp_path, monkeypatch):

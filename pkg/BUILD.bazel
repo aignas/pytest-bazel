@@ -17,7 +17,7 @@ py_wheel(
     author = "Ignas Anikevicius",
     author_email = "pypi@anikevicius.lt",
     classifiers = [
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Programming Language :: Python",
     ],
     description_file = "//:README.md",

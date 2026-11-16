@@ -17,9 +17,15 @@ def _args(args=(), *, flag="1"):
     return _pytest_args(args=list(args), env=BazelEnv(env))
 
 
-@pytest.mark.parametrize("flag", [None, "0"], ids=["unset", "0"])
-def test_off_by_default(flag):
-    assert _ARG not in _args(flag=flag)
+@pytest.mark.skipif(
+    _pytest_version() < (8, 1), reason="consider_namespace_packages needs pytest 8.1"
+)
+def test_on_by_default():
+    assert _ARG in _args(flag=None)
+
+
+def test_can_be_turned_off():
+    assert _ARG not in _args(flag="0")
 
 
 def test_flag_must_be_0_or_1():

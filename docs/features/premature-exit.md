@@ -36,6 +36,7 @@ $ bazel test //examples/premature_exit:premature_exit_test
 //examples/premature_exit:premature_exit_test FAILED in <time>
 $ cat bazel-testlogs/examples/premature_exit/premature_exit_test/test.log
 ============================= test session starts ==============================
+testpaths: examples/premature_exit
 collected 1 item
 
 examples/premature_exit/test_premature_exit.py -- Test exited prematurely (TEST_PREMATURE_EXIT_FILE exists) --

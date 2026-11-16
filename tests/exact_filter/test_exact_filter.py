@@ -101,8 +101,20 @@ def test_filter_without_tests_selects_all(pytester):
     assert len(_selected(pytester, ",")) == len(_selected(pytester, ",", flag="0"))
 
 
-def test_not_loaded_without_the_flag():
+def test_on_by_default():
     env = BazelEnv({"BAZEL_TEST": "1", "TESTBRIDGE_TEST_ONLY": "test_a"})
+
+    assert "pytest_bazel._impl.exact_filter" in _pytest_args(args=[], env=env)
+
+
+def test_can_be_turned_off():
+    env = BazelEnv(
+        {
+            "BAZEL_TEST": "1",
+            "TESTBRIDGE_TEST_ONLY": "test_a",
+            "PYTEST_BAZEL_EXACT_TEST_FILTER": "0",
+        }
+    )
 
     assert "pytest_bazel._impl.exact_filter" not in _pytest_args(args=[], env=env)
 

@@ -127,15 +127,29 @@ def test_filter_with_an_empty_k_of_the_user(pytester):
     ]
 
 
-def test_says_when_the_filter_selects_nothing(capfd):
-    env = BazelEnv({"BAZEL_TEST": "1", "TESTBRIDGE_TEST_ONLY": "test_typo"})
+@pytest.mark.parametrize(
+    ("exact", "want"),
+    [
+        ("1", "--test_filter selected no tests ('test_typo' by exact names)"),
+        ("0", "--test_filter selected no tests (-k 'test_typo')"),
+    ],
+    ids=["exact", "keyword"],
+)
+def test_says_when_the_filter_selects_nothing(capfd, exact, want):
+    env = BazelEnv(
+        {
+            "BAZEL_TEST": "1",
+            "TESTBRIDGE_TEST_ONLY": "test_typo",
+            "PYTEST_BAZEL_EXACT_TEST_FILTER": exact,
+        }
+    )
 
     code = _main(
         args=[], pytest_main=lambda _: pytest.ExitCode.NO_TESTS_COLLECTED, env=env
     )
 
     assert code == 0
-    assert "--test_filter selected no tests (-k 'test_typo')" in capfd.readouterr().err
+    assert want in capfd.readouterr().err
 
 
 if __name__ == "__main__":

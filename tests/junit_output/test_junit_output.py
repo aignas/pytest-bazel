@@ -1,7 +1,5 @@
 import xml.etree.ElementTree as ET
 
-import pytest
-
 from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 pytest_plugins = ["pytester"]
@@ -56,9 +54,14 @@ def test_output_of_failed_tests(pytester):
     assert output["test_passes"] == "", "passing tests are left out"
 
 
-@pytest.mark.parametrize("flag", [None, "0"], ids=["unset", "0"])
-def test_off_by_default(pytester, flag):
-    output = _run(pytester, flag=flag)
+def test_on_by_default(pytester):
+    output = _run(pytester, flag=None)
+
+    assert "stdout of a failing test" in output["test_fails"]
+
+
+def test_can_be_turned_off(pytester):
+    output = _run(pytester, flag="0")
 
     assert output == {"test_passes": "", "test_fails": ""}
 

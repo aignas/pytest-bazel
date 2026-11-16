@@ -36,9 +36,10 @@ published to PyPI and is built and tested with Bazel.
   not import.
 * Do not change existing behaviour unless the change needs it. Put
   behaviour changes behind an opt-in `PYTEST_BAZEL_*` env var (`0` or `1`,
-  an `_OptIn()` attribute of `BazelEnv`) and add it to the "Planned for
-  1.0" table at the bottom of `README.md`. `//tests/readme:test_readme`
-  checks that the table lists every flag.
+  a `_Flag(default=False)` attribute of `BazelEnv`) and add it to the
+  "Flags" table at the bottom of `README.md`. The next major release turns
+  them on. `//tests/readme:test_readme` checks that the table lists every
+  flag.
 
 ## Tests
 
@@ -74,7 +75,8 @@ date.
   * An example package `examples/<feature>/`. Tag its targets `manual`, as
     examples may fail on purpose and `bazel test //...` must stay green.
   * A `docs/features/<feature>.md` page with a short explanation and the
-    blocks. Opt-in features say that they will be the default in 1.0.
+    blocks. Pages of flags say how to turn them off, or for opt-in flags, that
+    they will be on by default in the next major release.
   * The examples in the frontmatter of the page, with the keys of
     `Example` in `dev/update_docs/lib.py`. Use `keep` to show only the lines
     that matter, and leave out lines that change with unrelated changes, e.g.
@@ -84,7 +86,7 @@ date.
   instead of hiding the
   difference with `keep`.
 * Also update the tables at the bottom of `README.md` when adding, changing
-  or removing a feature or an opt-in flag. Each row links to its page on Read
+  or removing a feature or a flag. Each row links to its page on Read
   the Docs in the Docs column.
 * `README.md` is also the PyPI description, so use absolute links: files of
   the repository on GitHub, docs on `https://pytest-bazel.readthedocs.io/latest/`.
