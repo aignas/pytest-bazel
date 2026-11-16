@@ -1,0 +1,9 @@
+load("@rules_python//python:py_test.bzl", "py_test")
+
+# Checks what keeps pytest_bazel fast, rather than timings, which would be
+# flaky. `bazel run //dev/benchmark` measures the timings.
+py_test(
+    name = "test_performance",
+    srcs = ["test_performance.py"],
+    deps = ["//pytest_bazel"],
+)

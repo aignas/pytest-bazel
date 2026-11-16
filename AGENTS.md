@@ -15,6 +15,10 @@ published to PyPI and is built and tested with Bazel.
   `READTHEDOCS=True` and the other `READTHEDOCS_*` vars to reproduce RTD
   failures.
 * After changing `pyproject.toml`, run `bazel run //:lock.update`.
+* `tests/performance` checks what keeps `pytest_bazel` fast, without timings.
+  After a change that may affect the speed, run
+  `bazel run //dev/benchmark -- --update` and commit the results in
+  `README.md`.
 * CI checks that the docs are up to date, see [Docs](#docs).
 
 ## Code
