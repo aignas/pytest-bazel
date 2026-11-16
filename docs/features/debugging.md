@@ -70,3 +70,7 @@ $ bazel run //examples/debugging:debugging_test -- --pdb -k test_add
 
 `bazel run` sets up the same environment for the test as `bazel test`, but
 keeps the terminal.
+
+With `PYTHONBREAKPOINT` set, e.g. `--test_env=PYTHONBREAKPOINT=0` to ignore
+leftover `breakpoint()` calls on CI or a remote debugger that needs no
+terminal, `breakpoint()` uses it as without `pytest_bazel`.

@@ -2,7 +2,8 @@
 
 `pytest_bazel.main` loads this plugin under `bazel test`. The debugger would
 read from the stdin of the test, which bazel closes, and quit right away, so
-fail with a message that says to use `bazel run` instead.
+fail with a message that says to use `bazel run` instead. breakpoint() is
+left alone when PYTHONBREAKPOINT is set.
 """
 
 import os
@@ -37,6 +38,11 @@ def pytest_configure(config: pytest.Config) -> None:
         if config.getoption(option, False):
             msg = f"{name} needs a terminal. {_how()}"
             raise pytest.UsageError(msg)
+
+    if os.environ.get("PYTHONBREAKPOINT"):
+        # Like pytest, keep the debugger that the user chose, e.g. `0` to
+        # ignore breakpoint() or a remote debugger that needs no terminal.
+        return
 
     # pytest sets its own breakpointhook when it starts, replace it.
     config.stash[_BREAKPOINTHOOK] = sys.breakpointhook
