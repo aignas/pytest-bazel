@@ -13,9 +13,11 @@ from typing import Any
 
 import pytest
 
+from pytest_bazel.env import BazelEnv
+
 
 def _how() -> str:
-    target = os.environ.get("TEST_TARGET", "//<package>:<target>")
+    target = BazelEnv(os.environ).test_target or "//<package>:<target>"
     return (
         "bazel test gives the test no terminal to debug it in. Run it with "
         f"`bazel run {target} -- --pdb` instead."

@@ -126,6 +126,11 @@ class BazelEnv:
         return None
 
     @property
+    def is_sharded(self) -> bool:
+        """Return True if bazel shards the test, see the sharding vars."""
+        return self.test_shard_index is not None and self.test_total_shards is not None
+
+    @property
     def test_only(self) -> str:
         """Return TESTBRIDGE_TEST_ONLY, the value of `--test_filter`, or ""."""
         return self.env.get("TESTBRIDGE_TEST_ONLY", "")
@@ -146,7 +151,7 @@ class BazelEnv:
     @property
     def test_filter(self) -> str:
         """Return TESTBRIDGE_TEST_ONLY as a `-k` expression, see `_keyword_expression`."""
-        return _keyword_expression(self.env.get("TESTBRIDGE_TEST_ONLY", ""))
+        return _keyword_expression(self.test_only)
 
     @property
     def test_target(self) -> Optional[str]:

@@ -35,8 +35,9 @@ def _names(nodeid: str) -> list[str]:
 
 
 def _is_subsequence(wanted: Sequence[str], names: Sequence[str]) -> bool:
+    # `in` consumes the iterator up to the match, so the order counts.
     remaining = iter(names)
-    return all(any(name == want for name in remaining) for want in wanted)
+    return all(want in remaining for want in wanted)
 
 
 def _matches_path(test_filter: str, nodeid: str) -> bool:
