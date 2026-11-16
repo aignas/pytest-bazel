@@ -21,6 +21,11 @@ Nothing yet.
 """
 
 
+@pytest.mark.parametrize("version", ["1.0.0rc1", "1.0.0a2", "1.0.0b3"])
+def test_pre_releases_need_no_changelog(version):
+    assert check(version, _SYNCED, news=["1.added.md"]) == []
+
+
 def test_synced():
     assert check("0.4.0", _SYNCED, news=[]) == []
 

@@ -10,6 +10,8 @@ Usage:
 
     bazel run //pkg:bump            # update CHANGELOG.md, delete the news
     bazel run //pkg:bump -- --dry-run  # only print the version and section
+    bazel run //pkg:bump -- --major    # release the next major version
+    bazel run //pkg:bump -- --pre rc   # print the next pre-release to tag
 
 or `python3 -m pkg.bump` from the root of the repository.
 """
@@ -17,13 +19,17 @@ or `python3 -m pkg.bump` from the root of the repository.
 import argparse
 import os
 import re
+import subprocess
 import sys
 import textwrap
-from collections.abc import Collection, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from pathlib import Path
 from typing import Optional
 
 from pkg.check_changelog import REPO_URL, check
+
+# The kinds of pre-releases, see PEP 440.
+PRE_RELEASES = ("a", "b", "rc")
 
 # The width of the changelog entries.
 WIDTH = 80
@@ -68,9 +74,16 @@ def last_version(changelog: str) -> str:
     return match["version"]
 
 
-def next_version(version: str, categories: Collection[str]) -> str:
-    """Return the next patch version if all `categories` are fixes, else minor."""
+def next_version(
+    version: str, categories: Collection[str], *, major_release: bool = False
+) -> str:
+    """Return the next patch version if all `categories` are fixes, else minor.
+
+    With `major_release`, the next major version, e.g. for 1.0.
+    """
     major, minor, patch = (int(part) for part in version.split("."))
+    if major_release:
+        return f"{major + 1}.0.0"
     if set(categories) == {"fixed"}:
         return f"{major}.{minor}.{patch + 1}"
     return f"{major}.{minor + 1}.0"
@@ -97,11 +110,20 @@ def section(version: str, entries: Mapping[str, list[tuple[int, str]]]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def bump(changelog: str, news: dict[str, str]) -> tuple[str, str]:
+def pre_release(version: str, kind: str, tags: Iterable[str]) -> str:
+    """Return the next pre-release of `version`, e.g. `1.0.0rc2` after `rc1`."""
+    pattern = re.compile(rf"^{re.escape(version)}{kind}(\d+)$")
+    numbers = [int(m[1]) for m in map(pattern.match, tags) if m]
+    return f"{version}{kind}{max(numbers, default=0) + 1}"
+
+
+def bump(
+    changelog: str, news: Mapping[str, str], *, major_release: bool = False
+) -> tuple[str, str]:
     """Return the next version and `changelog` with the `news` released in it."""
     previous = last_version(changelog)
     entries = news_entries(news)
-    version = next_version(previous, list(entries))
+    version = next_version(previous, list(entries), major_release=major_release)
 
     if _UNRELEASED not in changelog:
         msg = f"CHANGELOG.md has no `{_UNRELEASED.strip()}` section to release from"
@@ -132,6 +154,14 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument(
         "--dry-run", action="store_true", help="only print what would change"
     )
+    parser.add_argument(
+        "--major", action="store_true", help="release the next major version"
+    )
+    parser.add_argument(
+        "--pre",
+        choices=PRE_RELEASES,
+        help="print the next pre-release to tag, e.g. 1.0.0rc1, and change nothing",
+    )
     args = parser.parse_args(argv)
 
     # `bazel run` starts the script in its runfiles.
@@ -143,10 +173,22 @@ def main(argv: Optional[list[str]] = None) -> int:
     news_paths = sorted(Path("news").glob("*.md"))
     news = {p.name: p.read_text() for p in news_paths}
     try:
-        version, changelog = bump(changelog_path.read_text(), news)
+        version, changelog = bump(
+            changelog_path.read_text(), news, major_release=args.major
+        )
     except BumpError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
+
+    if args.pre:
+        # The changelog and the news stay as they are until the release.
+        tags = subprocess.run(
+            ["git", "tag", "--list"], capture_output=True, text=True, check=True
+        ).stdout.split()
+        pre = pre_release(version, args.pre, tags)
+        print(pre)
+        print(f"Tag {pre} to release it, e.g. `git tag {pre}`.", file=sys.stderr)
+        return 0
 
     if args.dry_run:
         print(version)

@@ -1,6 +1,6 @@
 import pytest
 
-from pkg.bump import WIDTH, BumpError, bump, next_version, section
+from pkg.bump import WIDTH, BumpError, bump, next_version, pre_release, section
 from pkg.check_changelog import REPO_URL, check
 
 _CHANGELOG = f"""# Changelog
@@ -31,6 +31,33 @@ Nothing yet.
 )
 def test_next_version(categories, want):
     assert next_version("0.4.0", categories) == want
+
+
+def test_next_major_version():
+    assert next_version("0.5.2", ["fixed"], major_release=True) == "1.0.0"
+
+
+def test_bump_major_release():
+    version, changelog = bump(
+        _CHANGELOG, {"12.changed.md": "A change.\n"}, major_release=True
+    )
+
+    assert version == "1.0.0"
+    assert check("1.0.0", changelog, news=[]) == []
+
+
+@pytest.mark.parametrize(
+    ("kind", "tags", "want"),
+    [
+        ("rc", [], "1.0.0rc1"),
+        ("rc", ["0.5.0", "1.0.0rc1", "1.0.0rc2"], "1.0.0rc3"),
+        ("rc", ["1.0.0b1", "1.0.0b2", "1.0.0rc1"], "1.0.0rc2"),
+        ("b", ["1.0.0rc1", "1.1.0b4"], "1.0.0b1"),
+        ("a", ["1.0.0a9", "1.0.0a10"], "1.0.0a11"),
+    ],
+)
+def test_pre_release(kind, tags, want):
+    assert pre_release("1.0.0", kind, tags) == want
 
 
 def test_bump_fixes_only():
