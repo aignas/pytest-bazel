@@ -6,7 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from pytest_bazel.env import BazelEnv
+from pytest_bazel._impl.env import BazelEnv
 
 # AF_UNIX socket paths are limited to 104 bytes on macOS and 108 on Linux.
 # Leave room for the names that e.g. `multiprocessing` creates under TMPDIR.

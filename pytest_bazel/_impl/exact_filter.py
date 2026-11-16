@@ -1,6 +1,6 @@
 """Select the tests of `--test_filter` by their exact names.
 
-`pytest_bazel.main` loads this plugin with PYTEST_BAZEL_EXACT_TEST_FILTER=1.
+`pytest_bazel._impl.main` loads this plugin with PYTEST_BAZEL_EXACT_TEST_FILTER=1.
 A `-k` expression matches substrings of the names of a test and of its
 parents, so `--test_filter=test_add` also runs `test_add_many`, and any test
 in `test_add.py`.
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 
 import pytest
 
-from pytest_bazel.filters import _split, _split_filters
+from pytest_bazel._impl.filters import _split, _split_filters
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

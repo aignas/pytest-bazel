@@ -1,6 +1,6 @@
 """Explain how to debug tests, as `bazel test` gives them no terminal.
 
-`pytest_bazel.main` loads this plugin under `bazel test`. The debugger would
+`pytest_bazel._impl.main` loads this plugin under `bazel test`. The debugger would
 read from the stdin of the test, which bazel closes, and quit right away, so
 fail with a message that says to use `bazel run` instead. breakpoint() is
 left alone when PYTHONBREAKPOINT is set.
@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from pytest_bazel.env import BazelEnv
+from pytest_bazel._impl.env import BazelEnv
 
 
 def _how() -> str:

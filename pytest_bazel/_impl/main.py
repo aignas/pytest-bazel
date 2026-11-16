@@ -12,7 +12,7 @@ from typing import Optional
 
 import pytest
 
-from pytest_bazel.config import (
+from pytest_bazel._impl.config import (
     _find_package_config,
     _ini_keys,
     _ini_paths,
@@ -20,11 +20,11 @@ from pytest_bazel.config import (
     _pytest_config_file,
     _pytest_version,
 )
-from pytest_bazel.env import BazelEnv, _workers_dir
-from pytest_bazel.filters import _with_keyword_expression
-from pytest_bazel.sigterm import _interrupt_on_sigterm
-from pytest_bazel.tmpdir import _set_tmpdir
-from pytest_bazel.warning_paths import _relative_warning_paths, _warnings_to_file
+from pytest_bazel._impl.env import BazelEnv, _workers_dir
+from pytest_bazel._impl.filters import _with_keyword_expression
+from pytest_bazel._impl.sigterm import _interrupt_on_sigterm
+from pytest_bazel._impl.tmpdir import _set_tmpdir
+from pytest_bazel._impl.warning_paths import _relative_warning_paths, _warnings_to_file
 
 __all__ = ["BazelEnv", "main"]
 
@@ -91,7 +91,7 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
         return [
             *args,
             "-p",
-            "pytest_bazel.exact_filter",
+            "pytest_bazel._impl.exact_filter",
             f"--bazel-test-filter={env.test_only}",
         ]
 
@@ -128,7 +128,7 @@ def _plugin_args(env: BazelEnv) -> list[str]:
         args.extend(
             [
                 "-p",
-                "pytest_bazel.annotations",
+                "pytest_bazel._impl.annotations",
                 f"--bazel-annotations-dir={annotations_dir}",
             ]
         )
@@ -138,7 +138,7 @@ def _plugin_args(env: BazelEnv) -> list[str]:
         args.extend(
             [
                 "-p",
-                "pytest_bazel.warnings_output",
+                "pytest_bazel._impl.warnings_output",
                 f"--bazel-warnings-file={warnings_file}",
             ]
         )
@@ -146,7 +146,7 @@ def _plugin_args(env: BazelEnv) -> list[str]:
     workers_dir = _workers_dir(env)
     if workers_dir:
         args.extend(
-            ["-p", "pytest_bazel.workers", f"--bazel-workers-dir={workers_dir}"]
+            ["-p", "pytest_bazel._impl.workers", f"--bazel-workers-dir={workers_dir}"]
         )
 
     return args
@@ -297,7 +297,7 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
 
     if not env.is_bazel_run:
         # Explain how to debug, as tests get no terminal under bazel test.
-        pytest_args.extend(["-p", "pytest_bazel.debugging"])
+        pytest_args.extend(["-p", "pytest_bazel._impl.debugging"])
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
@@ -313,7 +313,11 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     random_seed = _random_seed(env)
     if random_seed:
         pytest_args.extend(
-            ["-p", "pytest_bazel.random_seed", f"--bazel-random-seed={random_seed}"]
+            [
+                "-p",
+                "pytest_bazel._impl.random_seed",
+                f"--bazel-random-seed={random_seed}",
+            ]
         )
 
     pytest_args.extend(_plugin_args(env))
@@ -323,7 +327,7 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
         pytest_args.extend(
             [
                 "-p",
-                "pytest_bazel.shard",
+                "pytest_bazel._impl.shard",
                 f"--bazel-shard-index={env.test_shard_index}",
                 f"--bazel-total-shards={env.test_total_shards}",
             ]

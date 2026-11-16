@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 pytest_plugins = ["pytester"]
 

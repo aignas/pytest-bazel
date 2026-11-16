@@ -12,8 +12,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _plugin_args
-from pytest_bazel.workers import stop_workers
+from pytest_bazel._impl.main import BazelEnv, _plugin_args
+from pytest_bazel._impl.workers import stop_workers
 
 pytestmark = pytest.mark.skipif(os.name != "posix", reason="posix only")
 
@@ -162,7 +162,7 @@ def _passed(xml_file):
 def test_loaded_with_xdist(tmp_path):
     args = _plugin_args(BazelEnv({"BAZEL_TEST": "1", "TEST_TMPDIR": str(tmp_path)}))
 
-    assert "pytest_bazel.workers" in args
+    assert "pytest_bazel._impl.workers" in args
 
 
 def test_not_loaded_without_xdist(tmp_path, monkeypatch):
@@ -175,7 +175,7 @@ def test_not_loaded_without_xdist(tmp_path, monkeypatch):
 
     args = _plugin_args(BazelEnv({"BAZEL_TEST": "1", "TEST_TMPDIR": str(tmp_path)}))
 
-    assert "pytest_bazel.workers" not in args
+    assert "pytest_bazel._impl.workers" not in args
 
 
 def test_runs_in_parallel(tmp_path):

@@ -1,6 +1,6 @@
 """Write the warnings that pytest records to TEST_WARNINGS_OUTPUT_FILE.
 
-`pytest_bazel.main` loads this plugin when bazel sets the file. pytest
+`pytest_bazel._impl.main` loads this plugin when bazel sets the file. pytest
 records the warnings of the tests with `warnings.catch_warnings`, so they
 never reach `warnings.showwarning`, which `main` redirects to the file for
 the warnings outside of pytest.

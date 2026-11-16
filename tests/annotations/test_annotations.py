@@ -1,5 +1,5 @@
-from pytest_bazel.annotations import summary
-from pytest_bazel.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.annotations import summary
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 pytest_plugins = ["pytester"]
 
@@ -47,7 +47,7 @@ def test_annotation_without_tests(pytester, tmp_path):
 def test_not_loaded_without_the_dir():
     args = _pytest_args(args=[], env=BazelEnv({"BAZEL_TEST": "1"}))
 
-    assert "pytest_bazel.annotations" not in args
+    assert "pytest_bazel._impl.annotations" not in args
 
 
 class _Report:

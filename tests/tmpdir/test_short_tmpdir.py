@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.tmpdir import _remove_tmpdir_alias, _tmpdir_alias
+from pytest_bazel._impl.tmpdir import _remove_tmpdir_alias, _tmpdir_alias
 
 pytestmark = pytest.mark.skipif(os.name != "posix", reason="posix only")
 
@@ -16,8 +16,8 @@ _PRIVATE_MODE = 0o700
 # `/pytest-bazel-XXXXXXXX/tmp` below the alias root.
 _MAX_ALIAS_SUFFIX_LEN = 40
 
-# `pytest_bazel.main` is also the name of the function.
-_tmpdir_module = importlib.import_module("pytest_bazel.tmpdir")
+# `pytest_bazel._impl.main` is also the name of the function.
+_tmpdir_module = importlib.import_module("pytest_bazel._impl.tmpdir")
 
 
 @pytest.fixture
@@ -80,7 +80,7 @@ def test_alias_is_removed_by_its_owner_only(alias_root, long_dir):
 
 @pytest.mark.skipif("BAZEL_TEST" not in os.environ, reason="needs bazel test")
 def test_tmpdir_has_room_for_a_socket():
-    """This test runs through pytest_bazel.main, which must have set TMPDIR."""
+    """This test runs through pytest_bazel._impl.main, which must have set TMPDIR."""
     tmpdir = Path(os.environ["TMPDIR"])
     assert tmpdir.resolve() == Path(os.environ["TEST_TMPDIR"]).resolve()
 

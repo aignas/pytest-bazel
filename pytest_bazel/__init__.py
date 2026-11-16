@@ -25,7 +25,7 @@ py_test(
 
 import sys
 
-from .main import main as _main
+from ._impl.main import main as _main
 
 
 def main(args=None):

@@ -2,6 +2,6 @@
 
 import sys
 
-from pytest_bazel.main import main
+from pytest_bazel._impl.main import main
 
 sys.exit(main())

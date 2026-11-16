@@ -2,7 +2,7 @@ import sys
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 pytest_plugins = ["pytester"]
 
@@ -17,7 +17,7 @@ def _target(monkeypatch):
 
 
 def test_loaded_under_bazel_test():
-    assert "pytest_bazel.debugging" in _args()
+    assert "pytest_bazel._impl.debugging" in _args()
 
 
 @pytest.mark.parametrize(
@@ -33,7 +33,7 @@ def test_loaded_under_bazel_test():
 def test_not_loaded_with_a_terminal(environ):
     args = _pytest_args(args=["--pdb"], env=BazelEnv(environ))
 
-    assert "pytest_bazel.debugging" not in args
+    assert "pytest_bazel._impl.debugging" not in args
 
 
 @pytest.mark.parametrize("flag", ["--pdb", "--trace"])

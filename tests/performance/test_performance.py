@@ -10,8 +10,8 @@ import sys
 from types import SimpleNamespace
 from typing import Any
 
-from pytest_bazel import exact_filter
-from pytest_bazel.env import BazelEnv
+from pytest_bazel._impl import exact_filter
+from pytest_bazel._impl.env import BazelEnv
 
 # Imported only when a pytest config file is read, as most tests have none.
 _LAZY_MODULES = ("configparser", "tomllib", "tomli")
@@ -21,7 +21,7 @@ def test_import_does_not_load_the_config_parsers():
     # pytest itself is needed anyway, only what pytest_bazel adds counts.
     code = (
         "import sys, pytest; before = set(sys.modules); "
-        "import pytest_bazel.main; "
+        "import pytest_bazel._impl.main; "
         "print(' '.join(sorted(set(sys.modules) - before)))"
     )
     result = subprocess.run(

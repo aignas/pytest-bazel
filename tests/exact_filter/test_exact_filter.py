@@ -2,8 +2,8 @@
 
 import pytest
 
-from pytest_bazel.exact_filter import matches
-from pytest_bazel.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.exact_filter import matches
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 pytest_plugins = ["pytester"]
 
@@ -104,7 +104,7 @@ def test_filter_without_tests_selects_all(pytester):
 def test_not_loaded_without_the_flag():
     env = BazelEnv({"BAZEL_TEST": "1", "TESTBRIDGE_TEST_ONLY": "test_a"})
 
-    assert "pytest_bazel.exact_filter" not in _pytest_args(args=[], env=env)
+    assert "pytest_bazel._impl.exact_filter" not in _pytest_args(args=[], env=env)
 
 
 if __name__ == "__main__":

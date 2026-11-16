@@ -1,6 +1,6 @@
 import pytest
 
-from pytest_bazel.main import BazelEnv
+from pytest_bazel._impl.main import BazelEnv
 
 
 @pytest.mark.parametrize(

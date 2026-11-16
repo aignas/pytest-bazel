@@ -2,8 +2,8 @@
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args
-from pytest_bazel.main import main as _main
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.main import main as _main
 
 pytest_plugins = ["pytester"]
 
@@ -69,7 +69,7 @@ def test_writes_warnings_the_locale_cannot_encode(pytester, tmp_path, monkeypatc
 def test_not_loaded_without_the_file():
     args = _pytest_args(args=[], env=BazelEnv({"BAZEL_TEST": "1"}))
 
-    assert "pytest_bazel.warnings_output" not in args
+    assert "pytest_bazel._impl.warnings_output" not in args
 
 
 if __name__ == "__main__":

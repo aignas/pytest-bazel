@@ -93,7 +93,9 @@ def test_console_script(wheel, dist_info):
     assert "pytest_bazel = pytest_bazel:main" in entry_points
 
 
-@pytest.mark.parametrize("src", ["__init__.py", "__main__.py", "main.py"])
+@pytest.mark.parametrize(
+    "src", ["__init__.py", "__main__.py", "_impl/__init__.py", "_impl/main.py"]
+)
 def test_sources_are_included(wheel, src):
     assert f"pytest_bazel/{src}" in wheel.namelist()
 

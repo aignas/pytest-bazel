@@ -1,6 +1,6 @@
 """Make pytest-xdist workers work well under bazel test.
 
-`pytest_bazel.main` loads this plugin under `bazel test` when pytest-xdist is
+`pytest_bazel._impl.main` loads this plugin under `bazel test` when pytest-xdist is
 installed. It
 
 * lets the stacks of the workers be printed when bazel times out the test, as

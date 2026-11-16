@@ -1,6 +1,6 @@
 """`_pytest_args` only computes args, `_prepare` sets up the process."""
 
-from pytest_bazel.main import BazelEnv, _prepare, _pytest_args
+from pytest_bazel._impl.main import BazelEnv, _prepare, _pytest_args
 
 
 def _sharded(tmp_path):

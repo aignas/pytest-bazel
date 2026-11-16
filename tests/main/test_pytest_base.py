@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.main import BazelEnv
-from pytest_bazel.main import main as _main
+from pytest_bazel._impl.main import BazelEnv
+from pytest_bazel._impl.main import main as _main
 
 
 def mock_pytest_main(args=None, collect_args=None, return_exit=0):
@@ -81,7 +81,7 @@ def test_no_sharding_by_default(tmpdir):
     assert not shard_status_file.exists(), (
         "Sharding should not be advertised as supported"
     )
-    assert "pytest_bazel.shard" not in got_args
+    assert "pytest_bazel._impl.shard" not in got_args
 
 
 @pytest.mark.parametrize(
@@ -112,11 +112,11 @@ def test_sharding_enabled(tmpdir, shard_index: int, total_shards: int):
     assert shard_status_file.exists(), "Sharding should be advertised as supported"
     want = [
         "-p",
-        "pytest_bazel.shard",
+        "pytest_bazel._impl.shard",
         f"--bazel-shard-index={shard_index}",
         f"--bazel-total-shards={total_shards}",
     ]
-    start = got_args.index("pytest_bazel.shard") - 1
+    start = got_args.index("pytest_bazel._impl.shard") - 1
     assert got_args[start : start + len(want)] == want, got_args
 
 
