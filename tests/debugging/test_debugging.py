@@ -82,6 +82,16 @@ def test_pythonbreakpoint_is_respected(pytester, monkeypatch):
     result.assert_outcomes(passed=1)
 
 
+def test_pythonbreakpoint_is_ignored_with_isolated_python(pytester, monkeypatch):
+    monkeypatch.setenv("PYTHONBREAKPOINT", "0")
+    pytester.makepyfile("def test_debug():\n    breakpoint()\n")
+
+    result = pytester.run(sys.executable, "-I", "-m", "pytest", *_args())
+
+    assert result.ret == pytest.ExitCode.TESTS_FAILED, result.stdout.str()
+    result.stdout.fnmatch_lines(["*RuntimeError: breakpoint() was called*"])
+
+
 def test_breakpointhook_is_restored(pytester):
     hook = sys.breakpointhook
     pytester.makepyfile("def test_ok(): pass")
