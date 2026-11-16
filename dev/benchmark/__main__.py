@@ -12,8 +12,11 @@ The results go to the block between `<!-- benchmark -->` and
 """
 
 import argparse
+import compileall
+import importlib.util
 import os
 import platform
+import shutil
 import statistics
 import subprocess
 import sys
@@ -51,15 +54,6 @@ def _python(*args: str, cwd: Optional[Path] = None, **env: str) -> str:
     ).stdout
 
 
-def import_time_ms(repeat: int = 15) -> float:
-    """Return the time that importing pytest_bazel adds to importing pytest."""
-    code = (
-        "import time, pytest; start = time.perf_counter(); "
-        "import pytest_bazel.main; print(time.perf_counter() - start)"
-    )
-    return statistics.median(float(_python("-c", code)) for _ in range(repeat)) * 1000
-
-
 def run_overhead_ms(repeat: int = 7) -> tuple[float, float]:
     """Return the time of a test process with pytest and with pytest_bazel.
 
@@ -93,6 +87,78 @@ def run_overhead_ms(repeat: int = 7) -> tuple[float, float]:
         return _median_ms(pytest_run, repeat), _median_ms(pytest_bazel_run, repeat)
 
 
+# pytest and what it imports when it is imported.
+_PYTEST_MODULES = (
+    "pytest",
+    "_pytest",
+    "pluggy",
+    "iniconfig",
+    "packaging",
+    "pygments",
+    "exceptiongroup",
+    "tomli",
+)
+
+
+def _copy_sources(modules: tuple[str, ...], dest: Path) -> None:
+    """Copy the sources of `modules` to `dest`, without their .pyc files."""
+    for name in modules:
+        spec = importlib.util.find_spec(name)
+        if spec is None or spec.origin is None:
+            continue
+        if spec.submodule_search_locations:
+            shutil.copytree(
+                Path(spec.origin).parent,
+                dest / name,
+                ignore=shutil.ignore_patterns("__pycache__"),
+            )
+        else:
+            shutil.copy(spec.origin, dest)
+
+
+def pyc_import_ms(repeat: int = 7) -> dict[str, tuple[float, float]]:
+    """Return the import times of pytest and pytest_bazel without and with .pyc.
+
+    Under `bazel test`, the runfiles have no .pyc files unless rules_python
+    compiles them, so every test compiles the sources again.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        _copy_sources((*_PYTEST_MODULES, "pytest_bazel"), root)
+
+        def median_ms(code: str) -> float:
+            # -B: do not write .pyc files, so that each run compiles again.
+            return (
+                statistics.median(
+                    float(
+                        _python(
+                            "-B",
+                            "-c",
+                            f"import sys; sys.path.insert(0, {tmp!r}); {code}",
+                        )
+                    )
+                    for _ in range(repeat)
+                )
+                * 1000
+            )
+
+        pytest_code = (
+            "import time; start = time.perf_counter(); import pytest; "
+            "print(time.perf_counter() - start)"
+        )
+        bazel_code = (
+            "import time, pytest; start = time.perf_counter(); "
+            "import pytest_bazel.main; print(time.perf_counter() - start)"
+        )
+        without = median_ms(pytest_code), median_ms(bazel_code)
+        compileall.compile_dir(tmp, quiet=1)
+        with_pyc = median_ms(pytest_code), median_ms(bazel_code)
+    return {
+        "pytest": (without[0], with_pyc[0]),
+        "pytest_bazel": (without[1], with_pyc[1]),
+    }
+
+
 def filter_ms(test_filter: str, ids: list[str], repeat: int = 7) -> float:
     """Return the time that the exact `--test_filter` takes for `ids`."""
     selects = _Filter(test_filter)
@@ -108,8 +174,16 @@ def results() -> str:
     """Run the benchmarks and return the README block."""
     ids = node_ids(_TESTS)
     plain, bazel = run_overhead_ms()
+    pyc = pyc_import_ms()
     rows = [
-        ("Importing `pytest_bazel` on top of pytest", f"{import_time_ms():.1f} ms"),
+        (
+            "Importing pytest without / with `.pyc` files",
+            "{:.0f} ms / {:.0f} ms".format(*pyc["pytest"]),
+        ),
+        (
+            "Importing `pytest_bazel` on top of pytest without / with `.pyc` files",
+            "{:.1f} ms / {:.1f} ms".format(*pyc["pytest_bazel"]),
+        ),
         (
             f"A run of {_SUITE_TESTS} tests with `pytest --junitxml` / with `pytest_bazel`",
             f"{plain:.0f} ms / {bazel:.0f} ms",

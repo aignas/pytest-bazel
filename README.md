@@ -100,21 +100,26 @@ These parts of the test encyclopedia are out of scope for `pytest_bazel`:
 
 What `pytest_bazel` adds to a test, measured with `bazel run //dev/benchmark`
 on the machine below. [`tests/performance`][perf-tests] checks what keeps it
-fast on every `bazel test //...`.
+fast on every `bazel test //...`. Without `.pyc` files in the runfiles, which
+rules_python does not build by default, every test compiles pytest again; see
+[Performance][docs-performance] for how to precompile and what was made
+faster.
 
 <!-- benchmark -->
 | What | Time |
 | --- | --- |
-| Importing `pytest_bazel` on top of pytest | 2.4 ms |
-| A run of 200 tests with `pytest --junitxml` / with `pytest_bazel` | 430 ms / 440 ms |
-| `PYTEST_BAZEL_EXACT_TEST_FILTER=1` with a name, 20000 tests | 25.6 ms |
-| `PYTEST_BAZEL_EXACT_TEST_FILTER=1` with 4 filters, 20000 tests | 73.2 ms |
-| Splitting 20000 tests into shards | 5.7 ms |
+| Importing pytest without / with `.pyc` files | 348 ms / 129 ms |
+| Importing `pytest_bazel` on top of pytest without / with `.pyc` files | 7.1 ms / 2.0 ms |
+| A run of 200 tests with `pytest --junitxml` / with `pytest_bazel` | 449 ms / 446 ms |
+| `PYTEST_BAZEL_EXACT_TEST_FILTER=1` with a name, 20000 tests | 25.7 ms |
+| `PYTEST_BAZEL_EXACT_TEST_FILTER=1` with 4 filters, 20000 tests | 68.0 ms |
+| Splitting 20000 tests into shards | 5.3 ms |
 
 Medians on Python 3.10.22, pytest 9.1.1, Linux x86_64, 8 CPUs.
 <!-- end benchmark -->
 
 [perf-tests]: https://github.com/aignas/pytest-bazel/blob/main/tests/performance/test_performance.py
+[docs-performance]: https://pytest-bazel.readthedocs.io/latest/performance.html
 
 ## Thanks
 
