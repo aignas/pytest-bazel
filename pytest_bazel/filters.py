@@ -1,6 +1,7 @@
 """Turn the `--test_filter` of bazel into a pytest `-k` expression."""
 
 from pathlib import PurePosixPath
+from typing import Optional
 
 
 def _split(text: str, sep: str) -> list[str]:
@@ -59,22 +60,43 @@ def _keyword_expression(test_filter: str) -> str:
     return " or ".join(f"({expression})" for expression in expressions)
 
 
+# Short flags of pytest without a value, which can come before `k` in e.g.
+# `-vk expression`.
+_SHORT_FLAGS = frozenset("vqsxl")
+
+
+def _split_k(arg: str) -> Optional[tuple[str, Optional[str]]]:
+    """Split `-k`, `-kx`, `-k=x` or `-vkx` into the flags before it and its value.
+
+    Return None if `arg` has no `-k`. The value is None if it is the next arg.
+    """
+    if not arg.startswith("-") or arg.startswith("--"):
+        return None
+    flags, k, value = arg[1:].partition("k")
+    if not k or not set(flags) <= _SHORT_FLAGS:
+        return None
+    return f"-{flags}", (value.removeprefix("=") if value else None)
+
+
 def _with_keyword_expression(args: list[str], expression: str) -> list[str]:
     """Return `args` with `-k expression`, combined with a `-k` of the user.
 
     pytest uses the last `-k` only, so the filter would replace the `-k` in
-    the `args` of the target. `-k x`, `-kx` and `-k=x` are recognised, but
-    not `-k` combined with other short flags, e.g. `-vk x`.
+    the `args` of the target. `-k x`, `-kx`, `-k=x` and `-vk x` are
+    recognised.
     """
 
     def combine(user: str) -> str:
         return f"({user}) and ({expression})" if user.strip() else expression
 
     for i in reversed(range(len(args))):
-        arg = args[i]
-        if arg == "-k" and i + 1 < len(args):
-            return [*args[: i + 1], combine(args[i + 1]), *args[i + 2 :]]
-        if arg.startswith("-k") and len(arg) > len("-k"):
-            user = arg[len("-k") :].removeprefix("=")
-            return [*args[:i], f"-k{combine(user)}", *args[i + 1 :]]
+        split = _split_k(args[i])
+        if split is None:
+            continue
+        flags, value = split
+        before = [] if flags == "-" else [flags]
+        if value is not None:
+            return [*args[:i], *before, f"-k{combine(value)}", *args[i + 1 :]]
+        if i + 1 < len(args):
+            return [*args[:i], *before, "-k", combine(args[i + 1]), *args[i + 2 :]]
     return [*args, "-k", expression]

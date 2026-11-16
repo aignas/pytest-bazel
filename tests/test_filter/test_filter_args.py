@@ -102,8 +102,14 @@ def test_filter_with_explicit_paths(pytester):
 @pytest.mark.usefixtures("_tests")
 @pytest.mark.parametrize(
     "user_args",
-    [["-k", "not TestCase"], ["-knot TestCase"], ["-k=not TestCase"]],
-    ids=["separate", "attached", "equals"],
+    [
+        ["-k", "not TestCase"],
+        ["-knot TestCase"],
+        ["-k=not TestCase"],
+        ["-vk", "not TestCase"],
+        ["-qknot TestCase"],
+    ],
+    ids=["separate", "attached", "equals", "combined", "combined_attached"],
 )
 def test_filter_is_combined_with_the_k_of_the_user(pytester, user_args):
     """A `-k` in the `args` of the target still applies."""
