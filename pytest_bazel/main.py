@@ -304,7 +304,9 @@ def main(
     """
     env = env or BazelEnv(os.environ)
     _prepare(env)
-    pytest_args = _pytest_args(args=args or sys.argv[1:], env=env)
+    if args is None:
+        args = sys.argv[1:]
+    pytest_args = _pytest_args(args=args, env=env)
 
     print(f"Running pytest.main with: {pytest_args}", file=sys.stderr)
 
