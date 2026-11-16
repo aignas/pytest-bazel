@@ -30,7 +30,9 @@ def _is_pytest_config(path: Path) -> bool:
     if sections is None:
         return True
 
-    lines = {line.strip() for line in path.read_text().splitlines()}
+    # pytest reads config files as UTF-8, only the section names matter here.
+    text = path.read_text(encoding="utf-8", errors="replace")
+    lines = {line.strip() for line in text.splitlines()}
     return any(section in lines for section in sections)
 
 
@@ -69,7 +71,9 @@ def _user_config_arg(args: Sequence[str]) -> Optional[Path]:
 def _common_dir(args: Sequence[str]) -> Path:
     """Return the closest common directory of the paths in `args`, like pytest.
 
-    Relative to the current directory, which is the runfiles root.
+    Relative to the current directory, which is the runfiles root. Unlike
+    pytest, the values of options, e.g. of `--deselect sub/test_a.py`, count
+    too, as telling them apart needs the options of pytest and its plugins.
     """
     dirs = []
     for arg in args:
@@ -121,14 +125,19 @@ def _toml_keys(path: Path) -> set[str]:
         import tomli as tomllib  # noqa: PLC0415
 
     try:
-        data = tomllib.loads(path.read_text())
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return set()
-    if path.name != "pyproject.toml":
-        # pytest.toml, or a toml file passed with `-c`.
+    # Like pytest, which reads `[pytest]` from pytest.toml, and `[tool.pytest]`
+    # or `[tool.pytest.ini_options]` from pyproject.toml and other toml files.
+    # pytest 9.2 also reads `[pytest]` from a toml file passed with `-c`.
+    if path.name in ("pytest.toml", ".pytest.toml"):
         return set(data.get("pytest", {}))
     pytest_config = data.get("tool", {}).get("pytest", {})
-    return set(pytest_config.get("ini_options", pytest_config))
+    keys = set(pytest_config.get("ini_options", pytest_config))
+    if path.name != "pyproject.toml":
+        keys |= set(data.get("pytest", {}))
+    return keys
 
 
 def _ini_file_keys(path: Path) -> set[str]:
@@ -137,10 +146,11 @@ def _ini_file_keys(path: Path) -> set[str]:
 
     parser = configparser.ConfigParser(interpolation=None, strict=False)
     try:
-        parser.read_string(path.read_text())
+        parser.read_string(path.read_text(encoding="utf-8"))
     except (OSError, ValueError, configparser.Error):
         return set()
-    section = "tool:pytest" if path.name == "setup.cfg" else "pytest"
+    # Like pytest, which reads `[tool:pytest]` from any `.cfg` file.
+    section = "tool:pytest" if path.suffix == ".cfg" else "pytest"
     return set(parser[section]) if parser.has_section(section) else set()
 
 
