@@ -1,6 +1,7 @@
 """The `-o` defaults of pytest_bazel do not override the config file of the user."""
 
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 
@@ -69,6 +70,36 @@ def test_config_of_the_user(pytester, tmp_path, config_args):
     (pytester.path / "my.ini").write_text("[pytest]\njunit_suite_name = mine\n")
 
     assert _SUITE not in _pytest_args(args=config_args, env=_env(tmp_path))
+
+
+@pytest.mark.parametrize(
+    ("name", "text"),
+    [
+        ("ci.cfg", "[tool:pytest]\njunit_suite_name = mine\n"),
+        ("ci.ini", "[pytest]\njunit_suite_name = mine\n"),
+        ("ci.toml", '[tool.pytest.ini_options]\njunit_suite_name = "mine"\n'),
+    ],
+)
+def test_config_of_the_user_with_another_name(pytester, tmp_path, name, text):
+    (pytester.path / name).write_text(text)
+
+    assert _SUITE not in _pytest_args(args=["-c", name], env=_env(tmp_path))
+
+
+def test_reads_utf8_config_files(pytester, tmp_path, monkeypatch):
+    """pytest reads config files as UTF-8, whatever the locale encoding is."""
+    (pytester.path / "pyproject.toml").write_text(
+        '[tool.pytest.ini_options]\n# \u00c1\u00d0\u00dd\njunit_suite_name = "mine"\n',
+        encoding="utf-8",
+    )
+    read_text = Path.read_text
+
+    def read_text_as_cp1252(self, encoding=None, errors=None):
+        return read_text(self, encoding=encoding or "cp1252", errors=errors)
+
+    monkeypatch.setattr(Path, "read_text", read_text_as_cp1252)
+
+    assert _SUITE not in _pytest_args(args=[], env=_env(tmp_path))
 
 
 def test_config_from_package(pytester, tmp_path):
