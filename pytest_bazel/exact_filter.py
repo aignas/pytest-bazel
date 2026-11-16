@@ -49,14 +49,17 @@ def _matches_names(test_filter: str, nodeid: str) -> bool:
 
 
 def _matches_path(test_filter: str, nodeid: str) -> bool:
-    """Match a file or a node id, e.g. `pkg/test_mod.py::TestA`, at the end of a path."""
+    """Match a directory, a file or a node id, e.g. `pkg/test_mod.py::TestA`.
+
+    The path may start at any directory of the path of the test.
+    """
+    test_filter = test_filter.rstrip("/")
+    ends = (f"{test_filter}::", f"{test_filter}[", f"{test_filter}/")
     for start in range(len(nodeid)):
         if start and nodeid[start - 1] != "/":
             continue
         rest = nodeid[start:]
-        if rest == test_filter or rest.startswith(
-            (f"{test_filter}::", f"{test_filter}[")
-        ):
+        if rest == test_filter or rest.startswith(ends):
             return True
     return False
 

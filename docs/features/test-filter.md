@@ -91,7 +91,9 @@ test in a `test_add.py`. Opt-in with `PYTEST_BAZEL_EXACT_TEST_FILTER=1`, which
 will be the default in 1.0, each name in the filter has to be the name of the
 test, of one of its classes, of its module or of a directory of its path, in
 that order. `test_x` selects all the parameters of a parametrized test,
-`test_x[1]` only one. A filter with spaces is still a `-k` expression.
+`test_x[1]` only one. A filter with a `/` or ending in `.py` is a path, e.g.
+`pkg/sub` selects the tests in that directory. A filter with spaces is still
+a `-k` expression.
 
 <!-- run: test_filter_exact -->
 ```console
