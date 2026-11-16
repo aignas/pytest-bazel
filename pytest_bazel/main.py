@@ -4,23 +4,24 @@ The original template code is based on
 https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35c7c53d9316f6162088dd13
 """
 
-import atexit
 import contextlib
-import faulthandler
 import importlib.util
 import os
 import random
-import signal
 import sys
-import tempfile
-import threading
 import warnings
-from collections.abc import Iterator, MutableMapping
-from dataclasses import dataclass
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path
 from typing import Optional
 
 import pytest
+
+from pytest_bazel.config import _find_package_config
+from pytest_bazel.env import BazelEnv, _workers_dir
+from pytest_bazel.sigterm import _interrupt_on_sigterm
+from pytest_bazel.tmpdir import _set_tmpdir
+from pytest_bazel.warning_paths import _relative_warning_paths, _write_to_file_factory
+
+__all__ = ["BazelEnv", "main"]
 
 # Flags that take file paths as value.
 _FLAGS_OUTPUTING_FILES = [
@@ -30,353 +31,12 @@ _FLAGS_OUTPUTING_FILES = [
 ]
 
 
-def _write_to_file_factory(out_file):
-    """Return a function that used to replace the warnings.showwarning function.
-
-    This is used to write everything to a file that bazel specifies.
-    """
-
-    def _fn(  # noqa: PLR0913, PLR0917
-        message, category, filename, lineno, file=sys.stderr, line=None
-    ):
-        out_file.write(
-            warnings.formatwarning(message, category, filename, lineno, line)
-        )
-
-    return _fn
-
-
-def _maybe_path(p) -> Optional[Path]:
-    return Path(p) if p else None
-
-
-def _maybe_int(v: Optional[str]) -> Optional[int]:
-    return int(v) if v is not None else None
-
-
-# The files pytest reads its config from, in the order it looks for them in a
-# directory, and the sections they need to have to count.
-# https://docs.pytest.org/en/stable/reference/customize.html#configuration-file-formats
-_CONFIG_FILES = {
-    "pytest.ini": None,
-    ".pytest.ini": None,
-    "pyproject.toml": ("[tool.pytest.ini_options]", "[tool.pytest]"),
-    "tox.ini": ("[pytest]",),
-    "setup.cfg": ("[tool:pytest]",),
-}
-
-
-def _is_pytest_config(path: Path) -> bool:
-    sections = _CONFIG_FILES[path.name]
-    if sections is None:
-        return True
-
-    lines = {line.strip() for line in path.read_text().splitlines()}
-    return any(section in lines for section in sections)
-
-
-def _find_package_config(package: str) -> Optional[Path]:
-    """Return the pytest config file for a bazel package or None.
-
-    Look in `package` and its parents like pytest would if it was started in
-    `package`. Both are relative to the runfiles root, which is the current
-    directory. The runfiles root itself is skipped, pytest finds config files
-    there on its own.
-    """
-    directory = Path(package)
-    while directory != Path():
-        for name in _CONFIG_FILES:
-            candidate = directory / name
-            if candidate.is_file() and _is_pytest_config(candidate):
-                return candidate
-        directory = directory.parent
-
-    return None
-
-
-def _split_filters(test_filter: str) -> list[str]:
-    """Split `a,b` into `a` and `b`, but not the commas of parameters `t[1,2]`."""
-    parts = []
-    depth = 0
-    current = ""
-    for char in test_filter:
-        if char == "[":
-            depth += 1
-        elif char == "]":
-            depth -= 1
-        if char == "," and depth == 0:
-            parts.append(current)
-            current = ""
-        else:
-            current += char
-    parts.append(current)
-    return [part for part in parts if part]
-
-
-def _single_keyword_expression(test_filter: str) -> str:
-    path, sep, rest = test_filter.partition("::")
-    if sep or "/" in path or path.endswith(".py"):
-        # A file or a pytest node id, the module name is the file name.
-        names = [PurePosixPath(path).name, *rest.split("::")]
-    else:
-        names = test_filter.split(".")
-
-    return " and ".join(name for name in names if name)
-
-
-def _keyword_expression(test_filter: str) -> str:
-    """Turn the value of `--test_filter` into a pytest `-k` expression.
-
-    `-k` matches each word against the names of a test and of its parents, so
-    split the filter into those names:
-    * `TestClass.test_fn`, `TestClass::test_fn` -> `TestClass and test_fn`
-    * `test_mod.test_fn` -> `test_mod and test_fn`
-    * `dir/test_mod.py::test_fn` -> `test_mod.py and test_fn`
-    * `test_a,TestClass.test_b` -> `(test_a) or (TestClass and test_b)`
-
-    A filter with spaces, e.g. `foo or bar`, is already a `-k` expression.
-    """
-    if not test_filter or " " in test_filter:
-        return test_filter
-
-    expressions = [_single_keyword_expression(f) for f in _split_filters(test_filter)]
-    if len(expressions) == 1:
-        return expressions[0]
-    return " or ".join(f"({expression})" for expression in expressions)
-
-
 # pytest exit codes that mean pytest itself failed, rather than the tests.
 # https://docs.pytest.org/en/stable/reference/exit-codes.html
 _INFRASTRUCTURE_FAILURES = {
     pytest.ExitCode.INTERNAL_ERROR: "e.g. because a plugin or a conftest.py failed",
     pytest.ExitCode.USAGE_ERROR: "e.g. because of an unknown flag or a missing plugin",
 }
-
-
-def _flag(env: MutableMapping[str, str], name: str) -> bool:
-    """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
-    value = env.get(name, "0")
-    if value not in ("0", "1"):
-        msg = f"{name} must be 0 or 1, got {value!r}"
-        raise ValueError(msg)
-    return value == "1"
-
-
-@dataclass
-class BazelEnv:
-    """The initial conditions environment described in the bazel docs.
-
-    See https://bazel.build/reference/test-encyclopedia#initial-conditions
-    """
-
-    env: MutableMapping[str, str]
-
-    @property
-    def test_shard_index(self) -> Optional[int]:
-        """Return the TEST_SHARD_INDEX value."""
-        return _maybe_int(self.env.get("TEST_SHARD_INDEX"))
-
-    @property
-    def test_shard_status_file(self) -> Optional[Path]:
-        """Return the TEST_SHARD_STATUS_FILE value or None."""
-        return _maybe_path(self.env.get("TEST_SHARD_STATUS_FILE"))
-
-    @property
-    def test_total_shards(self) -> Optional[int]:
-        """Return the TEST_TOTAL_SHARDS value."""
-        return _maybe_int(self.env.get("TEST_TOTAL_SHARDS"))
-
-    @property
-    def test_random_seed(self) -> int:
-        """Return the TEST_RANDOM_SEED value. If zero, it should be interpreted as no value."""
-        return int(self.env.get("TEST_RANDOM_SEED", 0))
-
-    @property
-    def test_run_number(self) -> int:
-        """Return the TEST_RUN_NUMBER value. If zero, then --runs_per_test is likely not used."""
-        return int(self.env.get("TEST_RUN_NUMBER", 0))
-
-    @property
-    def is_test(self) -> bool:
-        """Return the BAZEL_TEST value as a boolean.
-
-        Bazel sets it for `bazel test`, and for `bazel run` of a test target.
-        """
-        return "BAZEL_TEST" in self.env
-
-    @property
-    def is_bazel_run(self) -> bool:
-        """Return True under `bazel run`, which has a terminal."""
-        return "BUILD_WORKSPACE_DIRECTORY" in self.env
-
-    @property
-    def test_package(self) -> Optional[str]:
-        """Return the bazel package of TEST_TARGET if it is in the main repository."""
-        target = self.env.get("TEST_TARGET", "")
-        for prefix in ("@@//", "@//", "//"):
-            if target.startswith(prefix):
-                return target[len(prefix) :].partition(":")[0] or None
-
-        return None
-
-    @property
-    def config_from_package(self) -> bool:
-        """Return PYTEST_BAZEL_CONFIG_FROM_PACKAGE as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_CONFIG_FROM_PACKAGE")
-
-    @property
-    def consider_namespace_packages(self) -> bool:
-        """Return PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES")
-
-    @property
-    def junit_output(self) -> bool:
-        """Return PYTEST_BAZEL_JUNIT_OUTPUT as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_JUNIT_OUTPUT")
-
-    @property
-    def keep_failed_tmp_path(self) -> bool:
-        """Return PYTEST_BAZEL_KEEP_FAILED_TMP_PATH as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_KEEP_FAILED_TMP_PATH")
-
-    @property
-    def scope_collection_to_package(self) -> bool:
-        """Return PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE as a boolean.
-
-        Off by default, it will be on by default in 1.0.
-        """
-        return _flag(self.env, "PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE")
-
-    @property
-    def test_tmpdir(self) -> Optional[Path]:
-        """Return the TEST_TMPDIR value or None if unset."""
-        return _maybe_path(self.env.get("TEST_TMPDIR"))
-
-    @property
-    def test_undeclared_outputs_annotations_dir(self) -> Optional[Path]:
-        """Return the TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR value or None if unset."""
-        return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR"))
-
-    @property
-    def test_undeclared_outputs_dir(self) -> Optional[Path]:
-        """Return the TEST_UNDECLARED_OUTPUTS_DIR value or None if unset."""
-        return _maybe_path(self.env.get("TEST_UNDECLARED_OUTPUTS_DIR"))
-
-    @property
-    def test_infrastructure_failure_file(self) -> Optional[Path]:
-        """Return the TEST_INFRASTRUCTURE_FAILURE_FILE value or None if unset."""
-        return _maybe_path(self.env.get("TEST_INFRASTRUCTURE_FAILURE_FILE"))
-
-    @property
-    def test_timeout(self) -> Optional[int]:
-        """Return the TEST_TIMEOUT value in seconds or None if unset."""
-        return _maybe_int(self.env.get("TEST_TIMEOUT"))
-
-    @property
-    def test_premature_exit_file(self) -> Optional[Path]:
-        """Return the TEST_PREMATURE_EXIT_FILE value or None if unset."""
-        return _maybe_path(self.env.get("TEST_PREMATURE_EXIT_FILE"))
-
-    @property
-    def test_warnings_output_file(self) -> Optional[Path]:
-        """Return the TEST_WARNINGS_OUTPUT_FILE value or None if unset."""
-        return _maybe_path(self.env.get("TEST_WARNINGS_OUTPUT_FILE"))
-
-    @property
-    def test_filter(self) -> str:
-        """Return TESTBRIDGE_TEST_ONLY as a `-k` expression, see `_keyword_expression`."""
-        return _keyword_expression(self.env.get("TESTBRIDGE_TEST_ONLY", ""))
-
-    @property
-    def xml_output_file(self) -> Optional[Path]:
-        """Return the XML_OUTPUT_FILE value or None if unset."""
-        return _maybe_path(self.env.get("XML_OUTPUT_FILE"))
-
-    @property
-    def test_target(self) -> Optional[str]:
-        """Return the TEST_TARGET value, e.g. `//foo:bar_test`, or None if unset."""
-        return self.env.get("TEST_TARGET") or None
-
-    @property
-    def test_runner_fail_fast(self) -> bool:
-        """Return the TESTBRIDGE_TEST_RUNNER_FAIL_FAST value as a boolean."""
-        return self.env.get("TESTBRIDGE_TEST_RUNNER_FAIL_FAST") == "1"
-
-
-# AF_UNIX socket paths are limited to 104 bytes on macOS and 108 on Linux.
-# Leave room for the names that e.g. `multiprocessing` creates under TMPDIR.
-_MAX_TMPDIR_LEN = 60
-
-# Where to create short aliases for long TEST_TMPDIR paths.
-_ALIAS_ROOT = "/tmp"
-
-
-def _remove_tmpdir_alias(alias: Path, owner_pid: int) -> None:
-    # Forked children run the parent's atexit handlers too.
-    if os.getpid() != owner_pid:
-        return
-    with contextlib.suppress(OSError):
-        alias.unlink()
-        alias.parent.rmdir()
-
-
-def _tmpdir_alias(test_tmpdir: Path) -> Path:
-    """Return a short path that points to `test_tmpdir`.
-
-    `bind()` checks the length of the path it is given rather than of the
-    resolved path, so a short symlink lets tests bind AF_UNIX sockets under
-    TMPDIR while the files still end up in TEST_TMPDIR.
-
-    Returns `test_tmpdir` itself if it is short enough or if no alias can be
-    created.
-    """
-    if os.name != "posix" or len(str(test_tmpdir)) <= _MAX_TMPDIR_LEN:
-        return test_tmpdir
-
-    try:
-        # A fresh 0700 dir with a random name, so nobody else can swap the link.
-        private_dir = Path(tempfile.mkdtemp(prefix="pytest-bazel-", dir=_ALIAS_ROOT))
-        alias = private_dir / "tmp"
-        alias.symlink_to(test_tmpdir, target_is_directory=True)
-    except OSError:
-        return test_tmpdir
-
-    atexit.register(_remove_tmpdir_alias, alias, os.getpid())
-    return alias
-
-
-def _set_tmpdir(env: BazelEnv) -> None:
-    """Point the temp dir env vars at Bazel's per-test TEST_TMPDIR.
-
-    Bazel does not export TMPDIR for tests, so `tempfile` and anything built on
-    it would use the shared system temp dir instead of the test's private one.
-    That is non-hermetic and breaks on remote execution workers that mount
-    `/tmp` as `noexec`. TMP and TEMP are set for `tempfile` on Windows.
-
-    Long TEST_TMPDIR paths are replaced with a short alias, see `_tmpdir_alias`.
-    """
-    if not env.is_test or not env.test_tmpdir:
-        return
-
-    tmpdir = str(_tmpdir_alias(env.test_tmpdir.absolute()))
-    for var in ("TMPDIR", "TMP", "TEMP"):
-        env.env[var] = tmpdir
-
-    if env.env is os.environ:
-        # `tempfile.gettempdir()` caches its result process-wide.
-        tempfile.tempdir = None
 
 
 def _pytest_version() -> tuple[int, ...]:
@@ -440,13 +100,6 @@ def _basetemp_args(env: BazelEnv) -> list[str]:
         return [f"--basetemp={env.test_tmpdir / 'pytest'}"]
 
     return []
-
-
-def _workers_dir(env: BazelEnv) -> Optional[Path]:
-    """Return the directory for the stacks of the pytest-xdist workers or None."""
-    if not env.test_tmpdir or importlib.util.find_spec("xdist") is None:
-        return None
-    return env.test_tmpdir / "pytest_bazel_workers"
 
 
 def _plugin_args(env: BazelEnv) -> list[str]:
@@ -595,101 +248,6 @@ def _report_infrastructure_failure(env: BazelEnv, exit_code: int) -> None:
         f"pytest could not run the tests ({pytest.ExitCode(exit_code).name}), {reason}. "
         "See the test log for details.\n"
     )
-
-
-@contextlib.contextmanager
-def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
-    """Turn the SIGTERM that bazel sends on timeout into a KeyboardInterrupt.
-
-    pytest then prints where the tests were interrupted and writes its
-    reports, e.g. the JUnit XML, before bazel kills the process. The stacks of
-    all threads are printed too, in case the test hangs in another thread.
-    """
-    if (
-        not env.is_test
-        or os.name != "posix"
-        or threading.current_thread() is not threading.main_thread()
-    ):
-        yield
-        return
-
-    # pytest redirects the stderr file descriptor while tests run, so keep a
-    # copy of it to print to.
-    stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
-
-    def handler(_signum, _frame):
-        # Report the KeyboardInterrupt where the tests were, not here.
-        __tracebackhide__ = True
-        timeout = (
-            f" after the timeout of {env.test_timeout}s" if env.test_timeout else ""
-        )
-        print(
-            f"\nbazel stopped the test with SIGTERM{timeout}. Stacks of all threads:",
-            file=stderr,
-            flush=True,
-        )
-        faulthandler.dump_traceback(file=stderr, all_threads=True)
-        workers_dir = _workers_dir(env)
-        if workers_dir and workers_dir.is_dir():
-            # Not at the top: pytest loads the module as a plugin and warns
-            # that it cannot rewrite its asserts if it was imported before.
-            from pytest_bazel.workers import stop_workers  # noqa: PLC0415
-
-            stop_workers(workers_dir, stderr)
-        raise KeyboardInterrupt
-
-    previous = signal.signal(signal.SIGTERM, handler)
-    try:
-        yield
-    finally:
-        signal.signal(signal.SIGTERM, previous)
-        stderr.close()
-
-
-def _relative_to_runfiles(filename: str, start: PurePath) -> str:
-    """Return `filename` relative to `start` if it is in the runfiles tree.
-
-    `start` is the runfiles root of the main repository, e.g.
-    `<runfiles>/_main`, files of other repositories are in its siblings, e.g.
-    `<runfiles>/other+/mod.py` becomes `../other+/mod.py`. Any other file, e.g.
-    on another drive on Windows, or a name like `<string>`, is returned as it
-    is, so that formatting a warning never fails because of its path.
-    """
-    try:
-        path = type(start)(filename)
-        if not path.is_absolute():
-            return filename
-        # Lexical, unlike os.path.relpath it does not fail across drives.
-        parts = path.relative_to(start.parent).parts
-    except (TypeError, ValueError):
-        return filename
-
-    if parts and type(start)(parts[0]) == type(start)(start.name):
-        return str(type(start)(*parts[1:]))
-    return str(type(start)("..", *parts))
-
-
-@contextlib.contextmanager
-def _relative_warning_paths(start: Path) -> Iterator[None]:
-    """Print the paths of warnings relative to the runfiles root under bazel test.
-
-    Python prints the absolute path of the file that issued a warning, which
-    under bazel is deep in the sandbox and does not exist after the test. pytest
-    uses `warnings.formatwarning` for its warnings summary too. The paths
-    relative to `start`, the runfiles root, are the same as the paths in the
-    workspace, so editors can open them.
-    """
-    original = warnings.formatwarning
-
-    def formatwarning(message, category, filename, lineno, line=None):
-        filename = _relative_to_runfiles(filename, start)
-        return original(message, category, filename, lineno, line)
-
-    warnings.formatwarning = formatwarning
-    try:
-        yield
-    finally:
-        warnings.formatwarning = original
 
 
 def main(

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.main import _remove_tmpdir_alias, _tmpdir_alias
+from pytest_bazel.tmpdir import _remove_tmpdir_alias, _tmpdir_alias
 
 pytestmark = pytest.mark.skipif(os.name != "posix", reason="posix only")
 
@@ -17,14 +17,14 @@ _PRIVATE_MODE = 0o700
 _MAX_ALIAS_SUFFIX_LEN = 40
 
 # `pytest_bazel.main` is also the name of the function.
-_main_module = importlib.import_module("pytest_bazel.main")
+_tmpdir_module = importlib.import_module("pytest_bazel.tmpdir")
 
 
 @pytest.fixture
 def alias_root(tmp_path, monkeypatch):
     root = tmp_path / "root"
     root.mkdir()
-    monkeypatch.setattr(_main_module, "_ALIAS_ROOT", str(root))
+    monkeypatch.setattr(_tmpdir_module, "_ALIAS_ROOT", str(root))
     return root
 
 
@@ -55,7 +55,7 @@ def test_each_call_gets_its_own_alias(alias_root, long_dir):
 
 
 def test_short_tmpdir_is_kept(alias_root, tmp_path, monkeypatch):
-    monkeypatch.setattr(_main_module, "_MAX_TMPDIR_LEN", len(str(tmp_path)))
+    monkeypatch.setattr(_tmpdir_module, "_MAX_TMPDIR_LEN", len(str(tmp_path)))
 
     assert _tmpdir_alias(tmp_path) == tmp_path
     assert list(alias_root.iterdir()) == []
