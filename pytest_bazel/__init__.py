@@ -24,6 +24,7 @@ py_test(
 """
 
 import sys
+from typing import NoReturn, Optional
 
 from ._impl.main import main as _main
 
@@ -31,11 +32,10 @@ from ._impl.main import main as _main
 __all__ = ["main"]
 
 
-def main(args=None):
+def main(args: Optional[list[str]] = None) -> NoReturn:
     """Run pytest.
 
     Args:
-    ----
         args: extra args for pytest, added after the ones of pytest_bazel.
             Defaults to `sys.argv[1:]`.
 

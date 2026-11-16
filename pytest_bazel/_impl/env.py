@@ -1,14 +1,14 @@
 """Read the environment that bazel sets up for tests."""
 
 import importlib.util
-from collections.abc import MutableMapping
+from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Optional
 
 from pytest_bazel._impl.filters import _keyword_expression
 
 
-def _flag_error(env: MutableMapping[str, str], name: str) -> Optional[str]:
+def _flag_error(env: Mapping[str, str], name: str) -> Optional[str]:
     """Return why the value of the opt-in flag `name` is invalid, or None."""
     value = env.get(name, "0")
     if value in ("0", "1"):
@@ -16,7 +16,7 @@ def _flag_error(env: MutableMapping[str, str], name: str) -> Optional[str]:
     return f"{name} must be 0 or 1, got {value!r}"
 
 
-def _flag(env: MutableMapping[str, str], name: str) -> bool:
+def _flag(env: Mapping[str, str], name: str) -> bool:
     """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
     error = _flag_error(env, name)
     if error:
@@ -37,7 +37,9 @@ class _Var:
 class _PathVar(_Var):
     """A path, None if unset or empty."""
 
-    def __get__(self, obj: "BazelEnv", objtype: object = None) -> Optional[Path]:
+    def __get__(
+        self, obj: "BazelEnv", objtype: Optional[type] = None
+    ) -> Optional[Path]:
         value = self._get(obj)
         return Path(value) if value else None
 
@@ -45,7 +47,7 @@ class _PathVar(_Var):
 class _IntVar(_Var):
     """An int, None if unset."""
 
-    def __get__(self, obj: "BazelEnv", objtype: object = None) -> Optional[int]:
+    def __get__(self, obj: "BazelEnv", objtype: Optional[type] = None) -> Optional[int]:
         value = self._get(obj)
         return int(value) if value is not None else None
 
@@ -53,7 +55,7 @@ class _IntVar(_Var):
 class _CountVar(_Var):
     """An int, 0 if unset."""
 
-    def __get__(self, obj: "BazelEnv", objtype: object = None) -> int:
+    def __get__(self, obj: "BazelEnv", objtype: Optional[type] = None) -> int:
         return int(self._get(obj) or 0)
 
 
@@ -66,7 +68,7 @@ class _OptIn:
     def __set_name__(self, owner: type, name: str) -> None:
         self.name = f"PYTEST_BAZEL_{name.upper()}"
 
-    def __get__(self, obj: "BazelEnv", objtype: object = None) -> bool:
+    def __get__(self, obj: "BazelEnv", objtype: Optional[type] = None) -> bool:
         return _flag(obj.env, self.name)
 
 

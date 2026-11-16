@@ -19,10 +19,11 @@ import os
 import re
 import sys
 import textwrap
+from collections.abc import Collection, Mapping
 from pathlib import Path
 from typing import Optional
 
-from pkg.check_changelog import ROOT, check
+from pkg.check_changelog import REPO_URL, check
 
 # The width of the changelog entries.
 WIDTH = 80
@@ -39,7 +40,9 @@ class BumpError(Exception):
     """The changelog or the news entries cannot be released."""
 
 
-def news_entries(names_and_texts: dict[str, str]) -> dict[str, list[tuple[int, str]]]:
+def news_entries(
+    names_and_texts: Mapping[str, str],
+) -> dict[str, list[tuple[int, str]]]:
     """Return the `(pr, text)` entries per category, sorted by PR number."""
     entries: dict[str, list[tuple[int, str]]] = {}
     for name, text in names_and_texts.items():
@@ -65,7 +68,7 @@ def last_version(changelog: str) -> str:
     return match["version"]
 
 
-def next_version(version: str, categories: list[str]) -> str:
+def next_version(version: str, categories: Collection[str]) -> str:
     """Return the next patch version if all `categories` are fixes, else minor."""
     major, minor, patch = (int(part) for part in version.split("."))
     if set(categories) == {"fixed"}:
@@ -73,13 +76,13 @@ def next_version(version: str, categories: list[str]) -> str:
     return f"{major}.{minor + 1}.0"
 
 
-def section(version: str, entries: dict[str, list[tuple[int, str]]]) -> str:
+def section(version: str, entries: Mapping[str, list[tuple[int, str]]]) -> str:
     """Return the CHANGELOG.md section of `version` for the news `entries`."""
     lines = [f"## [{version}]", ""]
     for category, items in entries.items():
         lines.extend([f"### {category.capitalize()}", ""])
         for pr, text in items:
-            entry = f"{text} [#{pr}]({ROOT}/pull/{pr})."
+            entry = f"{text} [#{pr}]({REPO_URL}/pull/{pr})."
             lines.extend(
                 textwrap.wrap(
                     entry,
@@ -103,7 +106,7 @@ def bump(changelog: str, news: dict[str, str]) -> tuple[str, str]:
     if _UNRELEASED not in changelog:
         msg = f"CHANGELOG.md has no `{_UNRELEASED.strip()}` section to release from"
         raise BumpError(msg)
-    unreleased_link = f"[unreleased]: {ROOT}/compare/{previous}...HEAD\n"
+    unreleased_link = f"[unreleased]: {REPO_URL}/compare/{previous}...HEAD\n"
     if unreleased_link not in changelog:
         msg = f"CHANGELOG.md has no `{unreleased_link.strip()}` link"
         raise BumpError(msg)
@@ -112,8 +115,8 @@ def bump(changelog: str, news: dict[str, str]) -> tuple[str, str]:
         _UNRELEASED, _UNRELEASED + section(version, entries), 1
     ).replace(
         unreleased_link,
-        f"[unreleased]: {ROOT}/compare/{version}...HEAD\n"
-        f"[{version}]: {ROOT}/releases/tag/{version}\n",
+        f"[unreleased]: {REPO_URL}/compare/{version}...HEAD\n"
+        f"[{version}]: {REPO_URL}/releases/tag/{version}\n",
         1,
     )
 

@@ -7,8 +7,9 @@ https://github.com/caseyduquettesc/rules_python_pytest/commit/4c2fc9850d88594b35
 import contextlib
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import pytest
 
@@ -29,19 +30,17 @@ from pytest_bazel._impl.sigterm import _interrupt_on_sigterm
 from pytest_bazel._impl.tmpdir import _clean_kept_basetemp, _set_tmpdir
 from pytest_bazel._impl.warning_paths import _relative_warning_paths, _warnings_to_file
 
-__all__ = ["BazelEnv", "main"]
-
 # Flags that take file paths as value.
-_FLAGS_OUTPUTING_FILES = [
+_FLAGS_OUTPUTTING_FILES = (
     "--report-log",  # pytest-reportlog
     "--json-report-file",  # pytest-json-report
     "--html",  # pytest-html
-]
+)
 
 
 # pytest exit codes that mean pytest itself failed, rather than the tests.
 # https://docs.pytest.org/en/stable/reference/exit-codes.html
-_INFRASTRUCTURE_FAILURES = {
+_INFRASTRUCTURE_FAILURES: dict[int, str] = {
     pytest.ExitCode.INTERNAL_ERROR: "e.g. because a plugin or a conftest.py failed",
     pytest.ExitCode.USAGE_ERROR: "e.g. because of an unknown flag or a missing plugin",
 }
@@ -65,11 +64,11 @@ def _report_path_args(args: list[str], outputs_dir: Path) -> list[str]:
         flag, sep, path = arg.partition("=")
         if flag_before:
             result.append(_in_outputs_dir(arg, outputs_dir))
-        elif sep and flag in _FLAGS_OUTPUTING_FILES:
+        elif sep and flag in _FLAGS_OUTPUTTING_FILES:
             result.append(f"{flag}={_in_outputs_dir(path, outputs_dir)}")
         else:
             result.append(arg)
-        flag_before = arg in _FLAGS_OUTPUTING_FILES
+        flag_before = arg in _FLAGS_OUTPUTTING_FILES
     return result
 
 
@@ -326,7 +325,6 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     """Construct pytest args.
 
     Args:
-    ----
         args: the list of extra arguments to pass.
         env: the bazel environment.
 
@@ -428,14 +426,13 @@ def _usage_error(env: BazelEnv, errors: list[str]) -> int:
 
 
 def main(
-    args=None,
-    pytest_main=pytest.main,
+    args: Optional[list[str]] = None,
+    pytest_main: Callable[[list[str]], Union[int, pytest.ExitCode]] = pytest.main,
     env: Optional[BazelEnv] = None,
 ) -> int:
     """Execute pytest.
 
     Args:
-    ----
         args: the list of extra arguments to pass. Defaults to sys.argv[1:].
         pytest_main: the function to run instead of `pytest.main`. Used mainly for testing.
         env: the bazel environment. Used mainly for testing, defaults to reading from environment variables.
@@ -492,9 +489,9 @@ def main(
             file=sys.stderr,
         )
         return 0
-    elif exit_code != 0:
+    if exit_code != pytest.ExitCode.OK:
         sys.stdout.flush()
         sys.stderr.flush()
-        print("Pytest exit code: " + str(exit_code), file=sys.stderr)
+        print(f"Pytest exit code: {exit_code!s}", file=sys.stderr)
 
     return exit_code

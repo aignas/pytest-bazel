@@ -2,7 +2,7 @@ import sys
 
 import pytest
 
-from pkg.check_changelog import ROOT, check, main
+from pkg.check_changelog import REPO_URL, check, main
 
 _SYNCED = f"""# Changelog
 
@@ -16,8 +16,8 @@ Nothing yet.
 
 - A feature.
 
-[unreleased]: {ROOT}/compare/0.4.0...HEAD
-[0.4.0]: {ROOT}/releases/tag/0.4.0
+[unreleased]: {REPO_URL}/compare/0.4.0...HEAD
+[0.4.0]: {REPO_URL}/releases/tag/0.4.0
 """
 
 
@@ -35,9 +35,9 @@ def test_synced():
             id="no_section",
         ),
         pytest.param(
-            _SYNCED.replace(f"[0.4.0]: {ROOT}/releases/tag/0.4.0\n", ""),
+            _SYNCED.replace(f"[0.4.0]: {REPO_URL}/releases/tag/0.4.0\n", ""),
             [],
-            [f"CHANGELOG.md has no `[0.4.0]: {ROOT}/releases/tag/0.4.0` link"],
+            [f"CHANGELOG.md has no `[0.4.0]: {REPO_URL}/releases/tag/0.4.0` link"],
             id="no_link",
         ),
         pytest.param(

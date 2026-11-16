@@ -14,6 +14,7 @@ repos:
           - numpy
           - pytest
           - pytest-randomly
+          - pytest-xdist
           # pytest_bazel imports it on Python < 3.11, which pyrefly checks.
           - tomli
   - repo: local

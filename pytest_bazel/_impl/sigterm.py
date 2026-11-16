@@ -6,13 +6,17 @@ import os
 import signal
 import sys
 import threading
-from collections.abc import Iterator
+from collections.abc import Generator
+from typing import TYPE_CHECKING, NoReturn, Optional
 
 from pytest_bazel._impl.env import BazelEnv, _workers_dir
 
+if TYPE_CHECKING:
+    from types import FrameType
+
 
 @contextlib.contextmanager
-def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
+def _interrupt_on_sigterm(env: BazelEnv) -> Generator[None, None, None]:
     """Turn the SIGTERM that bazel sends on timeout into a KeyboardInterrupt.
 
     pytest then prints where the tests were interrupted and writes its
@@ -31,7 +35,7 @@ def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
     # copy of it to print to.
     stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
 
-    def handler(_signum, _frame):
+    def handler(_signum: int, _frame: Optional["FrameType"]) -> NoReturn:
         # Report the KeyboardInterrupt where the tests were, not here.
         __tracebackhide__ = True
         timeout = (

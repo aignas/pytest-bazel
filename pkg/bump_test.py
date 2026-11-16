@@ -1,7 +1,7 @@
 import pytest
 
 from pkg.bump import WIDTH, BumpError, bump, next_version, section
-from pkg.check_changelog import ROOT, check
+from pkg.check_changelog import REPO_URL, check
 
 _CHANGELOG = f"""# Changelog
 
@@ -15,8 +15,8 @@ Nothing yet.
 
 - A feature.
 
-[unreleased]: {ROOT}/compare/0.4.0...HEAD
-[0.4.0]: {ROOT}/releases/tag/0.4.0
+[unreleased]: {REPO_URL}/compare/0.4.0...HEAD
+[0.4.0]: {REPO_URL}/releases/tag/0.4.0
 """
 
 
@@ -39,8 +39,8 @@ def test_bump_fixes_only():
     assert version == "0.4.1"
     assert check("0.4.1", changelog, news=[]) == []
     assert "Nothing yet.\n\n## [0.4.1]\n\n### Fixed\n\n- A fix." in changelog
-    assert f"[unreleased]: {ROOT}/compare/0.4.1...HEAD\n" in changelog
-    assert f"[0.4.1]: {ROOT}/releases/tag/0.4.1\n[0.4.0]:" in changelog
+    assert f"[unreleased]: {REPO_URL}/compare/0.4.1...HEAD\n" in changelog
+    assert f"[0.4.1]: {REPO_URL}/releases/tag/0.4.1\n[0.4.0]:" in changelog
 
 
 def test_bump_with_features():
@@ -70,7 +70,7 @@ def test_section_wraps_entries():
     assert all(len(line) <= WIDTH for line in lines)
     assert lines[4].startswith("- A long entry")
     assert all(line.startswith("  ") for line in lines[5:-1])
-    assert got.endswith(f"[#7]({ROOT}/pull/7).\n\n")
+    assert got.endswith(f"[#7]({REPO_URL}/pull/7).\n\n")
 
 
 @pytest.mark.parametrize(
