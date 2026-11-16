@@ -216,6 +216,11 @@ def _ini_default_args(args: list[str], env: BazelEnv) -> list[str]:
     """
     config = _pytest_config_file(args)
     configured = _ini_keys(config) if config else set()
+    package = env.test_package
+    if package and config and not config.parent.is_relative_to(package):
+        # A config file outside of the package, e.g. in the runfiles root, is
+        # shared by many targets, its `testpaths` are not for this one.
+        configured.discard("testpaths")
     result = []
     for name, value in _ini_defaults(env).items():
         if name not in configured:

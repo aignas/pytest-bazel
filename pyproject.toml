@@ -7,6 +7,8 @@ name = "pytest-bazel"
 version = "0.0.1"
 dependencies = [
   "pytest",
+  # To read the pytest config, pytest itself depends on it too.
+  "tomli>=1; python_version < '3.11'",
 ]
 requires-python = ">=3.9"
 authors = [

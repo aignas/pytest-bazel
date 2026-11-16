@@ -11,10 +11,18 @@ if sys.version_info >= (3, 11):
 else:  # pytest depends on tomli before Python 3.11.
     import tomli as tomllib
 
+import pytest
+
 # The files pytest reads its config from, in the order it looks for them in a
 # directory, and the sections they need to have to count.
 # https://docs.pytest.org/en/stable/reference/customize.html#configuration-file-formats
 _CONFIG_FILES = {
+    # Since pytest 9.0.
+    **(
+        {"pytest.toml": None, ".pytest.toml": None}
+        if getattr(pytest, "version_tuple", (0,)) >= (9,)
+        else {}
+    ),
     "pytest.ini": None,
     ".pytest.ini": None,
     "pyproject.toml": ("[tool.pytest.ini_options]", "[tool.pytest]"),
@@ -118,8 +126,11 @@ def _ini_keys(path: Path) -> set[str]:
     """
     try:
         if path.suffix == ".toml":
-            tool = tomllib.loads(path.read_text()).get("tool", {})
-            pytest_config = tool.get("pytest", {})
+            data = tomllib.loads(path.read_text())
+            if path.name != "pyproject.toml":
+                # pytest.toml, or a toml file passed with `-c`.
+                return set(data.get("pytest", {}))
+            pytest_config = data.get("tool", {}).get("pytest", {})
             return set(pytest_config.get("ini_options", pytest_config))
 
         parser = configparser.ConfigParser(interpolation=None, strict=False)

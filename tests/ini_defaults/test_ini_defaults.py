@@ -86,6 +86,39 @@ def test_config_from_package(pytester, tmp_path):
     assert _SUITE in args
 
 
+def test_shared_testpaths_do_not_unscope_the_collection(pytester, tmp_path):
+    """A config in the runfiles root is shared, its `testpaths` are for all."""
+    pytester.makeini("[pytest]\ntestpaths = tests\n")
+    for name in ("a", "b"):
+        (pytester.path / "tests" / name).mkdir(parents=True)
+        (pytester.path / "tests" / name / f"test_{name}.py").write_text(
+            f"def test_{name}(): pass\n"
+        )
+    env = _env(
+        tmp_path,
+        TEST_TARGET="//tests/a:test",
+        PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE="1",
+    )
+
+    result = pytester.runpytest(*_pytest_args(args=[], env=env))
+
+    result.assert_outcomes(passed=1)
+
+
+@pytest.mark.skipif(
+    getattr(pytest, "version_tuple", (0,)) < (9,), reason="pytest.toml needs pytest 9"
+)
+def test_pytest_toml(pytester, tmp_path):
+    (pytester.path / "pytest.toml").write_text('[pytest]\njunit_suite_name = "mine"\n')
+    pytester.makepyfile("def test_ok(): pass\n")
+
+    pytester.runpytest(*_pytest_args(args=[], env=_env(tmp_path)))
+
+    suite = ET.parse(tmp_path / "test.xml").getroot().find("testsuite")
+    assert suite is not None
+    assert suite.get("name") == "mine"
+
+
 def test_opt_in_defaults_defer_to_the_config(pytester, tmp_path):
     (pytester.path / "pytest.ini").write_text("[pytest]\njunit_logging = system-out\n")
     env = _env(tmp_path, PYTEST_BAZEL_JUNIT_OUTPUT="1")
