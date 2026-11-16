@@ -43,6 +43,17 @@ def test_pytest_extra_args_passed():
     assert got_args[-3:] == ["super", "custom", "args"]
 
 
+def test_empty_args_do_not_fall_back_to_argv(monkeypatch):
+    monkeypatch.setattr("sys.argv", ["prog", "--from-argv"])
+    got_args = []
+    _main(
+        args=[],
+        pytest_main=lambda args: mock_pytest_main(args, collect_args=got_args),
+    )
+
+    assert "--from-argv" not in got_args
+
+
 def test_return_non_zero_exit():
     want = 42
     assert (
