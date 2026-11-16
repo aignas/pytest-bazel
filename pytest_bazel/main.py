@@ -385,6 +385,16 @@ def _pytest_version() -> tuple[int, ...]:
     return tuple(getattr(pytest, "version_tuple", (0, 0))[:2])
 
 
+def _report_path_arg(arg: str, outputs_dir: Path) -> str:
+    """Put a relative report path of `arg`, e.g. `--html=r.html`, in `outputs_dir`."""
+    flag, sep, path = arg.partition("=")
+    if not sep or flag not in _FLAGS_OUTPUTING_FILES:
+        return arg
+    if not path or Path(path).is_absolute():
+        return arg
+    return f"{flag}={outputs_dir / path}"
+
+
 def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     # pytest < 8.0 runs tests twice if __init__.py is passed explicitly as an argument.
     # Remove any __init__.py file to avoid that.
@@ -400,12 +410,7 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     # re-write it under bazel's test undeclared outputs dir.
     undeclared_output_dir = env.test_undeclared_outputs_dir
     if undeclared_output_dir:
-        for i, arg in enumerate(args):
-            for flag in _FLAGS_OUTPUTING_FILES:
-                if arg.startswith(f"{flag}="):
-                    flag_value, _, p = arg.partition("=")
-                    if p and not Path(flag_value).is_absolute():
-                        args[i] = f"{flag}={undeclared_output_dir}/{p}"
+        args = [_report_path_arg(arg, undeclared_output_dir) for arg in args]
 
     if not env.test_filter:
         return args
