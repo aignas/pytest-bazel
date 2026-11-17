@@ -8,13 +8,20 @@ from typing import Optional
 from pytest_bazel._impl.filters import _keyword_expression
 
 
+def _flag_error(env: MutableMapping[str, str], name: str) -> Optional[str]:
+    """Return why the value of the opt-in flag `name` is invalid, or None."""
+    value = env.get(name, "0")
+    if value in ("0", "1"):
+        return None
+    return f"{name} must be 0 or 1, got {value!r}"
+
+
 def _flag(env: MutableMapping[str, str], name: str) -> bool:
     """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
-    value = env.get(name, "0")
-    if value not in ("0", "1"):
-        msg = f"{name} must be 0 or 1, got {value!r}"
-        raise ValueError(msg)
-    return value == "1"
+    error = _flag_error(env, name)
+    if error:
+        raise ValueError(error)
+    return env.get(name) == "1"
 
 
 class _Var:
@@ -179,6 +186,12 @@ class BazelEnv:
 def opt_in_flags() -> list[str]:
     """Return the names of the opt-in env vars, e.g. `PYTEST_BAZEL_JUNIT_OUTPUT`."""
     return [v.name for v in vars(BazelEnv).values() if isinstance(v, _OptIn)]
+
+
+def flag_errors(env: BazelEnv) -> list[str]:
+    """Return why the values of the opt-in flags in `env` are invalid, if any."""
+    errors = (_flag_error(env.env, name) for name in opt_in_flags())
+    return [error for error in errors if error]
 
 
 def _workers_dir(env: BazelEnv) -> Optional[Path]:
