@@ -15,6 +15,10 @@ from typing import Optional
 
 REPO_URL = "https://github.com/aignas/pytest-bazel"
 
+# A pre-release, e.g. `1.0.0rc1`, which needs no changelog: its changes are
+# released in the changelog of the release, e.g. `1.0.0`.
+PRE_RELEASE = re.compile(r"^\d+\.\d+\.\d+(a|b|rc)\d+$")
+
 
 def check(version: str, changelog: str, news: Iterable[str]) -> list[str]:
     """Return what is missing for `version`, or nothing if it is all there.
@@ -28,6 +32,8 @@ def check(version: str, changelog: str, news: Iterable[str]) -> list[str]:
         The problems, one per item.
 
     """
+    if PRE_RELEASE.match(version):
+        return []
     v = re.escape(version)
     problems = []
     if not re.search(rf"^## \[{v}\]$", changelog, re.M):
@@ -58,6 +64,9 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     news = [p.name for p in Path("news").glob("*.md")]
     problems = check(args.version, Path("CHANGELOG.md").read_text(), news)
+    if PRE_RELEASE.match(args.version):
+        print(f"{args.version} is a pre-release, which needs no changelog")
+        return 0
     if not problems:
         print(f"CHANGELOG.md is up to date for {args.version}")
         return 0

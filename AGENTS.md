@@ -139,3 +139,10 @@ and updates the release links. Commit that as
 `docs: prepare the changelog for the <version> release`, and tag `<version>`
 once it is merged. The release workflow runs `pkg/check_changelog.py
 <version>` and fails without publishing if any of that is missing.
+`bazel run //pkg:bump -- --major` releases the next major version.
+
+For a pre-release, e.g. `1.0.0rc1`, tag the version that
+`bazel run //pkg:bump -- --pre rc` prints (add `--major` for 1.0). It changes
+no files: the news entries stay until the release, and pre-releases need no
+changelog. They are published to PyPI, where pip only installs them when asked,
+and marked as pre-releases on GitHub.
