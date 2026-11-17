@@ -8,14 +8,13 @@ pytest_bazel_examples:
 
 # The output of failed tests in the JUnit XML
 
-Opt-in with `PYTEST_BAZEL_JUNIT_OUTPUT=1`, this will be the default in 1.0.
-CI systems and the build event protocol show the JUnit XML of a test, but
-pytest only adds the output of the tests to it with `junit_logging`, so a
-failure shows up without what the test printed or logged. With the flag, the
-captured stdout, stderr and log records of failed tests are in the XML.
-Passing tests are left out to keep it small, pass
-`-o junit_log_passing_tests=true` to add them. A `junit_logging` or
-`junit_log_passing_tests` in the pytest config file wins.
+On by default since 1.0, set `PYTEST_BAZEL_JUNIT_OUTPUT=0` to turn it off. CI
+systems and the build event protocol show the JUnit XML of a test, but pytest
+only adds the output of the tests to it with `junit_logging`, so a failure shows
+up without what the test printed or logged. With it, the captured stdout,
+stderr and log records of failed tests are in the XML. Passing tests are left
+out to keep it small, pass `-o junit_log_passing_tests=true` to add them. A
+`junit_logging` or `junit_log_passing_tests` in the pytest config file wins.
 
 <!-- source: examples/junit_output/test_junit_output.py -->
 ```{code-block} python

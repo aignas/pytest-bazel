@@ -70,11 +70,16 @@ def test_args(runfiles):
     assert args[i : i + 4] == ["-c", "a/b/pytest.ini", "--rootdir=.", "--confcutdir=."]
 
 
-@pytest.mark.parametrize("flag", [None, "0"], ids=["unset", "0"])
-def test_off_by_default(runfiles, flag):
+def test_on_by_default(runfiles):
     (runfiles / "a" / "b" / "pytest.ini").write_text(_INI)
 
-    assert "-c" not in _pytest_args(args=[], env=_env(flag=flag))
+    assert "-c" in _pytest_args(args=[], env=_env(flag=None))
+
+
+def test_can_be_turned_off(runfiles):
+    (runfiles / "a" / "b" / "pytest.ini").write_text(_INI)
+
+    assert "-c" not in _pytest_args(args=[], env=_env(flag="0"))
 
 
 @pytest.mark.parametrize("target", ["@other//a/b:test", "//:test"])

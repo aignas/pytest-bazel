@@ -122,11 +122,16 @@ def test_collects_everything_without_target(pytester):
 
 
 @pytest.mark.usefixtures("_two_packages")
-@pytest.mark.parametrize("value", [None, "0"], ids=["unset", "0"])
-def test_off_by_default(pytester, value):
+def test_on_by_default():
+    args = _pytest_args(args=[], env=_env("//a:test", opt_in=False))
+
+    assert _testpaths(args) == ["testpaths=a"]
+
+
+@pytest.mark.usefixtures("_two_packages")
+def test_can_be_turned_off(pytester):
     env = _env("//a:test", opt_in=False)
-    if value is not None:
-        env.env["PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE"] = value
+    env.env["PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE"] = "0"
 
     args = _pytest_args(args=[], env=env)
     rec = pytester.inline_run(*args)

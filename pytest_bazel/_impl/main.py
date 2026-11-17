@@ -103,11 +103,23 @@ def _process_args(args: list[str], env: BazelEnv) -> list[str]:
     return _with_keyword_expression(args, env.test_filter)
 
 
+def _usable_basetemp(path: Path) -> bool:
+    """Return whether pytest accepts `path` as its basetemp.
+
+    pytest removes its basetemp first, so it rejects the current directory
+    and its parents, e.g. when a test runs pytest_bazel from its `tmp_path`.
+    """
+    cwd = Path.cwd()
+    return path.absolute() not in (cwd, *cwd.parents)
+
+
 def _kept_basetemp(env: BazelEnv) -> Optional[Path]:
     """Return the basetemp in the bazel outputs to keep failed tmp_paths in."""
     outputs_dir = env.test_undeclared_outputs_dir
     if env.keep_failed_tmp_path and outputs_dir and _pytest_version() >= (7, 3):
-        return outputs_dir / "pytest"
+        kept = outputs_dir / "pytest"
+        if _usable_basetemp(kept):
+            return kept
     return None
 
 
@@ -121,7 +133,7 @@ def _basetemp_args(env: BazelEnv) -> list[str]:
         return [f"--basetemp={kept}"]
 
     # Keep everything in the sandbox, bazel cleans TEST_TMPDIR up.
-    if env.test_tmpdir:
+    if env.test_tmpdir and _usable_basetemp(env.test_tmpdir / "pytest"):
         return [f"--basetemp={env.test_tmpdir / 'pytest'}"]
 
     return []

@@ -4,15 +4,18 @@ pytest_bazel_examples:
   tmpdir:
     target: '//examples/tmpdir:tmpdir_test'
     flags: ['--test_arg=-s']
-    keep: ':\s'
+    keep: '^(?!testpaths:).*:\s'
 ---
 
 # Temporary directories
 
-pytest's `tmp_path` and Python's `tempfile` use the private temporary
-directory of the test, `TEST_TMPDIR`, which bazel cleans up. As `TEST_TMPDIR`
-is usually too long for the path of an `AF_UNIX` socket, e.g. for
-`multiprocessing`, `TMPDIR` points to it through a short symlink.
+Python's `tempfile` uses the private temporary directory of the test,
+`TEST_TMPDIR`, which bazel cleans up. As `TEST_TMPDIR` is usually too long for
+the path of an `AF_UNIX` socket, e.g. for `multiprocessing`, `TMPDIR` points to
+it through a short symlink. pytest's `tmp_path` is in the outputs of the test,
+so that bazel keeps the ones of failed tests, see
+[Keeping the files of failed tests](keep-failed-tmp-path.md). With
+`PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=0`, it is in `TEST_TMPDIR` too.
 
 <!-- source: examples/tmpdir/test_tmpdir.py -->
 ```{code-block} python
@@ -41,7 +44,7 @@ if __name__ == "__main__":
 $ bazel test //examples/tmpdir:tmpdir_test --test_arg=-s
 //examples/tmpdir:tmpdir_test PASSED in <time>
 $ cat bazel-testlogs/examples/tmpdir/tmpdir_test/test.log
-examples/tmpdir/test_tmpdir.py tmp_path:           <TEST_TMPDIR>/pytest/test_tmp0
+examples/tmpdir/test_tmpdir.py tmp_path:           bazel-testlogs/examples/tmpdir/tmpdir_test/test.outputs/pytest/test_tmp0
 TEST_TMPDIR:        <TEST_TMPDIR>
 TMPDIR:             /tmp/pytest-bazel-<random>/tmp
 tempfile.mkdtemp(): /tmp/pytest-bazel-<random>/tmp/tmp<random>

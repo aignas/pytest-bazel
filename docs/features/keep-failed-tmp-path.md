@@ -9,8 +9,8 @@ pytest_bazel_examples:
 
 # Keeping the files of failed tests
 
-Opt-in with `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=1`, this will be the default in
-1.0. The `tmp_path` of failed tests is kept in the undeclared outputs of the
+On by default since 1.0, set `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=0` to turn it
+off. The `tmp_path` of failed tests is kept in the undeclared outputs of the
 test, so that you can look at the files after the test.
 
 <!-- source: examples/keep_failed_tmp_path/BUILD.bazel -->
@@ -56,6 +56,7 @@ if __name__ == "__main__":
 $ bazel test //examples/keep_failed_tmp_path:keep_failed_tmp_path_test
 //examples/keep_failed_tmp_path:keep_failed_tmp_path_test FAILED in <time>
 $ cat bazel-testlogs/examples/keep_failed_tmp_path/keep_failed_tmp_path_test/test.log
+testpaths: examples/keep_failed_tmp_path
 examples/keep_failed_tmp_path/test_keep_failed_tmp_path.py .F            [100%]
 tmp_path = PosixPath('bazel-testlogs/examples/keep_failed_tmp_path/keep_failed_tmp_path_test/test.outputs/pytest/test_fails0')
         out = tmp_path / "failed.txt"

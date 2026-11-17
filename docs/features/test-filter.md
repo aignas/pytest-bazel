@@ -8,21 +8,23 @@ pytest_bazel_examples:
     target: '//examples/test_filter:test_filter_test'
     flags: ['--test_filter=TestMath.test_add,test_other']
     keep: 'collected|passed'
-  test_filter_exact:
+  test_filter_keyword:
     target: '//examples/test_filter:test_filter_test'
-    flags: ['--test_filter=TestMath.test_add', '--test_env=PYTEST_BAZEL_EXACT_TEST_FILTER=1']
+    flags: ['--test_filter=TestMath.test_add', '--test_env=PYTEST_BAZEL_EXACT_TEST_FILTER=0']
     keep: 'collected|passed'
 ---
 
 # Selecting tests with `--test_filter`
 
-`bazel test --test_filter=...` is passed to pytest as a `-k` expression.
-`TestClass.test_fn`, `TestClass::test_fn` and pytest node ids such as
-`path/to/test_file.py::TestClass::test_fn` select a test, but as `-k`
-matches substrings, also e.g. `test_fn_other`, see [Exact names](#exact-names). A filter
-with spaces, e.g. `--test_filter="add or sub"`, is used as a `-k` expression
-as it is. A `-k` in the `args` of the target still applies, the filter is
-combined with it.
+`bazel test --test_filter=...` selects the tests by their exact names. Each
+name in the filter has to be the name of the test, of one of its classes, of
+its module or of a directory of its path, in that order, e.g.
+`TestClass.test_fn`, `TestClass::test_fn` or `test_mod.test_fn`. `test_x`
+selects all the parameters of a parametrized test, `test_x[1]` only one. A
+filter with a `/` or ending in `.py` is a path, e.g. `pkg/sub`,
+`path/to/test_file.py` or the node id `path/to/test_file.py::TestClass::test_fn`.
+A filter with spaces, e.g. `--test_filter="add or sub"`, is a `-k` expression,
+and a `-k` in the `args` of the target still applies.
 
 A target where the filter selects no tests passes, so that
 `bazel test //... --test_filter=...` works, but says so in its log.
@@ -59,12 +61,13 @@ $ bazel test //examples/test_filter:test_filter_test --test_filter=TestMath.test
 //examples/test_filter:test_filter_test PASSED in <time>
 $ cat bazel-testlogs/examples/test_filter/test_filter_test/test.log
 ============================= test session starts ==============================
-collected 4 items / 2 deselected / 2 selected
+testpaths: examples/test_filter
+collected 4 items / 3 deselected / 1 selected
 
-examples/test_filter/test_filter.py ..                                   [100%]
+examples/test_filter/test_filter.py .                                    [100%]
 
 - generated xml file: bazel-testlogs/examples/test_filter/test_filter_test/test.xml -
-======================= 2 passed, 2 deselected in <time> ========================
+======================= 1 passed, 3 deselected in <time> ========================
 ```
 <!-- end -->
 
@@ -75,32 +78,24 @@ Separate several tests with commas:
 $ bazel test //examples/test_filter:test_filter_test --test_filter=TestMath.test_add,test_other
 //examples/test_filter:test_filter_test PASSED in <time>
 $ cat bazel-testlogs/examples/test_filter/test_filter_test/test.log
-collected 4 items / 1 deselected / 3 selected
-======================= 3 passed, 1 deselected in <time> ========================
+collected 4 items / 2 deselected / 2 selected
+======================= 2 passed, 2 deselected in <time> ========================
 ```
 <!-- end -->
 
-When a filter selects no tests in a target, the target passes, so that
-`bazel test //... --test_filter=...` works.
+## `-k` expressions
 
-## Exact names
+Before 1.0, and with `PYTEST_BAZEL_EXACT_TEST_FILTER=0`, the filter is passed to
+pytest as a `-k` expression. `-k` matches substrings of the names of a test and
+of its parents, so `TestMath.test_add` also runs `test_add_many`, and
+`test_add` would run every test in a `test_add.py`:
 
-`-k` matches substrings of the names of a test and of its parents, so above
-`TestMath.test_add` also runs `test_add_many`, and `test_add` would run every
-test in a `test_add.py`. Opt-in with `PYTEST_BAZEL_EXACT_TEST_FILTER=1`, which
-will be the default in 1.0, each name in the filter has to be the name of the
-test, of one of its classes, of its module or of a directory of its path, in
-that order. `test_x` selects all the parameters of a parametrized test,
-`test_x[1]` only one. A filter with a `/` or ending in `.py` is a path, e.g.
-`pkg/sub` selects the tests in that directory. A filter with spaces is still
-a `-k` expression.
-
-<!-- run: test_filter_exact -->
+<!-- run: test_filter_keyword -->
 ```console
-$ bazel test //examples/test_filter:test_filter_test --test_filter=TestMath.test_add --test_env=PYTEST_BAZEL_EXACT_TEST_FILTER=1
+$ bazel test //examples/test_filter:test_filter_test --test_filter=TestMath.test_add --test_env=PYTEST_BAZEL_EXACT_TEST_FILTER=0
 //examples/test_filter:test_filter_test PASSED in <time>
 $ cat bazel-testlogs/examples/test_filter/test_filter_test/test.log
-collected 4 items / 3 deselected / 1 selected
-======================= 1 passed, 3 deselected in <time> ========================
+collected 4 items / 2 deselected / 2 selected
+======================= 2 passed, 2 deselected in <time> ========================
 ```
 <!-- end -->

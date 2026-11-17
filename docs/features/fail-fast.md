@@ -35,6 +35,7 @@ $ bazel test //examples/fail_fast:fail_fast_test --test_runner_fail_fast
 //examples/fail_fast:fail_fast_test FAILED in <time>
 $ cat bazel-testlogs/examples/fail_fast/fail_fast_test/test.log
 ============================= test session starts ==============================
+testpaths: examples/fail_fast
 collected 2 items
 
 examples/fail_fast/test_fail_fast.py F

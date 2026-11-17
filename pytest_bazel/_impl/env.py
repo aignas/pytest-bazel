@@ -9,19 +9,20 @@ from pytest_bazel._impl.filters import _keyword_expression
 
 
 def _flag_error(env: Mapping[str, str], name: str) -> Optional[str]:
-    """Return why the value of the opt-in flag `name` is invalid, or None."""
-    value = env.get(name, "0")
-    if value in ("0", "1"):
+    """Return why the value of the flag `name` is invalid, or None."""
+    value = env.get(name)
+    if value is None or value in ("0", "1"):
         return None
     return f"{name} must be 0 or 1, got {value!r}"
 
 
-def _flag(env: Mapping[str, str], name: str) -> bool:
-    """Read an opt-in flag, which must be `0` or `1` and defaults to `0`."""
+def _flag(env: Mapping[str, str], name: str, *, default: bool) -> bool:
+    """Read a flag, which must be `0` or `1`, or unset for `default`."""
     error = _flag_error(env, name)
     if error:
         raise ValueError(error)
-    return env.get(name) == "1"
+    value = env.get(name)
+    return default if value is None else value == "1"
 
 
 class _Var:
@@ -59,17 +60,20 @@ class _CountVar(_Var):
         return int(self._get(obj) or 0)
 
 
-class _OptIn:
-    """An opt-in flag `PYTEST_BAZEL_<NAME>`, off by default and on in 1.0.
+class _Flag:
+    """A flag `PYTEST_BAZEL_<NAME>` to turn a behaviour on (`1`) or off (`0`).
 
-    See the "Planned for 1.0" table in README.md.
+    See the flags table in README.md.
     """
+
+    def __init__(self, *, default: bool) -> None:
+        self.default = default
 
     def __set_name__(self, owner: type, name: str) -> None:
         self.name = f"PYTEST_BAZEL_{name.upper()}"
 
     def __get__(self, obj: "BazelEnv", objtype: Optional[type] = None) -> bool:
-        return _flag(obj.env, self.name)
+        return _flag(obj.env, self.name, default=self.default)
 
 
 class BazelEnv:
@@ -115,13 +119,13 @@ class BazelEnv:
     test_warnings_output_file = _PathVar("TEST_WARNINGS_OUTPUT_FILE")
     xml_output_file = _PathVar("XML_OUTPUT_FILE")
 
-    # Opt-in flags of pytest_bazel.
-    config_from_package = _OptIn()
-    consider_namespace_packages = _OptIn()
-    junit_output = _OptIn()
-    keep_failed_tmp_path = _OptIn()
-    scope_collection_to_package = _OptIn()
-    exact_test_filter = _OptIn()
+    # Flags of pytest_bazel, on by default since 1.0.
+    config_from_package = _Flag(default=True)
+    consider_namespace_packages = _Flag(default=True)
+    junit_output = _Flag(default=True)
+    keep_failed_tmp_path = _Flag(default=True)
+    scope_collection_to_package = _Flag(default=True)
+    exact_test_filter = _Flag(default=True)
 
     @property
     def is_test(self) -> bool:
@@ -185,14 +189,14 @@ class BazelEnv:
         return self.env.get("TESTBRIDGE_TEST_RUNNER_FAIL_FAST") == "1"
 
 
-def opt_in_flags() -> list[str]:
-    """Return the names of the opt-in env vars, e.g. `PYTEST_BAZEL_JUNIT_OUTPUT`."""
-    return [v.name for v in vars(BazelEnv).values() if isinstance(v, _OptIn)]
+def flags() -> list[str]:
+    """Return the names of the flags, e.g. `PYTEST_BAZEL_JUNIT_OUTPUT`."""
+    return [v.name for v in vars(BazelEnv).values() if isinstance(v, _Flag)]
 
 
 def flag_errors(env: BazelEnv) -> list[str]:
-    """Return why the values of the opt-in flags in `env` are invalid, if any."""
-    errors = (_flag_error(env.env, name) for name in opt_in_flags())
+    """Return why the values of the flags in `env` are invalid, if any."""
+    errors = (_flag_error(env.env, name) for name in flags())
     return [error for error in errors if error]
 
 

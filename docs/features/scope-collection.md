@@ -1,8 +1,8 @@
 ---
 # The examples that dev/update_docs runs for the `run` blocks below.
 pytest_bazel_examples:
-  scope_collection_default:
-    target: '//examples/scope_collection:default_test'
+  scope_collection_off:
+    target: '//examples/scope_collection:off_test'
     flags: ['--test_arg=-v']
     keep: 'PASSED|FAILED'
   scope_collection:
@@ -13,15 +13,14 @@ pytest_bazel_examples:
 
 # Only collecting the tests of the target
 
-Opt-in with `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1`, this will be the
-default in 1.0. Without paths in the args pytest collects all tests in the
-runfiles, including the tests of other packages that are there through `deps`
-or `data`. With the flag, only the tests in the package of the target are
-collected. A `testpaths` in a pytest config file in the package wins, one in
-a config file shared by many packages, e.g. in the workspace root, does not.
-With `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, the `testpaths` of the config file
-of the package are relative to it, e.g. `testpaths = tests` collects
-`<package>/tests`.
+On by default since 1.0, set `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=0` to
+turn it off. Without paths in the args pytest collects all tests in the
+runfiles, including the tests of other packages that are there through `deps` or
+`data`. With it, only the tests in the package of the target are collected. A
+`testpaths` in a pytest config file in the package wins, one in a config file
+shared by many packages, e.g. in the workspace root, does not. The `testpaths`
+of the config file of the package, see `PYTEST_BAZEL_CONFIG_FROM_PACKAGE`, are
+relative to it, e.g. `testpaths = tests` collects `<package>/tests`.
 
 <!-- source: examples/scope_collection/BUILD.bazel -->
 ```{code-block} starlark
@@ -49,26 +48,27 @@ py_library(
         ],
     )
     for name, env in {
-        "default_test": {},
-        "scoped_test": {"PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE": "1"},
+        "off_test": {"PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE": "0"},
+        "scoped_test": {},
     }.items()
 ]
 ```
 <!-- end -->
 
-Without the flag, the test of `//examples/scope_collection/dep` runs too:
+With `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=0`, the test of
+`//examples/scope_collection/dep` runs too:
 
-<!-- run: scope_collection_default -->
+<!-- run: scope_collection_off -->
 ```console
-$ bazel test //examples/scope_collection:default_test --test_arg=-v
-//examples/scope_collection:default_test PASSED in <time>
-$ cat bazel-testlogs/examples/scope_collection/default_test/test.log
+$ bazel test //examples/scope_collection:off_test --test_arg=-v
+//examples/scope_collection:off_test PASSED in <time>
+$ cat bazel-testlogs/examples/scope_collection/off_test/test.log
 examples/scope_collection/dep/test_dep.py::test_from_another_package PASSED [ 50%]
 examples/scope_collection/test_own.py::test_own PASSED                   [100%]
 ```
 <!-- end -->
 
-With the flag:
+By default:
 
 <!-- run: scope_collection -->
 ```console

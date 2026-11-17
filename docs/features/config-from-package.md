@@ -1,8 +1,8 @@
 ---
 # The examples that dev/update_docs runs for the `run` blocks below.
 pytest_bazel_examples:
-  config_from_package_default:
-    target: '//examples/config_from_package:default_test'
+  config_from_package_off:
+    target: '//examples/config_from_package:off_test'
     keep: 'passed|PASSED'
   config_from_package:
     target: '//examples/config_from_package:config_from_package_test'
@@ -11,11 +11,11 @@ pytest_bazel_examples:
 
 # Using the pytest config of the package
 
-Opt-in with `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, this will be the default in
-1.0. pytest looks for its config file in the runfiles root only, so a
-`pytest.ini` next to the tests is not used. With the flag, the config file in
-the package of the target, or in its parents, is used. The `conftest.py` files
-above the config file, e.g. in the workspace root, are still loaded.
+On by default since 1.0, set `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=0` to turn it
+off. pytest looks for its config file in the runfiles root only, so a
+`pytest.ini` next to the tests is not used. With it, the config file in the
+package of the target, or in its parents, is used. The `conftest.py` files above
+the config file, e.g. in the workspace root, are still loaded.
 
 pytest runs in the runfiles root, so the test ids and the paths in the options
 of the config file, e.g. `--ignore` or `--deselect` in `addopts`, are relative
@@ -57,25 +57,25 @@ load("@rules_python//python:py_test.bzl", "py_test")
         deps = ["//pytest_bazel"],
     )
     for name, env in {
-        "default_test": {},
-        "config_from_package_test": {"PYTEST_BAZEL_CONFIG_FROM_PACKAGE": "1"},
+        "off_test": {"PYTEST_BAZEL_CONFIG_FROM_PACKAGE": "0"},
+        "config_from_package_test": {},
     }.items()
 ]
 ```
 <!-- end -->
 
-Without the flag, `addopts = --verbose` is not used:
+With `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=0`, `addopts = --verbose` is not used:
 
-<!-- run: config_from_package_default -->
+<!-- run: config_from_package_off -->
 ```console
-$ bazel test //examples/config_from_package:default_test
-//examples/config_from_package:default_test PASSED in <time>
-$ cat bazel-testlogs/examples/config_from_package/default_test/test.log
+$ bazel test //examples/config_from_package:off_test
+//examples/config_from_package:off_test PASSED in <time>
+$ cat bazel-testlogs/examples/config_from_package/off_test/test.log
 ============================== 2 passed in <time> ===============================
 ```
 <!-- end -->
 
-With the flag:
+By default:
 
 <!-- run: config_from_package -->
 ```console
