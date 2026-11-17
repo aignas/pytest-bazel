@@ -100,6 +100,13 @@ def test_sources_are_included(wheel, src):
     assert f"pytest_bazel/{src}" in wheel.namelist()
 
 
+def test_only_sources_are_included(wheel, dist_info):
+    """No .pyc files, which the precompile setting of .bazelrc creates."""
+    files = [n for n in wheel.namelist() if not n.startswith(f"{dist_info}/")]
+    assert files
+    assert [n for n in files if not n.endswith(".py")] == []
+
+
 if __name__ == "__main__":
     import pytest_bazel
 
