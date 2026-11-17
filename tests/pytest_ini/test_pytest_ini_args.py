@@ -67,7 +67,7 @@ def test_args(runfiles):
     args = _pytest_args(args=[], env=_env())
 
     i = args.index("-c")
-    assert args[i : i + 3] == ["-c", "a/b/pytest.ini", "--rootdir=."]
+    assert args[i : i + 4] == ["-c", "a/b/pytest.ini", "--rootdir=.", "--confcutdir=."]
 
 
 @pytest.mark.parametrize("flag", [None, "0"], ids=["unset", "0"])
@@ -110,6 +110,23 @@ def test_user_config_wins(pytester):
     rec = pytester.inline_run(*_pytest_args(args=["-c", "other.ini"], env=_env()))
 
     rec.assertoutcome(failed=1)
+
+
+@pytest.mark.parametrize("conftest_dir", [".", "a"], ids=["runfiles_root", "parent"])
+def test_conftest_files_above_the_config_are_loaded(pytester, conftest_dir):
+    """`-c` alone would only load the conftest.py files next to and below it."""
+    (pytester.path / "a" / "b").mkdir(parents=True)
+    (pytester.path / "a" / "b" / "pytest.ini").write_text(_INI)
+    (pytester.path / conftest_dir / "conftest.py").write_text(
+        "import pytest\n\n@pytest.fixture\ndef from_above():\n    return 1\n"
+    )
+    (pytester.path / "a" / "b" / "test_x.py").write_text(
+        "def test_x(from_above):\n    assert from_above == 1\n"
+    )
+
+    rec = pytester.inline_run(*_pytest_args(args=[], env=_env()))
+
+    rec.assertoutcome(passed=1)
 
 
 if __name__ == "__main__":

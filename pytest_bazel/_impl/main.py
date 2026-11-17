@@ -314,7 +314,14 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     pytest_args.extend(_basetemp_args(env))
 
     package_config = _package_config(env)
-    opt_in_args = ["-c", str(package_config), "--rootdir=."] if package_config else []
+    # `-c` would only load the conftest.py files below the config file, e.g.
+    # not the one of the workspace root, so keep loading them from the runfiles
+    # root. A `--confcutdir` of the user comes later and wins.
+    opt_in_args = (
+        ["-c", str(package_config), "--rootdir=.", "--confcutdir=."]
+        if package_config
+        else []
+    )
     pytest_args.extend(opt_in_args)
     # The `-c` of the opt-in args, if any, comes before the one of the user.
     pytest_args.extend(_ini_default_args([*opt_in_args, *args], env, package_config))
