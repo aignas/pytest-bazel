@@ -9,7 +9,7 @@ left alone when PYTHONBREAKPOINT is set.
 import os
 import sys
 from collections.abc import Callable
-from typing import Any
+from typing import Any, NoReturn
 
 import pytest
 
@@ -27,7 +27,7 @@ def _how() -> str:
 _BREAKPOINTHOOK = pytest.StashKey[Callable[..., Any]]()
 
 
-def _breakpoint(*_args, **_kwargs):
+def _breakpoint(*_args: object, **_kwargs: object) -> NoReturn:
     # Show the breakpoint() call of the test as the place of the error.
     __tracebackhide__ = True
     msg = f"breakpoint() was called. {_how()}"

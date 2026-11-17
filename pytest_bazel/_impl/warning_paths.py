@@ -2,13 +2,13 @@
 
 import contextlib
 import warnings
-from collections.abc import Iterator
+from collections.abc import Generator
 from pathlib import Path, PurePath
-from typing import Optional
+from typing import Optional, TextIO, Union
 
 
 @contextlib.contextmanager
-def _warnings_to_file(path: Optional[Path]) -> Iterator[None]:
+def _warnings_to_file(path: Optional[Path]) -> Generator[None, None, None]:
     """Write the warnings that reach `warnings.showwarning` to `path`, if set.
 
     Bazel copies TEST_WARNINGS_OUTPUT_FILE to the test results.
@@ -23,8 +23,13 @@ def _warnings_to_file(path: Optional[Path]) -> Iterator[None]:
     with path.open("a", encoding="utf-8", errors="backslashreplace") as out:
 
         def showwarning(  # noqa: PLR0913, PLR0917
-            message, category, filename, lineno, file=None, line=None
-        ):
+            message: Union[Warning, str],
+            category: type[Warning],
+            filename: str,
+            lineno: int,
+            file: Optional[TextIO] = None,
+            line: Optional[str] = None,
+        ) -> None:
             out.write(warnings.formatwarning(message, category, filename, lineno, line))
             out.flush()
 
@@ -60,7 +65,7 @@ def _relative_to_runfiles(filename: str, start: PurePath) -> str:
 
 
 @contextlib.contextmanager
-def _relative_warning_paths(start: Path) -> Iterator[None]:
+def _relative_warning_paths(start: Path) -> Generator[None, None, None]:
     """Print the paths of warnings relative to the runfiles root under bazel test.
 
     Python prints the absolute path of the file that issued a warning, which
@@ -73,7 +78,13 @@ def _relative_warning_paths(start: Path) -> Iterator[None]:
     # Many warnings come from the same files, and the paths take ~40 us each.
     relative: dict[str, str] = {}
 
-    def formatwarning(message, category, filename, lineno, line=None):
+    def formatwarning(
+        message: Union[Warning, str],
+        category: type[Warning],
+        filename: str,
+        lineno: int,
+        line: Optional[str] = None,
+    ) -> str:
         if filename not in relative:
             relative[filename] = _relative_to_runfiles(filename, start)
         return original(message, category, relative[filename], lineno, line)

@@ -12,10 +12,14 @@ import faulthandler
 import os
 import signal
 import time
+from collections.abc import Sequence
 from pathlib import Path
-from typing import IO, Optional
+from typing import IO, TYPE_CHECKING, Optional
 
 import pytest
+
+if TYPE_CHECKING:
+    from xdist.workermanage import WorkerController
 
 # How long to wait for the workers to write their stacks.
 _DUMP_TIMEOUT = 2.0
@@ -75,7 +79,7 @@ def pytest_unconfigure(config: pytest.Config) -> None:
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_testnodedown(node, error) -> None:
+def pytest_testnodedown(node: "WorkerController", error: Optional[object]) -> None:
     """Remove the file of a worker that crashed.
 
     A crashed worker does not get to `pytest_unconfigure`. Other workers
@@ -118,22 +122,23 @@ def _size(path: Path) -> Optional[int]:
         return None
 
 
-def _wait_for(paths: list[Path], timeout: float) -> None:
+def _wait_for(paths: Sequence[Path], timeout: float) -> None:
     """Wait until all `paths` have content or are gone, or `timeout` seconds pass."""
     deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline and 0 in (_size(p) for p in paths):
+    while time.monotonic() < deadline and any(_size(p) == 0 for p in paths):
         time.sleep(0.05)
 
 
-def _pid(path: Path) -> int:
-    pid, _, _ = path.stem.partition("-")
-    return int(pid)
+def _pid_and_worker(path: Path) -> tuple[int, str]:
+    """Return the PID and the worker id of a `<pid>-<worker id>.txt` file."""
+    pid, _, worker_id = path.stem.partition("-")
+    return int(pid), worker_id
 
 
 def _signal(path: Path, signum: int) -> bool:
     """Send `signum` to the worker of `path`, return False if it is gone."""
     try:
-        os.kill(_pid(path), signum)
+        os.kill(_pid_and_worker(path)[0], signum)
     except (OSError, ValueError):
         # The worker is gone, e.g. pytest-xdist restarted it.
         return False
@@ -163,7 +168,7 @@ def stop_workers(directory: Path, out: IO[str]) -> None:
             continue
         if not text:
             continue
-        _, _, worker_id = path.stem.partition("-")
+        _, worker_id = _pid_and_worker(path)
         print(f"\nStacks of the pytest-xdist worker {worker_id}:", file=out)
         out.write(text)
     out.flush()

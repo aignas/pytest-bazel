@@ -17,7 +17,7 @@ def _pytest_version() -> tuple[int, ...]:
 # The files pytest reads its config from, in the order it looks for them in a
 # directory, and the sections they need to have to count.
 # https://docs.pytest.org/en/stable/reference/customize.html#configuration-file-formats
-_CONFIG_FILES = {
+_CONFIG_FILES: dict[str, Optional[tuple[str, ...]]] = {
     # Since pytest 9.0.
     **(
         {"pytest.toml": None, ".pytest.toml": None}

@@ -6,8 +6,12 @@ https://bazel.build/reference/test-encyclopedia#test-sharding
 """
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING, Optional
 
 import pytest
+
+if TYPE_CHECKING:
+    from xdist.workermanage import WorkerController
 
 # Set when this shard got no tests, but other shards did.
 _EMPTY_SHARD = pytest.StashKey[bool]()
@@ -88,7 +92,7 @@ def pytest_collection_modifyitems(
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_testnodedown(node, error) -> None:
+def pytest_testnodedown(node: "WorkerController", error: Optional[object]) -> None:
     """Pass the empty shard of a pytest-xdist worker on to the main process."""
     if getattr(node, "workeroutput", {}).get(_WORKER_EMPTY_SHARD):
         node.config.stash[_EMPTY_SHARD] = True

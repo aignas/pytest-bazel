@@ -9,12 +9,14 @@ Usage, from the root of the repository:
 import argparse
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Optional
 
-ROOT = "https://github.com/aignas/pytest-bazel"
+REPO_URL = "https://github.com/aignas/pytest-bazel"
 
 
-def check(version: str, changelog: str, news: list[str]) -> list[str]:
+def check(version: str, changelog: str, news: Iterable[str]) -> list[str]:
     """Return what is missing for `version`, or nothing if it is all there.
 
     Args:
@@ -31,13 +33,15 @@ def check(version: str, changelog: str, news: list[str]) -> list[str]:
     if not re.search(rf"^## \[{v}\]$", changelog, re.M):
         problems.append(f"CHANGELOG.md has no `## [{version}]` section")
     if not re.search(
-        rf"^\[{v}\]: {re.escape(ROOT)}/releases/tag/{v}$", changelog, re.M
+        rf"^\[{v}\]: {re.escape(REPO_URL)}/releases/tag/{v}$", changelog, re.M
     ):
         problems.append(
-            f"CHANGELOG.md has no `[{version}]: {ROOT}/releases/tag/{version}` link"
+            f"CHANGELOG.md has no `[{version}]: {REPO_URL}/releases/tag/{version}` link"
         )
     if not re.search(
-        rf"^\[unreleased\]: {re.escape(ROOT)}/compare/{v}\.\.\.HEAD$", changelog, re.M
+        rf"^\[unreleased\]: {re.escape(REPO_URL)}/compare/{v}\.\.\.HEAD$",
+        changelog,
+        re.M,
     ):
         problems.append(
             f"the `[unreleased]` link in CHANGELOG.md does not compare from {version}"
@@ -46,11 +50,11 @@ def check(version: str, changelog: str, news: list[str]) -> list[str]:
     return problems
 
 
-def main() -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     """Check the changelog for the version given as an argument."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("version", help="the version being released, e.g. 0.4.0")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     news = [p.name for p in Path("news").glob("*.md")]
     problems = check(args.version, Path("CHANGELOG.md").read_text(), news)
