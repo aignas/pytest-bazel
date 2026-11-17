@@ -360,6 +360,8 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     if not env.is_bazel_run:
         # Explain how to debug, as tests get no terminal under bazel test.
         pytest_args.extend(["-p", "pytest_bazel._impl.debugging"])
+        # Paths in tracebacks that editors can open, see the module.
+        pytest_args.extend(["-p", "pytest_bazel._impl.traceback_paths"])
 
     if env.xml_output_file:
         pytest_args.append(f"--junitxml={env.xml_output_file}")
