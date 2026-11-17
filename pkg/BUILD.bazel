@@ -1,15 +1,9 @@
 # The metadata duplicates pyproject.toml, :whl_test checks that they match.
-load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
+load("@rules_python//python:packaging.bzl", "py_wheel")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_test.bzl", "py_test")
 
 licenses(["notice"])  # Apache 2.0
-
-py_package(
-    name = "srcs",
-    packages = ["pytest_bazel"],
-    deps = ["//pytest_bazel"],
-)
 
 # TODO @aignas 2024-06-29: Consider having `repairwheel` here so that it actually works
 py_wheel(
@@ -60,7 +54,7 @@ py_wheel(
     # .github/workflows/release.yaml. Unstamped builds get `0+build.embed.label`.
     version = "{BUILD_EMBED_LABEL}",
     visibility = ["//tests:__subpackages__"],
-    deps = [":srcs"],
+    deps = ["//pytest_bazel:srcs"],
 )
 
 py_test(
