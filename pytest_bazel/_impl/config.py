@@ -120,6 +120,18 @@ def _pytest_config_file(args: Sequence[str]) -> Optional[Path]:
     return _first_config((directory, *directory.parents))
 
 
+def _config_above_runfiles() -> bool:
+    """Return whether pytest could find a config file above the runfiles root.
+
+    In the sandbox nothing is there, but without it, e.g. on Windows, with
+    `--spawn_strategy=local` or under `bazel run`, the execroot above the
+    runfiles has the files of the workspace root. pytest would then use them
+    for its config and its rootdir, unlike in the sandbox.
+    """
+    names = (*_CONFIG_FILES, "setup.py")
+    return any((d / name).is_file() for d in Path.cwd().parents for name in names)
+
+
 def _toml_values(path: Path) -> dict[str, object]:
     # Imported here, as most tests have no config file and it takes ~4 ms.
     if sys.version_info >= (3, 11):

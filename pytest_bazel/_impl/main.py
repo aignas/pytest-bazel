@@ -13,12 +13,15 @@ from typing import Optional
 import pytest
 
 from pytest_bazel._impl.config import (
+    _common_dir,
+    _config_above_runfiles,
     _find_package_config,
     _ini_keys,
     _ini_paths,
     _ini_values,
     _pytest_config_file,
     _pytest_version,
+    _user_config_arg,
 )
 from pytest_bazel._impl.env import BazelEnv, _workers_dir
 from pytest_bazel._impl.filters import _with_keyword_expression
@@ -266,11 +269,45 @@ def _random_seed(env: BazelEnv) -> int:
     return env.test_random_seed or env.test_run_number
 
 
+def _empty_config(env: BazelEnv) -> Optional[Path]:
+    """Return the empty config file that keeps pytest in the runfiles, see below."""
+    if not env.is_test or not env.test_tmpdir:
+        return None
+    return env.test_tmpdir / "pytest_bazel_empty.ini"
+
+
+def _hermetic_args(args: list[str], env: BazelEnv) -> list[str]:
+    """Return the args that keep pytest from using files above the runfiles root.
+
+    Without the sandbox, pytest finds e.g. the pytest.ini of the workspace in
+    the execroot above the runfiles, see `_config_above_runfiles`. Then pass
+    what pytest would find in the sandbox: the config file in the runfiles,
+    or an empty one and the rootdir it would use without a config file.
+    """
+    if _user_config_arg(args) or not _config_above_runfiles():
+        return []
+    config = _pytest_config_file(args)
+    if config:
+        # pytest derives the rootdir and confcutdir from it, as in the sandbox.
+        return ["-c", str(config)]
+    empty = _empty_config(env)
+    if not empty or not empty.is_file():
+        # `_prepare` creates it, without it pytest would fail.
+        return []
+    rootdir = _common_dir(args)
+    return ["-c", str(empty), f"--rootdir={rootdir}", f"--confcutdir={rootdir}"]
+
+
 def _prepare(env: BazelEnv) -> None:
     """Set up the process for the args of `_pytest_args`, which has no side effects."""
     _set_tmpdir(env)
     if not env.is_test:
         return
+
+    empty = _empty_config(env)
+    if empty:
+        empty.parent.mkdir(parents=True, exist_ok=True)
+        empty.write_text("")
 
     if env.is_sharded:
         status_file = env.test_shard_status_file
@@ -320,7 +357,7 @@ def _pytest_args(*, args: list[str], env: BazelEnv) -> list[str]:
     opt_in_args = (
         ["-c", str(package_config), "--rootdir=.", "--confcutdir=."]
         if package_config
-        else []
+        else _hermetic_args(args, env)
     )
     pytest_args.extend(opt_in_args)
     # The `-c` of the opt-in args, if any, comes before the one of the user.
