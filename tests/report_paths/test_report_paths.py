@@ -142,7 +142,7 @@ def test_only_under_bazel_test(environ, want_wrapped):
     assert warnings.formatwarning is original
 
 
-def _run_sample(*, bazel_test):
+def _run_sample(*args, bazel_test):
     env = {
         k: v
         for k, v in os.environ.items()
@@ -153,7 +153,7 @@ def _run_sample(*, bazel_test):
         env["BAZEL_TEST"] = "1"
 
     result = subprocess.run(
-        [sys.executable, "-m", "pytest_bazel", "-p", "no:randomly", _SAMPLE],
+        [sys.executable, "-m", "pytest_bazel", "-p", "no:randomly", *args, _SAMPLE],
         env=env,
         capture_output=True,
         text=True,
@@ -172,23 +172,46 @@ def test_absolute_warning_paths_without_bazel_test():
     assert f"{helper}:9: UserWarning" in output, output
 
 
+def _check_locations(output, want):
+    locations = {(m["path"], int(m["line"])) for m in _LOCATION.finditer(output)}
+    for location in want:
+        assert location in locations, output
+
+    for path, line in sorted(locations):
+        assert not Path(path).is_absolute(), f"{path}:{line} in\n{output}"
+        assert Path(path).is_file(), f"{path}:{line} does not exist in\n{output}"
+
+
 @pytest.mark.skipif("BAZEL_TEST" not in os.environ, reason="needs bazel test")
 def test_report_locations_can_be_opened():
     """Run the failing sample like bazel test and check its report."""
     output = _run_sample(bazel_test=True)
 
-    locations = {(m["path"], int(m["line"])) for m in _LOCATION.finditer(output)}
-    for want in [
-        (_SAMPLE, 12),  # the assert in test_assert
-        (_SAMPLE, 21),  # the broken fixture
-        ("tests/report_paths/helper/helper.py", 5),  # the assert in the helper
-        ("tests/report_paths/helper/helper.py", 9),  # the warning
-    ]:
-        assert want in locations, output
+    _check_locations(
+        output,
+        [
+            (_SAMPLE, 12),  # the assert in test_assert
+            (_SAMPLE, 21),  # the broken fixture
+            (_SAMPLE, 34),  # the assert after the test changed the directory
+            ("tests/report_paths/helper/helper.py", 5),  # the assert in the helper
+            ("tests/report_paths/helper/helper.py", 9),  # the warning
+        ],
+    )
 
-    for path, line in sorted(locations):
-        assert not Path(path).is_absolute(), f"{path}:{line} in\n{output}"
-        assert Path(path).is_file(), f"{path}:{line} does not exist in\n{output}"
+
+@pytest.mark.skipif("BAZEL_TEST" not in os.environ, reason="needs bazel test")
+def test_report_locations_with_tb_line():
+    """`--tb=line` prints only where each test failed, not for errors."""
+    output = _run_sample("--tb=line", bazel_test=True)
+
+    _check_locations(
+        output,
+        [
+            (_SAMPLE, 12),
+            (_SAMPLE, 34),
+            ("tests/report_paths/helper/helper.py", 5),
+        ],
+    )
 
 
 if __name__ == "__main__":

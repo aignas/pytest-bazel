@@ -53,6 +53,7 @@ approaches.
 self
 Usage <usage>
 Features <features/index>
+Editors <editors>
 Performance <performance>
 Changelog <changelog>
 Contributing <contributing>

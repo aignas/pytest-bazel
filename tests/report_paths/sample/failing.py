@@ -27,3 +27,8 @@ def test_fixture_error(broken):
 
 def test_warning():
     warn()
+
+
+def test_after_chdir(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert 1 == 2  # noqa: PLR0133
