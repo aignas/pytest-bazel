@@ -30,8 +30,8 @@ import pytest
 # The directory of this file is on sys.path, see BUILD.bazel.
 from lib import ReadmeError, node_ids, replace_block, table
 
-from pytest_bazel.exact_filter import _Filter
-from pytest_bazel.shard import select_shard
+from pytest_bazel._impl.exact_filter import _Filter
+from pytest_bazel._impl.shard import select_shard
 
 _TESTS = 20_000
 _SUITE_TESTS = 200
@@ -148,7 +148,7 @@ def pyc_import_ms(repeat: int = 7) -> dict[str, tuple[float, float]]:
         )
         bazel_code = (
             "import time, pytest; start = time.perf_counter(); "
-            "import pytest_bazel.main; print(time.perf_counter() - start)"
+            "import pytest_bazel._impl.main; print(time.perf_counter() - start)"
         )
         without = median_ms(pytest_code), median_ms(bazel_code)
         compileall.compile_dir(tmp, quiet=1)

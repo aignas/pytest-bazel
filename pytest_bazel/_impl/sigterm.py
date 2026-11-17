@@ -8,7 +8,7 @@ import sys
 import threading
 from collections.abc import Iterator
 
-from pytest_bazel.env import BazelEnv, _workers_dir
+from pytest_bazel._impl.env import BazelEnv, _workers_dir
 
 
 @contextlib.contextmanager
@@ -47,7 +47,7 @@ def _interrupt_on_sigterm(env: BazelEnv) -> Iterator[None]:
         if workers_dir and workers_dir.is_dir():
             # Not at the top: pytest loads the module as a plugin and warns
             # that it cannot rewrite its asserts if it was imported before.
-            from pytest_bazel.workers import stop_workers  # noqa: PLC0415
+            from pytest_bazel._impl.workers import stop_workers  # noqa: PLC0415
 
             stop_workers(workers_dir, stderr)
         raise KeyboardInterrupt

@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.main import BazelEnv
-from pytest_bazel.main import main as _main
+from pytest_bazel._impl.main import BazelEnv
+from pytest_bazel._impl.main import main as _main
 
 
 def _env(premature_exit_file):

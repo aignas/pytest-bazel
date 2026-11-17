@@ -121,3 +121,11 @@ the first-party `foo/numpy` then shadows the real `numpy` for the code under
 test. With it, the module is named `foo.numpy.test_bar`.
 
 Passing `-o consider_namespace_packages=false` in `args` turns it off again.
+
+## Public API
+
+The public API is what the `pytest_bazel` package exports, i.e.
+`pytest_bazel.main()`, together with `python -m pytest_bazel`, the
+`pytest_bazel` console script and the `PYTEST_BAZEL_*` env vars. Everything
+else, e.g. the `--bazel-*` options of its pytest plugins, is private and may
+change in any release.

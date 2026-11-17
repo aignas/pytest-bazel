@@ -5,7 +5,7 @@ from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Optional
 
-from pytest_bazel.filters import _keyword_expression
+from pytest_bazel._impl.filters import _keyword_expression
 
 
 def _flag(env: MutableMapping[str, str], name: str) -> bool:

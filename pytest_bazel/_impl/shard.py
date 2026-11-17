@@ -1,6 +1,6 @@
 """Run only the part of the collected tests that belongs to this Bazel shard.
 
-`pytest_bazel.main` loads this plugin when Bazel shards a test, i.e. when it
+`pytest_bazel._impl.main` loads this plugin when Bazel shards a test, i.e. when it
 sets `TEST_SHARD_INDEX` and `TEST_TOTAL_SHARDS`. See
 https://bazel.build/reference/test-encyclopedia#test-sharding
 """

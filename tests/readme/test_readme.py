@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.env import opt_in_flags
+from pytest_bazel._impl.env import opt_in_flags
 
 _README = Path("README.md")
 _FEATURES = Path("docs/features")

@@ -2,7 +2,7 @@
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 pytest_plugins = ["pytester"]
 
@@ -62,7 +62,7 @@ def test_seeds_random_without_pytest_randomly(pytester):
 
 
 def test_no_seed_by_default():
-    assert "pytest_bazel.random_seed" not in _args()
+    assert "pytest_bazel._impl.random_seed" not in _args()
 
 
 if __name__ == "__main__":

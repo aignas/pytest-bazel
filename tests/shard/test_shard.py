@@ -3,8 +3,8 @@ import random
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args
-from pytest_bazel.shard import select_shard
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.shard import select_shard
 
 pytest_plugins = ["pytester"]
 
@@ -67,7 +67,7 @@ def test_plugin_splits_tests_across_shards(pytester):
         3,
         lambda i: [
             "-p",
-            "pytest_bazel.shard",
+            "pytest_bazel._impl.shard",
             f"--bazel-shard-index={i}",
             "--bazel-total-shards=3",
         ],
@@ -79,7 +79,7 @@ def test_plugin_splits_tests_across_shards(pytester):
 
 @pytest.mark.usefixtures("_test_file")
 def test_plugin_runs_everything_by_default(pytester):
-    (shard,) = _run_shards(pytester, 1, lambda _: ["-p", "pytest_bazel.shard"])
+    (shard,) = _run_shards(pytester, 1, lambda _: ["-p", "pytest_bazel._impl.shard"])
 
     assert len(shard) == _NUM_TESTS
 
@@ -87,7 +87,10 @@ def test_plugin_runs_everything_by_default(pytester):
 @pytest.mark.usefixtures("_test_file")
 def test_plugin_reports_deselected_tests(pytester):
     result = pytester.runpytest(
-        "-p", "pytest_bazel.shard", "--bazel-shard-index=0", "--bazel-total-shards=4"
+        "-p",
+        "pytest_bazel._impl.shard",
+        "--bazel-shard-index=0",
+        "--bazel-total-shards=4",
     )
 
     result.assert_outcomes(passed=5, deselected=15)
@@ -98,7 +101,7 @@ def test_plugin_reports_deselected_tests(pytester):
 def test_plugin_rejects_invalid_shard(pytester, index, total):
     result = pytester.runpytest(
         "-p",
-        "pytest_bazel.shard",
+        "pytest_bazel._impl.shard",
         f"--bazel-shard-index={index}",
         f"--bazel-total-shards={total}",
     )
@@ -136,7 +139,7 @@ def test_shards_split_what_is_left_after_deselection(pytester):
     results = [
         pytester.runpytest(
             "-p",
-            "pytest_bazel.shard",
+            "pytest_bazel._impl.shard",
             f"--bazel-shard-index={i}",
             "--bazel-total-shards=3",
             "-k",
@@ -157,7 +160,7 @@ def test_empty_shard_passes(pytester):
     results = [
         pytester.runpytest(
             "-p",
-            "pytest_bazel.shard",
+            "pytest_bazel._impl.shard",
             f"--bazel-shard-index={i}",
             "--bazel-total-shards=4",
         )
@@ -172,7 +175,10 @@ def test_shards_of_a_target_without_tests_fail(pytester):
     pytester.makepyfile("")
 
     result = pytester.runpytest(
-        "-p", "pytest_bazel.shard", "--bazel-shard-index=1", "--bazel-total-shards=4"
+        "-p",
+        "pytest_bazel._impl.shard",
+        "--bazel-shard-index=1",
+        "--bazel-total-shards=4",
     )
 
     assert result.ret == pytest.ExitCode.NO_TESTS_COLLECTED

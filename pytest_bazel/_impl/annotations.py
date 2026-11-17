@@ -1,6 +1,6 @@
 """Write a summary of the test results as a bazel test annotation.
 
-`pytest_bazel.main` loads this plugin when bazel sets
+`pytest_bazel._impl.main` loads this plugin when bazel sets
 `TEST_UNDECLARED_OUTPUTS_ANNOTATIONS_DIR`. Bazel adds the `*.part` files in
 that directory to `bazel-testlogs/<target>/test.outputs_manifest/ANNOTATIONS`.
 See https://bazel.build/reference/test-encyclopedia#test-interaction-filesystem

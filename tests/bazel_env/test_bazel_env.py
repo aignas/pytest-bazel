@@ -1,6 +1,6 @@
 """BazelEnv behaves like the dataclass it was."""
 
-from pytest_bazel.main import BazelEnv
+from pytest_bazel._impl.main import BazelEnv
 
 
 def test_construct():

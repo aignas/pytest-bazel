@@ -2,7 +2,7 @@
 
 import warnings
 
-from pytest_bazel.warning_paths import _warnings_to_file
+from pytest_bazel._impl.warning_paths import _warnings_to_file
 
 
 def test_writes_warnings_to_the_file(tmp_path):

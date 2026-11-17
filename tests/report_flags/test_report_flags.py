@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 _OUTPUTS = Path("/outputs").absolute()
 

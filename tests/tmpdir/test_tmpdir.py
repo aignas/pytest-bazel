@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from pytest_bazel.env import BazelEnv
-from pytest_bazel.tmpdir import _set_tmpdir
+from pytest_bazel._impl.env import BazelEnv
+from pytest_bazel._impl.tmpdir import _set_tmpdir
 
 _TMP_VARS = ("TMPDIR", "TMP", "TEMP")
 
@@ -44,7 +44,7 @@ def test_noop_outside_of_bazel_test(environ):
 
 @pytest.mark.skipif("BAZEL_TEST" not in os.environ, reason="needs bazel test")
 def test_tempfile_resolves_into_test_tmpdir():
-    """This test runs through pytest_bazel.main, which must have set TMPDIR."""
+    """This test runs through pytest_bazel._impl.main, which must have set TMPDIR."""
     test_tmpdir = Path(os.environ["TEST_TMPDIR"]).resolve()
 
     for var in _TMP_VARS:

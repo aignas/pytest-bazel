@@ -1,6 +1,6 @@
 """Seed the random order and data of the tests from TEST_RANDOM_SEED.
 
-`pytest_bazel.main` loads this plugin when bazel sets TEST_RANDOM_SEED, or
+`pytest_bazel._impl.main` loads this plugin when bazel sets TEST_RANDOM_SEED, or
 TEST_RUN_NUMBER for `--runs_per_test`. pytest-randomly may be installed but
 not loaded, e.g. with `-p no:randomly`, so its `--randomly-seed` flag cannot
 be passed on the command line.

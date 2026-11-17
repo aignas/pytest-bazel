@@ -1,6 +1,6 @@
 import pytest
 
-from pytest_bazel.main import BazelEnv, _pytest_args, _pytest_version
+from pytest_bazel._impl.main import BazelEnv, _pytest_args, _pytest_version
 
 pytest_plugins = ["pytester"]
 

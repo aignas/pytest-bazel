@@ -27,10 +27,10 @@ published to PyPI and is built and tested with Bazel.
   Use `typing.Optional` rather than `X | None` and no stdlib APIs newer
   than 3.9. pyrefly checks against 3.9.
 * Use `pathlib` over `os.path`.
-* Read Bazel env vars through `BazelEnv` in `pytest_bazel/env.py`, so that
+* Read Bazel env vars through `BazelEnv` in `pytest_bazel/_impl/env.py`, so that
   tests can pass a plain dict.
-* `pytest_bazel/main.py` builds the pytest args and runs pytest. Put the
-  helpers of a feature in their own module, e.g. `pytest_bazel/tmpdir.py`,
+* `pytest_bazel/_impl/main.py` builds the pytest args and runs pytest. Put the
+  helpers of a feature in their own module, e.g. `pytest_bazel/_impl/tmpdir.py`,
   and pytest plugins that `main.py` loads with `-p` in modules that it does
   not import.
 * Do not change existing behaviour unless the change needs it. Put
