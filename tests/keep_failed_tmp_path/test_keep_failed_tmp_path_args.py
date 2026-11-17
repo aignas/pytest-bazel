@@ -1,6 +1,7 @@
 import pytest
 
 from pytest_bazel._impl.main import BazelEnv, _pytest_args
+from pytest_bazel._impl.tmpdir import _clean_kept_basetemp
 
 pytest_plugins = ["pytester"]
 
@@ -64,6 +65,41 @@ def test_only_failed_tmp_paths_are_kept(pytester, tmp_path):
     rec.assertoutcome(passed=1, failed=1)
     kept = sorted(p.name for p in outputs.rglob("*.txt"))
     assert kept == ["bad.txt"]
+
+
+def test_config_file_wins_for_the_retention_policy(pytester, tmp_path):
+    pytester.makeini("[pytest]\ntmp_path_retention_policy = all\n")
+
+    args = _pytest_args(args=[], env=_env(tmp_path))
+
+    assert "tmp_path_retention_policy=failed" not in args
+    assert f"--basetemp={tmp_path / 'outputs' / 'pytest'}" in args
+
+
+def _tree(tmp_path):
+    basetemp = tmp_path / "pytest"
+    (basetemp / "test_a0").mkdir(parents=True)
+    (basetemp / "test_a0" / "out.txt").write_text("kept")
+    (basetemp / "test_acurrent").symlink_to(basetemp / "test_a0")
+    (basetemp / "test_bcurrent").symlink_to(tmp_path / "gone")
+    return basetemp
+
+
+def test_clean_removes_the_links_of_failed_runs(tmp_path):
+    basetemp = _tree(tmp_path)
+
+    _clean_kept_basetemp(basetemp, passed=False)
+
+    assert sorted(p.name for p in basetemp.iterdir()) == ["test_a0"]
+    assert (basetemp / "test_a0" / "out.txt").read_text() == "kept"
+
+
+def test_clean_removes_the_basetemp_of_passed_runs(tmp_path):
+    basetemp = _tree(tmp_path)
+
+    _clean_kept_basetemp(basetemp, passed=True)
+
+    assert not basetemp.exists()
 
 
 if __name__ == "__main__":

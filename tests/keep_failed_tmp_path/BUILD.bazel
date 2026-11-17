@@ -12,3 +12,12 @@ py_test(
     env = {"PYTEST_BAZEL_KEEP_FAILED_TMP_PATH": "1"},
     deps = ["//pytest_bazel"],
 )
+
+# Bazel fails a test whose outputs have dangling symlinks, as pytest leaves
+# them under the basetemp, also when the tests pass.
+py_test(
+    name = "test_session_tmp_in_outputs",
+    srcs = ["test_session_tmp_in_outputs.py"],
+    env = {"PYTEST_BAZEL_KEEP_FAILED_TMP_PATH": "1"},
+    deps = ["//pytest_bazel"],
+)
