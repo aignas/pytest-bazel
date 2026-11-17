@@ -70,10 +70,13 @@ def _relative_warning_paths(start: Path) -> Iterator[None]:
     workspace, so editors can open them.
     """
     original = warnings.formatwarning
+    # Many warnings come from the same files, and the paths take ~40 us each.
+    relative: dict[str, str] = {}
 
     def formatwarning(message, category, filename, lineno, line=None):
-        filename = _relative_to_runfiles(filename, start)
-        return original(message, category, filename, lineno, line)
+        if filename not in relative:
+            relative[filename] = _relative_to_runfiles(filename, start)
+        return original(message, category, relative[filename], lineno, line)
 
     warnings.formatwarning = formatwarning
     try:

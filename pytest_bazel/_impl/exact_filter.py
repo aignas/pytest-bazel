@@ -72,14 +72,23 @@ class _Filter:
                 self.names.append(
                     [w for name in part.split("::") for w in _split(name, ".")]
                 )
+        # With the longest name of each, which rules out most tests with one `in`.
+        self._by_longest = [
+            (max(wanted, key=len, default=""), wanted) for wanted in self.names
+        ]
 
     def __call__(self, nodeid: str) -> bool:
-        if any(_matches_path(path, nodeid) for path in self.paths):
-            return True
+        # Loops rather than `any()` and `all()` with generators, as this runs
+        # for every test.
+        for path in self.paths:
+            if _matches_path(path, nodeid):
+                return True
         # Each name of a match is in the node id, which rules out most tests
         # quickly.
         candidates = [
-            wanted for wanted in self.names if all(name in nodeid for name in wanted)
+            wanted
+            for longest, wanted in self._by_longest
+            if longest in nodeid and all(name in nodeid for name in wanted)
         ]
         if not candidates:
             return False
