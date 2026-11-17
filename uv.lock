@@ -972,7 +972,7 @@ requires-dist = [
     { name = "docutils", marker = "extra == 'docs'", specifier = "<0.19" },
     { name = "myst-parser", marker = "extra == 'docs'" },
     { name = "numpy", marker = "extra == 'tests'" },
-    { name = "pytest" },
+    { name = "pytest", specifier = ">=7" },
     { name = "pytest-bazel", extras = ["random"], marker = "extra == 'all'" },
     { name = "pytest-bazel", extras = ["shard"], marker = "extra == 'all'" },
     { name = "pytest-randomly", marker = "extra == 'random'" },

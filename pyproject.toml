@@ -6,7 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "pytest-bazel"
 version = "0.0.1"
 dependencies = [
-  "pytest",
+  # pytest_bazel uses the public types of pytest 7, e.g. `pytest.StashKey`.
+  "pytest>=7",
   # To read the pytest config, pytest itself depends on it too.
   "tomli>=1; python_version < '3.11'",
 ]
