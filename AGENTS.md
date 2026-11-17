@@ -8,7 +8,8 @@ published to PyPI and is built and tested with Bazel.
 
 * `bazel test //...` runs all tests and builds the docs.
 * CI also runs `bazel test //...` on Python 3.9 to 3.15 with
-  `--@rules_python//python/config_settings:python_version=3.X`.
+  `--@rules_python//python/config_settings:python_version=3.X`, and with
+  Bazel 8, 9 and 10.0.0rc2 on the latest Python, via `USE_BAZEL_VERSION`.
 * `prek run --files <files>` runs ruff (lint and format), pyrefly (types)
   and `bazel mod tidy`. CI runs `prek run --all-files`.
 * `docs/readthedocs_build.sh` is what Read the Docs runs. Use it with

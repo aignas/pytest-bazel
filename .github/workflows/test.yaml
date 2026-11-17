@@ -36,6 +36,22 @@ jobs:
           PYTHON: ${{ matrix.python }}
         run: bazel test //... "--@rules_python//python/config_settings:python_version=$PYTHON"
 
+  bazel-versions:
+    strategy:
+      fail-fast: false
+      matrix:
+        # The latest releases, the other jobs use the one in .bazelversion.
+        bazel: ["8.x", "9.x", "10.0.0rc2"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Only the latest Python, the `python-versions` job tests the others.
+      - name: Test with Bazel ${{ matrix.bazel }}
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel }}
+        run: bazel test //... "--@rules_python//python/config_settings:python_version=3.15"
+
   prek:
     runs-on: ubuntu-latest
     steps:
