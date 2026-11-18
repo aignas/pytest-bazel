@@ -34,6 +34,11 @@ def test_default_without_config(pytester, tmp_path):
         ("tox.ini", "[pytest]\njunit_suite_name = mine\n"),
         ("setup.cfg", "[tool:pytest]\njunit_suite_name = mine\n"),
         ("pyproject.toml", '[tool.pytest.ini_options]\njunit_suite_name = "mine"\n'),
+        ("tox.ini", "[pytest]  # pytest\njunit_suite_name = mine\n"),
+        (
+            "pyproject.toml",
+            '[tool.pytest.ini_options]  # pytest\njunit_suite_name = "mine"\n',
+        ),
     ],
 )
 def test_config_file_wins(pytester, tmp_path, name, text):

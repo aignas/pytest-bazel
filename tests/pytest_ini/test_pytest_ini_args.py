@@ -1,6 +1,6 @@
 import pytest
 
-from pytest_bazel._impl.config import _find_package_config
+from pytest_bazel._impl.config import _find_package_config, _pytest_version
 from pytest_bazel._impl.main import BazelEnv, _pytest_args
 
 pytest_plugins = ["pytester"]
@@ -27,7 +27,15 @@ def runfiles(tmp_path, monkeypatch):
     ("files", "want"),
     [
         pytest.param({"a/b/pytest.ini": ""}, "a/b/pytest.ini", id="pytest.ini"),
-        pytest.param({"a/b/.pytest.ini": ""}, "a/b/.pytest.ini", id=".pytest.ini"),
+        pytest.param(
+            {"a/b/.pytest.ini": "[pytest]\n"}, "a/b/.pytest.ini", id=".pytest.ini"
+        ),
+        pytest.param(
+            {"a/b/.pytest.ini": "", "a/pytest.ini": ""},
+            # An empty .pytest.ini is only a pytest config since pytest 9.0.
+            "a/b/.pytest.ini" if _pytest_version() >= (9, 0) else "a/pytest.ini",
+            id="empty_.pytest.ini",
+        ),
         pytest.param({"a/pytest.ini": ""}, "a/pytest.ini", id="parent"),
         pytest.param(
             {"a/b/pyproject.toml": "[tool.pytest.ini_options]\n"},
@@ -47,6 +55,33 @@ def runfiles(tmp_path, monkeypatch):
             {"a/b/pyproject.toml": "[tool.pytest.ini_options]\n", "a/b/pytest.ini": ""},
             "a/b/pytest.ini",
             id="pytest_order",
+        ),
+        pytest.param(
+            {"a/b/pyproject.toml": "[tool.pytest.ini_options]  # pytest\n"},
+            "a/b/pyproject.toml",
+            id="comment_after_the_section",
+        ),
+        pytest.param(
+            {"a/b/tox.ini": "[pytest] # pytest\n"},
+            "a/b/tox.ini",
+            id="comment_after_the_ini_section",
+        ),
+        pytest.param(
+            {
+                "a/b/pyproject.toml": "[tool.pytest]\nminversion = '7'\n",
+                "a/pytest.ini": "",
+            },
+            # `[tool.pytest]` is only a pytest config since pytest 9.0.
+            "a/b/pyproject.toml" if _pytest_version() >= (9, 0) else "a/pytest.ini",
+            id="tool_pytest_table",
+        ),
+        pytest.param(
+            {
+                "a/b/pyproject.toml": 'x = """\n[tool.pytest.ini_options]\n"""\n',
+                "a/pytest.ini": "",
+            },
+            "a/pytest.ini",
+            id="section_name_in_a_string",
         ),
         pytest.param({"pytest.ini": ""}, None, id="runfiles_root_is_skipped"),
         pytest.param({}, None, id="none"),

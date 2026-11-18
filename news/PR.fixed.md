@@ -1,0 +1,1 @@
+The pytest config files of a package and their options are now found as the installed pytest finds them, e.g. a `pyproject.toml` with a comment after `[tool.pytest.ini_options]` is no longer skipped, and `[tool.pytest]` and an empty `.pytest.ini` only count with pytest 9.
