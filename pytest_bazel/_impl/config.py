@@ -7,6 +7,8 @@ from typing import Optional
 
 import pytest
 
+from pytest_bazel._impl.filters import _split_short_option
+
 
 def _pytest_version() -> tuple[int, ...]:
     """Return the `(major, minor)` version of pytest, `(0, 0)` before pytest 7.0."""
@@ -66,15 +68,22 @@ def _find_package_config(package: str) -> Optional[Path]:
 
 
 def _user_config_arg(args: Sequence[str]) -> Optional[Path]:
-    """Return the config file of `-c` or `--config-file` in `args`, the last wins."""
+    """Return the config file of `-c` or `--config-file` in `args`, the last wins.
+
+    `-c x`, `-cx`, `-c=x`, `-vc x`, `--config-file x` and `--config-file=x`
+    are recognised.
+    """
     found = None
     for i, arg in enumerate(args):
-        if arg in ("-c", "--config-file") and i + 1 < len(args):
-            found = args[i + 1]
-        elif arg.startswith("--config-file="):
+        if arg.startswith("--config-file="):
             found = arg.partition("=")[2]
-        elif arg.startswith("-c") and not arg.startswith("--") and len(arg) > len("-c"):
-            found = arg[len("-c") :]
+            continue
+        split = _split_short_option(arg, "c")
+        value = split[1] if split else None
+        if value is not None:
+            found = value
+        elif (split or arg == "--config-file") and i + 1 < len(args):
+            found = args[i + 1]
     return Path(found) if found else None
 
 
