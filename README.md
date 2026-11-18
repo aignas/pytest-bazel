@@ -144,7 +144,7 @@ config file is in the package of the target, and with
 `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1` it is relative to that config file.
 
 | Env var | Default | Description | Docs |
-| --- | --- | --- | --- | --- |
+| --- | --- | --- | --- |
 | `PYTEST_BAZEL_CONFIG_FROM_PACKAGE` | `1` | Use the pytest config file (e.g. `pytest.ini`) in the bazel package of the target or its parents. pytest only looks in the runfiles root. | [Example][docs-config-from-package] |
 | `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES` | `1` | Pass `-o consider_namespace_packages=true` on pytest 8.1+, so that test modules in packages without `__init__.py` do not shadow third-party packages. | [Example][docs-namespace-packages] |
 | `PYTEST_BAZEL_EXACT_TEST_FILTER` | `1` | Select the tests of `--test_filter` by their exact names rather than with `-k`, which matches substrings, e.g. `test_add` would also run `test_add_many`. | [Example][docs-test-filter] |
