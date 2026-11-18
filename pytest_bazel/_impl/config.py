@@ -1,11 +1,13 @@
 """Find the pytest config file of a bazel package, and what it sets."""
 
-import sys
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Optional
 
 import pytest
+
+# pytest imports it anyway, and imports e.g. `tomllib` only to read a file.
+from _pytest.config.findpaths import load_config_dict_from_file
 
 from pytest_bazel._impl.filters import _split_short_option
 
@@ -17,32 +19,35 @@ def _pytest_version() -> tuple[int, ...]:
 
 
 # The files pytest reads its config from, in the order it looks for them in a
-# directory, and the sections they need to have to count.
+# directory.
 # https://docs.pytest.org/en/stable/reference/customize.html#configuration-file-formats
-_CONFIG_FILES: dict[str, Optional[tuple[str, ...]]] = {
+_CONFIG_FILES: tuple[str, ...] = (
     # Since pytest 9.0.
-    **(
-        {"pytest.toml": None, ".pytest.toml": None}
-        if _pytest_version() >= (9, 0)
-        else {}
-    ),
-    "pytest.ini": None,
-    ".pytest.ini": None,
-    "pyproject.toml": ("[tool.pytest.ini_options]", "[tool.pytest]"),
-    "tox.ini": ("[pytest]",),
-    "setup.cfg": ("[tool:pytest]",),
-}
+    *(("pytest.toml", ".pytest.toml") if _pytest_version() >= (9, 0) else ()),
+    "pytest.ini",
+    ".pytest.ini",
+    "pyproject.toml",
+    "tox.ini",
+    "setup.cfg",
+)
 
 
-def _is_pytest_config(path: Path) -> bool:
-    sections = _CONFIG_FILES[path.name]
-    if sections is None:
-        return True
+def _ini_values_or_none(path: Path) -> Optional[dict[str, object]]:
+    """Return the options that the file `path` sets, or None if pytest ignores it.
 
-    # pytest reads config files as UTF-8, only the section names matter here.
-    text = path.read_text(encoding="utf-8", errors="replace")
-    lines = {line.strip() for line in text.splitlines()}
-    return any(section in lines for section in sections)
+    pytest itself reads the file, as which files and sections count differs
+    between pytest versions, e.g. `[tool.pytest]` in pyproject.toml since
+    pytest 9.0. A file that pytest fails to read sets nothing, but counts, so
+    that pytest reports the error itself.
+    """
+    try:
+        values = load_config_dict_from_file(path)
+    except (Exception, pytest.fail.Exception):
+        return {}
+    if values is None:
+        return None
+    # The values are `ConfigValue`s since pytest 9.0.
+    return {name: getattr(value, "value", value) for name, value in values.items()}
 
 
 def _first_config(directories: Iterable[Path]) -> Optional[Path]:
@@ -50,7 +55,7 @@ def _first_config(directories: Iterable[Path]) -> Optional[Path]:
     for directory in directories:
         for name in _CONFIG_FILES:
             candidate = directory / name
-            if candidate.is_file() and _is_pytest_config(candidate):
+            if candidate.is_file() and _ini_values_or_none(candidate) is not None:
                 return candidate
     return None
 
@@ -141,49 +146,9 @@ def _config_above_runfiles() -> bool:
     return any((d / name).is_file() for d in Path.cwd().parents for name in names)
 
 
-def _toml_values(path: Path) -> dict[str, object]:
-    # Imported here, as most tests have no config file and it takes ~4 ms.
-    if sys.version_info >= (3, 11):
-        import tomllib  # noqa: PLC0415
-    else:  # pytest depends on tomli before Python 3.11.
-        import tomli as tomllib  # noqa: PLC0415
-
-    try:
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    # Like pytest, which reads `[pytest]` from pytest.toml, and `[tool.pytest]`
-    # or `[tool.pytest.ini_options]` from pyproject.toml and other toml files.
-    # pytest 9.2 also reads `[pytest]` from a toml file passed with `-c`.
-    if path.name in ("pytest.toml", ".pytest.toml"):
-        return dict(data.get("pytest", {}))
-    pytest_config = data.get("tool", {}).get("pytest", {})
-    values = dict(pytest_config.get("ini_options", pytest_config))
-    if path.name != "pyproject.toml":
-        values = {**data.get("pytest", {}), **values}
-    return values
-
-
-def _ini_file_values(path: Path) -> dict[str, object]:
-    # Imported here, as most tests have no config file.
-    import configparser  # noqa: PLC0415
-
-    parser = configparser.ConfigParser(interpolation=None, strict=False)
-    try:
-        parser.read_string(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, configparser.Error):
-        return {}
-    # Like pytest, which reads `[tool:pytest]` from any `.cfg` file.
-    section = "tool:pytest" if path.suffix == ".cfg" else "pytest"
-    return dict(parser[section]) if parser.has_section(section) else {}
-
-
 def _ini_values(path: Path) -> dict[str, object]:
-    """Return the options that the pytest config file `path` sets.
-
-    An unreadable file sets nothing, pytest reports the error itself.
-    """
-    return _toml_values(path) if path.suffix == ".toml" else _ini_file_values(path)
+    """Return the options that the pytest config file `path` sets."""
+    return _ini_values_or_none(path) or {}
 
 
 def _ini_keys(path: Path) -> set[str]:
