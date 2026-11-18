@@ -60,21 +60,23 @@ def _keyword_expression(test_filter: str) -> str:
     return " or ".join(f"({expression})" for expression in expressions)
 
 
-# Short flags of pytest without a value, which can come before `k` in e.g.
-# `-vk expression`.
+# Short flags of pytest without a value, which can come before an option with
+# a value in e.g. `-vk expression` or `-vc pytest.ini`.
 _SHORT_FLAGS = frozenset("vqsxl")
 
 
-def _split_k(arg: str) -> Optional[tuple[str, Optional[str]]]:
-    """Split `-k`, `-kx`, `-k=x` or `-vkx` into the flags before it and its value.
+def _split_short_option(arg: str, option: str) -> Optional[tuple[str, Optional[str]]]:
+    """Split e.g. `-k`, `-kx`, `-k=x` or `-vkx` into the flags before it and its value.
 
-    Return None if `arg` has no `-k`. The value is None if it is the next arg.
+    `option` is the letter of the short option, e.g. `k`. Return None if `arg`
+    has no such option. The value is None if it is the next arg.
     """
     if not arg.startswith("-") or arg.startswith("--"):
         return None
-    flags, k, value = arg[1:].partition("k")
-    if not k or not set(flags) <= _SHORT_FLAGS:
+    flags, found, value = arg[1:].partition(option)
+    if not found or not set(flags) <= _SHORT_FLAGS:
         return None
+    # Like argparse, which drops the `=` of `-k=x`.
     return f"-{flags}", (value.removeprefix("=") if value else None)
 
 
@@ -90,7 +92,7 @@ def _with_keyword_expression(args: list[str], expression: str) -> list[str]:
         return f"({user}) and ({expression})" if user.strip() else expression
 
     for i in reversed(range(len(args))):
-        split = _split_k(args[i])
+        split = _split_short_option(args[i], "k")
         if split is None:
             continue
         flags, value = split

@@ -62,8 +62,14 @@ def test_config_next_to_the_path_args(pytester, tmp_path):
 
 @pytest.mark.parametrize(
     "config_args",
-    [["-c", "my.ini"], ["-cmy.ini"], ["--config-file=my.ini"]],
-    ids=["separate", "attached", "equals"],
+    [
+        ["-c", "my.ini"],
+        ["-cmy.ini"],
+        ["-c=my.ini"],
+        ["-vc", "my.ini"],
+        ["--config-file=my.ini"],
+    ],
+    ids=["separate", "attached", "short_equals", "combined", "equals"],
 )
 def test_config_of_the_user(pytester, tmp_path, config_args):
     (pytester.path / "pytest.ini").write_text("[pytest]\n")
