@@ -14,7 +14,6 @@ from typing import Optional, Union
 import pytest
 
 from pytest_bazel._impl.config import (
-    _common_dir,
     _config_above_runfiles,
     _find_package_config,
     _ini_keys,
@@ -305,8 +304,9 @@ def _hermetic_args(args: list[str], env: BazelEnv) -> list[str]:
     if not empty or not empty.is_file():
         # `_prepare` creates it, without it pytest would fail.
         return []
-    rootdir = _common_dir(args)
-    return ["-c", str(empty), f"--rootdir={rootdir}", f"--confcutdir={rootdir}"]
+    # Without a config file, pytest uses the current directory, as the paths
+    # in `args` are below it, and loads the conftest.py files up to it.
+    return ["-c", str(empty), "--rootdir=.", "--confcutdir=."]
 
 
 def _prepare(env: BazelEnv) -> None:
