@@ -101,6 +101,59 @@ def test_filter_without_tests_selects_all(pytester):
     assert len(_selected(pytester, ",")) == len(_selected(pytester, ",", flag="0"))
 
 
+_PARAM_ID = "pkg/test_mod.py::test_url[a/b::c.d]"
+
+
+@pytest.mark.parametrize(
+    ("test_filter", "want"),
+    [
+        ("test_url", True),
+        ("test_url[a/b::c.d]", True),
+        ("test_mod.test_url", True),
+        ("test_mod.test_url[a/b::c.d]", True),
+        ("test_mod.py::test_url[a/b::c.d]", True),
+        ("test_url[a/b]", False),
+        ("c.d]", False),
+        ("b", False),
+    ],
+)
+def test_matches_parameters_with_separators(test_filter, want):
+    """The `/`, `::` and `.` in parameters do not separate names or paths."""
+    assert matches(test_filter, _PARAM_ID) is want
+
+
+_PARAM_TESTS = """
+import pytest
+
+@pytest.mark.parametrize("url", ["a/b", "a::b", "c"])
+def test_url(url): pass
+"""
+
+
+@pytest.mark.parametrize(
+    ("test_filter", "flag", "want"),
+    [
+        ("test_url[a/b]", "1", ["test_url[a/b]"]),
+        ("test_url[a::b]", "1", ["test_url[a::b]"]),
+        ("test_url", "1", ["test_url[a/b]", "test_url[a::b]", "test_url[c]"]),
+        ("test_url[a/b]", "0", ["test_url[a/b]"]),
+    ],
+)
+def test_selects_parameters_with_separators(pytester, test_filter, flag, want):
+    (pytester.path / "test_params.py").write_text(_PARAM_TESTS)
+    env = BazelEnv(
+        {
+            "BAZEL_TEST": "1",
+            "TESTBRIDGE_TEST_ONLY": test_filter,
+            "PYTEST_BAZEL_EXACT_TEST_FILTER": flag,
+        }
+    )
+    rec = pytester.inline_run(*_pytest_args(args=["test_params.py"], env=env))
+    passed, _, failed = rec.listoutcomes()
+    assert not failed
+    assert sorted(r.nodeid.partition("::")[2] for r in passed) == want
+
+
 def test_on_by_default():
     env = BazelEnv({"BAZEL_TEST": "1", "TESTBRIDGE_TEST_ONLY": "test_a"})
 
