@@ -10,7 +10,7 @@ from collections.abc import Sequence
 
 import pytest
 
-from pytest_bazel._impl.filters import _split, _split_filters
+from pytest_bazel._impl.filters import _split_filters, _split_names
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -25,13 +25,17 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def _names(nodeid: str) -> list[str]:
     """Return the names of a test and its parents, e.g. `pkg.test_mod.TestA.test_b`."""
-    path, *rest = nodeid.split("::")
+    path, _, rest = nodeid.partition("::")
+    # The parameters of the test come last and may contain `::`.
+    function, bracket, params = rest.partition("[")
     *dirs, module = path.split("/")
     # Like `PurePosixPath.with_suffix("")`, but this runs for every test.
     dot = module.rfind(".")
     if 0 < dot < len(module) - 1:
         module = module[:dot]
-    return [*dirs, module, *rest]
+    names = [*dirs, module, *function.split("::")] if rest else [*dirs, module]
+    names[-1] += bracket + params
+    return names
 
 
 def _is_subsequence(wanted: Sequence[str], names: Sequence[str]) -> bool:
@@ -65,13 +69,11 @@ class _Filter:
         # The names of `a.b` or `A::b`, which must be names of the test in order.
         self.names: list[list[str]] = []
         for part in _split_filters(test_filter):
-            path = part.partition("::")[0]
-            if "/" in path or path.endswith(".py"):
+            path, names = _split_names(part)
+            if path:
                 self.paths.append(part.rstrip("/"))
             else:
-                self.names.append(
-                    [w for name in part.split("::") for w in _split(name, ".")]
-                )
+                self.names.append(names)
         # With the longest name of each, which rules out most tests with one `in`.
         self._by_longest = [
             (max(wanted, key=len, default=""), wanted) for wanted in self.names

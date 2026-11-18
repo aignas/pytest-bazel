@@ -1,0 +1,1 @@
+`--test_filter` now selects parametrized tests whose parameters contain `/` or `::`, e.g. `--test_filter=test_url[a/b]`, and `--test_filter=test_url` selects all of them. Before, the `/` made the filter a path and the `::` split the name of the test, so these tests were not selected.

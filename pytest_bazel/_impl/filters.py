@@ -28,13 +28,32 @@ def _split_filters(test_filter: str) -> list[str]:
     return _split(test_filter, ",")
 
 
-def _single_keyword_expression(test_filter: str) -> str:
-    path, sep, rest = test_filter.partition("::")
-    if sep or "/" in path or path.endswith(".py"):
-        # A file or a pytest node id, the module name is the file name.
-        names = [PurePosixPath(path).name, *rest.split("::")]
+def _split_names(test_filter: str) -> tuple[str, list[str]]:
+    """Split e.g. `dir/mod.py::A::t[a/b]` into its path and names, `["A", "t[a/b]"]`.
+
+    The path is empty if there is none, e.g. for `mod.A::t[a/b]`, which is
+    split at the dots and the `::`. The parameters of a test come last and may
+    contain any character, e.g. `/` or `::`, they stay with the name of the test.
+    """
+    head, bracket, params = test_filter.partition("[")
+    path, sep, rest = head.partition("::")
+    if "/" in path or path.endswith(".py"):
+        names = rest.split("::") if sep else []
     else:
-        names = _split(test_filter, ".")
+        path, names = "", head.replace("::", ".").split(".")
+    if bracket:
+        if names:
+            names[-1] += bracket + params
+        else:
+            path += bracket + params
+    return path, names
+
+
+def _single_keyword_expression(test_filter: str) -> str:
+    path, names = _split_names(test_filter)
+    if path:
+        # A file or a pytest node id, the module name is the file name.
+        names = [PurePosixPath(path).name, *names]
 
     return " and ".join(name for name in names if name)
 
