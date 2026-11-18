@@ -79,6 +79,21 @@ def test_config_next_to_the_path_args(pytester, tmp_path, runfiles):
     assert "'pkg'" in _markers(out)
 
 
+def test_path_args_without_a_config(pytester, tmp_path, runfiles):
+    """As in the sandbox, the rootdir and confcutdir are the runfiles root."""
+    (runfiles / "conftest.py").write_text(
+        "import pytest\n\n@pytest.fixture\ndef from_root():\n    return 1\n"
+    )
+    (runfiles / "pkg" / "test_x.py").write_text(
+        _TEST.replace("def test_x(request,", "def test_x(from_root, request,")
+    )
+
+    out = _run(pytester, tmp_path, "pkg/test_x.py")
+
+    assert "NODEID pkg/test_x.py::test_x" in out
+    assert "'workspace'" not in _markers(out)
+
+
 def test_user_config_wins(pytester, tmp_path, runfiles):
     (runfiles / "my.ini").write_text("[pytest]\nmarkers =\n    mine: x\n")
 
