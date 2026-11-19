@@ -9,6 +9,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [1.0.0]
+
+### Changed
+
+- Only what the `pytest_bazel` package exports, i.e. `pytest_bazel.main()`, is
+  public now, together with `python -m pytest_bazel`, the `pytest_bazel` console
+  script and the `PYTEST_BAZEL_*` env vars. Its other modules, e.g.
+  `pytest_bazel.main`, are private.
+  [#114](https://github.com/aignas/pytest-bazel/pull/114).
+- The package now declares that it needs pytest 7 or newer, which it already
+  did. [#121](https://github.com/aignas/pytest-bazel/pull/121).
+- Selecting tests with `PYTEST_BAZEL_EXACT_TEST_FILTER=1` is about twice as
+  fast, and formatting the paths of warnings under `bazel test` about three
+  times. [#123](https://github.com/aignas/pytest-bazel/pull/123).
+- The behaviours of `PYTEST_BAZEL_CONFIG_FROM_PACKAGE`,
+  `PYTEST_BAZEL_CONSIDER_NAMESPACE_PACKAGES`, `PYTEST_BAZEL_EXACT_TEST_FILTER`,
+  `PYTEST_BAZEL_JUNIT_OUTPUT`, `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH` and
+  `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE` are on by default, set a flag to
+  `0` to turn its behaviour off.
+  [#126](https://github.com/aignas/pytest-bazel/pull/126).
+
+### Fixed
+
+- With `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, the `testpaths` of the pytest
+  config file of the package are now relative to that file, e.g. `testpaths =
+  tests` collects `<package>/tests`. Before, they were looked up in the runfiles
+  root, so with `PYTEST_BAZEL_SCOPE_COLLECTION_TO_PACKAGE=1` too, the tests of
+  all packages were collected.
+  [#112](https://github.com/aignas/pytest-bazel/pull/112).
+- With `PYTEST_BAZEL_KEEP_FAILED_TMP_PATH=1`, bazel no longer fails the test
+  with "not all outputs were created or valid" because of links that pytest
+  leaves in the outputs, a `tmp_path_retention_policy` in the pytest config file
+  wins, and nothing is kept when all tests pass.
+  [#115](https://github.com/aignas/pytest-bazel/pull/115).
+- With `PYTEST_BAZEL_CONFIG_FROM_PACKAGE=1`, the `conftest.py` files above the
+  config file of the package, e.g. in the workspace root, are loaded again.
+  [#116](https://github.com/aignas/pytest-bazel/pull/116).
+- Without the bazel sandbox, e.g. on Windows, with `--spawn_strategy=local` or
+  under `bazel run`, pytest no longer uses the config file and rootdir of the
+  workspace above the runfiles, so the tests run as in the sandbox.
+  [#117](https://github.com/aignas/pytest-bazel/pull/117).
+- An invalid value of a `PYTEST_BAZEL_*` flag, e.g. `true`, is now reported as a
+  usage error and an infrastructure failure, with a one line message instead of
+  a traceback. [#119](https://github.com/aignas/pytest-bazel/pull/119).
+- Under `bazel test`, Python and pytest no longer write `.pyc` files next to the
+  sources in the runfiles, as tests may only write to `TEST_TMPDIR` and the test
+  outputs. [#120](https://github.com/aignas/pytest-bazel/pull/120).
+- Under `bazel test`, the paths in tracebacks stay relative to the workspace
+  root when a test changes the current directory, e.g. with `monkeypatch.chdir`,
+  and with `--tb=line`, so that editors can open them. Before, they were
+  absolute paths into the bazel sandbox, which is gone after the test.
+  [#127](https://github.com/aignas/pytest-bazel/pull/127).
+- The wheel no longer contains `.pyc` files, which only the Python version that
+  built it could use. [#128](https://github.com/aignas/pytest-bazel/pull/128).
+- Without the sandbox, e.g. on Windows, and with test files passed as args, e.g.
+  by rules_python's `pytest_test`, the `conftest.py` of the workspace root is
+  loaded again and test ids are relative to the workspace root, as in the
+  sandbox. [#129](https://github.com/aignas/pytest-bazel/pull/129).
+- A config file passed as `-c=pytest.ini`, or after other short flags as in `-vc
+  pytest.ini`, is now recognised, so that the defaults of `pytest_bazel` no
+  longer override the options it sets.
+  [#130](https://github.com/aignas/pytest-bazel/pull/130).
+- `--test_filter` now selects parametrized tests whose parameters contain `/` or
+  `::`, e.g. `--test_filter=test_url[a/b]`, and `--test_filter=test_url` selects
+  all of them. Before, the `/` made the filter a path and the `::` split the
+  name of the test, so these tests were not selected.
+  [#131](https://github.com/aignas/pytest-bazel/pull/131).
+- The pytest config files of a package and their options are now found as the
+  installed pytest finds them, e.g. a `pyproject.toml` with a comment after
+  `[tool.pytest.ini_options]` is no longer skipped, and `[tool.pytest]` and an
+  empty `.pytest.ini` only count with pytest 9.
+  [#132](https://github.com/aignas/pytest-bazel/pull/132).
+
 ## [0.5.0]
 
 ### Added
@@ -320,7 +393,8 @@ Nothing yet.
 - CI/CD pipeline to PyPI using Trusted Publishers.
 - A simple test that is currently failing.
 
-[unreleased]: https://github.com/aignas/pytest-bazel/compare/0.5.0...HEAD
+[unreleased]: https://github.com/aignas/pytest-bazel/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/aignas/pytest-bazel/releases/tag/1.0.0
 [0.5.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.5.0
 [0.4.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.4.0
 [0.3.0]: https://github.com/aignas/pytest-bazel/releases/tag/0.3.0
